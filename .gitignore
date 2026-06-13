@@ -1,0 +1,49 @@
+# Virtual Environments
+venv/
+.env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Outputs
+outputs/
+*.csv
+*.json
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# HuggingFace
+.cache/
+huggingface/
+
+# FAISS Index
+faiss_index.bin
+candidate_embeddings.npy
+
+# Local Data
+data/raw/candidates.jsonl
+
+# Environment Variables
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Temporary files
+temp/
+tmp/
