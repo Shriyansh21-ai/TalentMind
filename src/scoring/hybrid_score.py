@@ -5,17 +5,13 @@ from src.semantic.semantic_score import (
 )
 
 
-def hybrid_score(candidate, jd_text):
+def hybrid_score(candidate, job_profile):
 
     rule_score = calculate_final_score(candidate)
 
     semantic_score = calculate_semantic_score(
         candidate,
-        jd_text
+        job_profile.to_text()
     )
 
-    return (
-        rule_score * 0.7
-        +
-        semantic_score * 0.3
-    )
+    return rule_score + semantic_score

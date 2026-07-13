@@ -1,26 +1,25 @@
 from sentence_transformers import util
 
-from .embedding_model import model
+from .embeddings import get_embedding_model
 from .text_builder import build_candidate_text
 
 
-def calculate_semantic_score(
-    candidate,
-    jd_text
-):
+def calculate_semantic_score(candidate, jd_text):
 
-    candidate_text = build_candidate_text(
-        candidate
-    )
+    model = get_embedding_model()
+
+    candidate_text = build_candidate_text(candidate)
 
     jd_embedding = model.encode(
         jd_text,
-        convert_to_tensor=True
+        convert_to_tensor=True,
+        normalize_embeddings=True
     )
 
     candidate_embedding = model.encode(
         candidate_text,
-        convert_to_tensor=True
+        convert_to_tensor=True,
+        normalize_embeddings=True
     )
 
     similarity = util.cos_sim(
