@@ -15,7 +15,12 @@ from src.scoring.skill_gap import get_skill_gap
 from src.llm.recruiter_summary import generate_summary
 from src.hiring.recommendation import generate_hiring_recommendation
 from src.recruiter.pipeline import get_status
-from src.ui.helpers import calculate_badge, get_candidate_intelligence
+from src.ui.helpers import (
+    calculate_badge,
+    get_candidate_intelligence,
+    get_career_timeline,
+    get_risk_report,
+)
 from src.ui.profile_tabs import render_profile_tabs
 
 
@@ -68,6 +73,8 @@ def render_candidate_card(
             gap = get_skill_gap(candidate, jd)
             recommendation = generate_hiring_recommendation(candidate, intel, gap)
             summary = generate_summary(candidate, explanation, gap)
+            timeline = get_career_timeline(candidate)
+            risk = get_risk_report(candidate)
 
             st.metric("Overall Match Score", score)
 
@@ -80,6 +87,8 @@ def render_candidate_card(
                 gap=gap,
                 summary=summary,
                 recommendation=recommendation,
+                timeline=timeline,
+                risk=risk,
             )
 
     st.divider()

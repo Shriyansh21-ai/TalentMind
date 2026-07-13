@@ -34,6 +34,9 @@ def career_growth(candidate):
 
         history.append(value)
 
+    if not history:
+        return 0
+
     growth = max(history)-min(history)
 
     return min(growth*20,100)

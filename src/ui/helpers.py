@@ -13,6 +13,10 @@ import streamlit as st
 from src.models.candidates import Candidate
 from src.intelligence.candidate.engine import build_candidate_intelligence
 from src.intelligence.candidate.models import CandidateIntelligence
+from src.intelligence.timeline.analyzer import build_career_timeline
+from src.intelligence.timeline.models import CareerTimelineAnalysis
+from src.intelligence.risk.analyzer import build_risk_report
+from src.intelligence.risk.models import RiskReport
 
 # Match-badge thresholds — unchanged from the original app.py inline logic.
 STRONG_MATCH_THRESHOLD: int = 170
@@ -55,3 +59,21 @@ def get_candidate_intelligence(candidate: Candidate) -> CandidateIntelligence:
     changed.
     """
     return build_candidate_intelligence(candidate)
+
+
+@st.cache_data(hash_funcs={Candidate: lambda c: c.candidate_id})
+def get_career_timeline(candidate: Candidate) -> CareerTimelineAnalysis:
+    """Cached wrapper around ``build_career_timeline`` (keyed by candidate_id).
+
+    Ensures each candidate's timeline analysis runs at most once per session.
+    """
+    return build_career_timeline(candidate)
+
+
+@st.cache_data(hash_funcs={Candidate: lambda c: c.candidate_id})
+def get_risk_report(candidate: Candidate) -> RiskReport:
+    """Cached wrapper around ``build_risk_report`` (keyed by candidate_id).
+
+    Ensures each candidate's risk analysis runs at most once per session.
+    """
+    return build_risk_report(candidate)

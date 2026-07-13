@@ -30,9 +30,9 @@ def explain_candidate(candidate):
     red_flag_penalty = calculate_red_flag_penalty(candidate)
     reasons = generate_recruiter_reason(candidate)
     gap = get_skill_gap(
-    candidate,
-    
-)
+        candidate,
+        "",
+    )
 
     return {
     "candidate_id": candidate.candidate_id,

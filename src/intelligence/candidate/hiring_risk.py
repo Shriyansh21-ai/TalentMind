@@ -2,7 +2,7 @@ def hiring_risk(candidate):
 
     risk = 0
 
-    if candidate.profile.notice_period > 60:
+    if candidate.redrob_signals.notice_period_days > 60:
 
         risk += 30
 
