@@ -47,3 +47,9 @@ data/raw/candidates.jsonl
 # Temporary files
 temp/
 tmp/
+
+# AI Platform runtime artifacts (Phase 3)
+data/ai_cache/
+data/pipeline_state.json
+logs/
+.pytest_cache/

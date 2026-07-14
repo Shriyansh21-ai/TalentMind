@@ -26,12 +26,14 @@ from src.intelligence.timeline.models import CareerTimelineAnalysis
 from src.intelligence.risk.models import RiskReport
 from src.hiring.recommendation_model import HiringRecommendation
 from src.interview.models import InterviewPlan
+from src.insights.models import CandidateInsights
 from src.semantic.similar_candidates import find_similar_candidates
 from src.recruiter.pipeline import save_status, get_status
 from src.scoring.hiring_recommendation import get_hiring_recommendation
 from src.ui.timeline_tab import render_timeline_tab
 from src.ui.risk_tab import render_risk_tab
 from src.ui.interview_tab import render_interview_tab
+from src.ui.ai_analyst_tab import render_ai_analyst_tab
 
 
 # ---------------------------------------------------------------------------
@@ -270,6 +272,8 @@ def render_profile_tabs(
     timeline: CareerTimelineAnalysis,
     risk: RiskReport,
     interview_plan: Optional[InterviewPlan] = None,
+    insights: Optional[CandidateInsights] = None,
+    jd: str = "",
 ) -> None:
     """Render the full nine-tab candidate detail view plus similar candidates.
 
@@ -287,6 +291,9 @@ def render_profile_tabs(
         interview_plan: Deterministic interview plan (Module 4). When provided the
             Interview Plan tab renders the full structured plan; otherwise it
             falls back to the recommendation's focus areas.
+        insights: Shared candidate insight bundle. When provided, the AI Hiring
+            Analyst tab (Phase 3) is shown; it reasons over this evidence.
+        jd: Raw job-description text (passed to the AI Hiring Analyst).
     """
     (
         tab_summary,
@@ -298,6 +305,7 @@ def render_profile_tabs(
         tab_explain,
         tab_hiring,
         tab_interview,
+        tab_ai,
     ) = st.tabs(
         [
             "📄 Summary",
@@ -309,6 +317,7 @@ def render_profile_tabs(
             "📄 Explainability",
             "🎯 Hiring Recommendation",
             "🗓 Interview Plan",
+            "🤖 AI Hiring Analyst",
         ]
     )
 
@@ -339,5 +348,13 @@ def render_profile_tabs(
 
     with tab_interview:
         _render_interview_plan_tab(interview_plan, recommendation)
+
+    with tab_ai:
+        if insights is not None and interview_plan is not None:
+            render_ai_analyst_tab(
+                candidate.candidate_id, insights, interview_plan, jd
+            )
+        else:
+            st.info("AI Hiring Analyst is unavailable for this view.")
 
     _render_similar_candidates(candidate)

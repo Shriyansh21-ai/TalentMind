@@ -96,8 +96,45 @@ def initialize_faiss(candidates):
 # --------------------------------------------------
 
 
+def _render_copilot_workspace() -> None:
+    """Render the AI Recruiter Copilot workspace (Phase 3 / Milestone 2).
+
+    Kept as a small, self-contained branch so ``app.py`` stays a thin orchestrator.
+    The candidate repository is built lazily (inside the copilot page) from the
+    same cached loaders + FAISS index the console uses, so nothing heavy runs
+    until the recruiter actually sends a message.
+    """
+    from src.ui.copilot_page import render_copilot
+    from src.ui.helpers import get_insights
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_copilot(
+        _build_repository,
+        insights_fn=lambda candidate, jd: get_insights(candidate, jd),
+    )
+
+
 def main() -> None:
     """Drive the end-to-end recruiter pipeline for a single run."""
+    workspace = st.sidebar.radio(
+        "Workspace",
+        ["Recruiter Console", "AI Recruiter Copilot"],
+        key="workspace_nav",
+    )
+    if workspace == "AI Recruiter Copilot":
+        _render_copilot_workspace()
+        return
+
     uploaded_jd, run_button = render_sidebar()
 
     if not run_button:

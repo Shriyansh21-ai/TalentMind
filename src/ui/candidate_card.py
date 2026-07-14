@@ -93,6 +93,8 @@ def render_candidate_card(
                 timeline=insights.timeline,
                 risk=insights.risk,
                 interview_plan=interview_plan,
+                insights=insights,
+                jd=jd,
             )
 
     st.divider()
