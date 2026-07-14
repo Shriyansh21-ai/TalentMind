@@ -17,6 +17,8 @@ from src.intelligence.timeline.analyzer import build_career_timeline
 from src.intelligence.timeline.models import CareerTimelineAnalysis
 from src.intelligence.risk.analyzer import build_risk_report
 from src.intelligence.risk.models import RiskReport
+from src.insights.builder import build_insights
+from src.insights.models import CandidateInsights
 
 # Match-badge thresholds — unchanged from the original app.py inline logic.
 STRONG_MATCH_THRESHOLD: int = 170
@@ -77,3 +79,19 @@ def get_risk_report(candidate: Candidate) -> RiskReport:
     Ensures each candidate's risk analysis runs at most once per session.
     """
     return build_risk_report(candidate)
+
+
+@st.cache_data(hash_funcs={Candidate: lambda c: c.candidate_id})
+def get_insights(
+    candidate: Candidate, jd: str, match_score: float = 0.0
+) -> CandidateInsights:
+    """Cached wrapper around :func:`build_insights` (keyed by candidate + jd).
+
+    This is the single entry point the entire Enterprise Workspace uses to obtain
+    a candidate's analytics bundle. Because it is cached by ``(candidate_id, jd,
+    match_score)``, the expensive intelligence / timeline / risk engines run at
+    most once per candidate per job description per session — the card view, the
+    dashboard, comparison, talent-pool segmentation, interview plans and the
+    filters all share this one computation.
+    """
+    return build_insights(candidate, jd=jd, match_score=match_score)

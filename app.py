@@ -31,6 +31,7 @@ from src.recruiter.pipeline import load_actions
 
 from src.ui.sidebar import render_sidebar
 from src.ui.dashboard import render_dashboard
+from src.ui.workspace import render_enterprise_workspace
 from src.ui.recruiter_search import render_recruiter_search
 from src.ui.candidate_card import render_candidate_card
 from src.ui.export import render_export
@@ -148,6 +149,12 @@ def main() -> None:
     # ---- Render ----------------------------------------------------------
     actions = load_actions()
     render_dashboard(candidates, results, jd, actions)
+
+    # ---- Enterprise Hiring Workspace (Phase 2 / Milestone 2) --------------
+    # Analytics dashboard, talent-pool segmentation, smart filtering and the
+    # candidate comparison workspace. Rendered from a single thin call so the
+    # orchestrator stays small; all logic lives in ``src/ui/workspace.py``.
+    render_enterprise_workspace(candidates, results, jd)
 
     render_recruiter_search()
 

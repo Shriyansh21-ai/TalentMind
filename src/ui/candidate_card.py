@@ -1,27 +1,24 @@
 """Top-ranked candidate card rendering for TalentMind.
 
-Renders a single ranked candidate: the summary header, ranking reasons,
-pipeline status, and an expander containing the full profile tabs. This module
-assembles the per-candidate engine outputs (explainability, intelligence,
-skill gap, hiring recommendation, AI summary) and hands them to
-``render_profile_tabs``. No scoring or ranking logic is performed here.
+Renders a single ranked candidate: the summary header, ranking reasons, pipeline
+status, a compare toggle, the enterprise pipeline controls, and an expander
+containing the full profile tabs.
+
+As of Phase 2 / Milestone 2 the per-candidate engine outputs are sourced from the
+shared, cached :class:`CandidateInsights` bundle (see ``src/ui/helpers.py``) so
+the card, the profile tabs, the interview plan and the enterprise workspace all
+share one computation per candidate. No scoring or ranking logic runs here.
 """
 
 import streamlit as st
 
 from src.models.candidates import Candidate
-from src.scoring.explainability import explain_candidate
-from src.scoring.skill_gap import get_skill_gap
-from src.llm.recruiter_summary import generate_summary
-from src.hiring.recommendation import generate_hiring_recommendation
 from src.recruiter.pipeline import get_status
-from src.ui.helpers import (
-    calculate_badge,
-    get_candidate_intelligence,
-    get_career_timeline,
-    get_risk_report,
-)
+from src.interview.planner import build_interview_plan
+from src.ui.helpers import calculate_badge, get_insights
+from src.ui.pipeline_controls import render_pipeline_controls
 from src.ui.profile_tabs import render_profile_tabs
+from src.ui.workspace_state import is_selected, toggle_compare
 
 
 def render_candidate_card(
@@ -38,7 +35,8 @@ def render_candidate_card(
         score: The candidate's hybrid match score.
         jd: Raw job-description text (used for skill-gap analysis).
     """
-    explanation = explain_candidate(candidate)
+    insights = get_insights(candidate, jd, score)
+    explanation = insights.explanation
     badge = calculate_badge(score)
 
     with st.container():
@@ -65,30 +63,43 @@ def render_candidate_card(
             for reason in explanation["reasons"]:
                 st.write("✅", reason)
 
+        # --- Compare toggle (feeds the Comparison workspace) ---------------
+        selected = is_selected(candidate.candidate_id)
+        compare_label = "✓ Comparing" if selected else "➕ Compare"
+        if st.button(compare_label, key=f"compare_{candidate.candidate_id}"):
+            toggle_compare(candidate.candidate_id)
+            _rerun()
+
         status = get_status(candidate.candidate_id)
         st.caption(f"Pipeline Status: {status}")
 
         with st.expander("View Candidate"):
-            intel = get_candidate_intelligence(candidate)
-            gap = get_skill_gap(candidate, jd)
-            recommendation = generate_hiring_recommendation(candidate, intel, gap)
-            summary = generate_summary(candidate, explanation, gap)
-            timeline = get_career_timeline(candidate)
-            risk = get_risk_report(candidate)
+            render_pipeline_controls(candidate)
+            st.divider()
 
             st.metric("Overall Match Score", score)
+
+            interview_plan = build_interview_plan(insights)
 
             render_profile_tabs(
                 candidate=candidate,
                 score=score,
                 badge=badge,
                 explanation=explanation,
-                intel=intel,
-                gap=gap,
-                summary=summary,
-                recommendation=recommendation,
-                timeline=timeline,
-                risk=risk,
+                intel=insights.intelligence,
+                gap=insights.gap,
+                summary=insights.summary,
+                recommendation=insights.recommendation,
+                timeline=insights.timeline,
+                risk=insights.risk,
+                interview_plan=interview_plan,
             )
 
     st.divider()
+
+
+def _rerun() -> None:
+    """Trigger a Streamlit rerun, tolerant of Streamlit version differences."""
+    rerun = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
+    if rerun is not None:
+        rerun()

@@ -16,7 +16,7 @@ engines, similar-candidate search, pipeline status, timeline & risk engines)
 are unchanged and injected precomputed by ``candidate_card``.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import streamlit as st
 
@@ -25,11 +25,13 @@ from src.intelligence.candidate.models import CandidateIntelligence
 from src.intelligence.timeline.models import CareerTimelineAnalysis
 from src.intelligence.risk.models import RiskReport
 from src.hiring.recommendation_model import HiringRecommendation
+from src.interview.models import InterviewPlan
 from src.semantic.similar_candidates import find_similar_candidates
 from src.recruiter.pipeline import save_status, get_status
 from src.scoring.hiring_recommendation import get_hiring_recommendation
 from src.ui.timeline_tab import render_timeline_tab
 from src.ui.risk_tab import render_risk_tab
+from src.ui.interview_tab import render_interview_tab
 
 
 # ---------------------------------------------------------------------------
@@ -212,15 +214,21 @@ def _render_hiring_tab(
     st.info(f"Current Status: {current_status}")
 
 
-def _render_interview_plan_tab(recommendation: HiringRecommendation) -> None:
-    """Render the Interview Plan placeholder tab.
+def _render_interview_plan_tab(
+    interview_plan: Optional[InterviewPlan],
+    recommendation: HiringRecommendation,
+) -> None:
+    """Render the Interview Plan tab.
 
-    Placeholder for a future milestone; surfaces the recommendation's interview
-    focus areas as a preview so the tab is useful today.
+    As of Phase 2 / Milestone 2 this renders a full, deterministic
+    :class:`InterviewPlan` (Module 4). If no plan is supplied (e.g. a legacy
+    caller), it falls back to surfacing the recommendation's interview focus.
     """
-    st.subheader("🗓 Interview Plan")
-    st.info("Structured interview planning is coming in a future milestone.")
+    if interview_plan is not None:
+        render_interview_tab(interview_plan)
+        return
 
+    st.subheader("🗓 Interview Plan")
     if recommendation.interview_focus:
         st.markdown("### Suggested Focus Areas")
         for topic in recommendation.interview_focus:
@@ -261,6 +269,7 @@ def render_profile_tabs(
     recommendation: HiringRecommendation,
     timeline: CareerTimelineAnalysis,
     risk: RiskReport,
+    interview_plan: Optional[InterviewPlan] = None,
 ) -> None:
     """Render the full nine-tab candidate detail view plus similar candidates.
 
@@ -275,6 +284,9 @@ def render_profile_tabs(
         recommendation: Intelligence-engine hiring recommendation object.
         timeline: Career timeline analysis (new in Milestone 1).
         risk: Resume risk report (new in Milestone 1).
+        interview_plan: Deterministic interview plan (Module 4). When provided the
+            Interview Plan tab renders the full structured plan; otherwise it
+            falls back to the recommendation's focus areas.
     """
     (
         tab_summary,
@@ -326,6 +338,6 @@ def render_profile_tabs(
         _render_hiring_tab(candidate, score, badge, explanation, gap, recommendation)
 
     with tab_interview:
-        _render_interview_plan_tab(recommendation)
+        _render_interview_plan_tab(interview_plan, recommendation)
 
     _render_similar_candidates(candidate)
