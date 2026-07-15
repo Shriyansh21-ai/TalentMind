@@ -33,6 +33,16 @@ _TOOL_EVIDENCE = {
     "comparison": "Candidate Comparison engine",
     "pipeline": "Hiring Pipeline",
     "dashboard": "Recruiter Dashboard analytics",
+    "resume_analysis": "Resume Analyst Agent",
+    "jd_analysis": "JD Analyst Agent",
+    "hiring_committee": "AI Hiring Committee",
+    "executive_report": "Executive Hiring Report",
+    "interview_studio": "Interview Studio",
+    "compensation_governance": "Compensation Governance",
+    "pay_equity_guardian": "Pay Equity Guardian",
+    "hiring_compliance": "Hiring Compliance",
+    "hiring_audit": "Hiring Audit",
+    "hiring_intelligence": "Hiring Intelligence",
 }
 
 
@@ -166,6 +176,288 @@ def _summarize_explainability(output: Dict[str, Any]) -> str:
     return f"Rule-based ranking total {output.get('total_score', 'n/a')}.{tail}"
 
 
+def _summarize_resume_analysis(output: Dict[str, Any]) -> str:
+    dims = output.get("dimensions", {})
+    strengths = output.get("strengths", [])
+    weaknesses = output.get("weaknesses", [])
+    improvements = output.get("top_improvements", [])
+    lines = [
+        f"Resume quality {output.get('overall_quality', 0):.0f}/100 "
+        f"(structure {dims.get('structure', 0):.0f}, writing {dims.get('writing', 0):.0f}, "
+        f"technical {dims.get('technical_depth', 0):.0f}, ATS "
+        f"{output.get('ats_friendliness', 'n/a')}). This is resume quality, not a hiring score.",
+    ]
+    if strengths:
+        lines.append("Strengths: " + "; ".join(strengths[:3]) + ".")
+    if weaknesses:
+        lines.append("Weaknesses: " + "; ".join(weaknesses[:3]) + ".")
+    if output.get("risk_findings"):
+        lines.append(f"Resume risk: {output.get('risk_level')} ({len(output['risk_findings'])} finding(s)).")
+    if improvements:
+        tops = ", ".join(f"{i['title']} ({i['priority']})" for i in improvements[:3])
+        lines.append("Top improvements: " + tops + ".")
+    return "\n".join(lines)
+
+
+def _summarize_jd_analysis(output: Dict[str, Any]) -> str:
+    dims = output.get("dimensions", {})
+    lines = [
+        f"JD quality {output.get('overall_quality', 0):.0f}/100 "
+        f"(role clarity {dims.get('role_clarity', 0):.0f}, technical clarity "
+        f"{dims.get('technical_clarity', 0):.0f}, requirement quality "
+        f"{dims.get('requirement_quality', 0):.0f}). This is JD quality, not a candidate score.",
+        f"Inferred role: {output.get('seniority', '?')} · {output.get('technical_level', '?')} "
+        f"(confidence {output.get('role_confidence', 0):.0f}%).",
+        f"Likely hiring intent: {output.get('primary_intent', '?')} "
+        f"({output.get('intent_confidence', 0):.0f}% confidence) — inference, not stated fact.",
+    ]
+    mandatory = output.get("mandatory", [])
+    if mandatory:
+        lines.append("Mandatory: " + "; ".join(mandatory[:3]) + ".")
+    if output.get("risk_findings"):
+        lines.append(f"JD risk: {output.get('risk_level')} ({len(output['risk_findings'])} finding(s)).")
+    improvements = output.get("top_improvements", [])
+    if improvements:
+        tops = ", ".join(f"{i['title']} ({i['priority']})" for i in improvements[:3])
+        lines.append("Top improvements: " + tops + ".")
+    return "\n".join(lines)
+
+
+def _summarize_committee(output: Dict[str, Any]) -> str:
+    lines = [
+        f"**Committee decision: {output.get('recommendation', 'n/a')}** "
+        f"({output.get('consensus_level', 'n/a')}, confidence "
+        f"{output.get('overall_confidence', 0):.0f}/100).",
+    ]
+    opinions = output.get("opinions", [])
+    if opinions:
+        panel = "; ".join(f"{o['role']}: {o['recommendation']}" for o in opinions)
+        lines.append("Panel: " + panel + ".")
+    disagreements = output.get("disagreements", [])
+    if disagreements:
+        lines.append("Disagreement: " + " ".join(disagreements))
+    conflicts = output.get("conflicts", [])
+    if conflicts:
+        lines.append(
+            "Key conflict(s): "
+            + "; ".join(c["between"] for c in conflicts[:3])
+            + "."
+        )
+    risks = output.get("hiring_risks", [])
+    if risks:
+        lines.append("Risks: " + "; ".join(risks[:3]) + ".")
+    unknowns = output.get("remaining_unknowns", [])
+    if unknowns:
+        lines.append("Remaining unknowns: " + "; ".join(unknowns[:2]) + ".")
+    actions = output.get("follow_up_actions", [])
+    if actions:
+        lines.append("Next steps: " + "; ".join(actions[:3]) + ".")
+    return "\n".join(lines)
+
+
+def _summarize_executive_report(output: Dict[str, Any]) -> str:
+    lines = [
+        f"**{output.get('template_name', 'Executive')} report for {output.get('candidate_id', '?')}** — "
+        f"recommends **{output.get('overall_recommendation', 'n/a')}** → action "
+        f"'{output.get('recommended_action', 'n/a')}' "
+        f"(executive confidence {output.get('executive_confidence', 'n/a')}).",
+    ]
+    if output.get("executive_summary"):
+        lines.append(output["executive_summary"])
+    reasons = output.get("top_reasons", [])
+    if reasons:
+        lines.append("Top reasons: " + "; ".join(reasons[:3]) + ".")
+    concerns = output.get("top_concerns", [])
+    if concerns:
+        lines.append("Top concerns: " + "; ".join(concerns[:3]) + ".")
+    fmt = output.get("format", "pdf")
+    if output.get("export_bytes_len"):
+        lines.append(
+            f"A {str(fmt).upper()} export ({output['export_bytes_len']:,} bytes) is ready to download. "
+            "This report synthesizes existing intelligence — it introduces no new ranking."
+        )
+    elif output.get("export_error"):
+        lines.append(f"(The {str(fmt).upper()} export could not be generated: {output['export_error']}.)")
+    return "\n".join(lines)
+
+
+def _summarize_interview_studio(output: Dict[str, Any]) -> str:
+    lines = [
+        f"**{output.get('role_name', 'Interview')} interview plan for {output.get('candidate_id', '?')}** "
+        f"({output.get('depth', 'standard')} loop, {output.get('stage_count', 0)} stages, "
+        f"{output.get('question_count', 0)} questions; readiness {output.get('readiness', 'n/a')}).",
+    ]
+    if output.get("interview_summary"):
+        lines.append(output["interview_summary"])
+    roadmap = output.get("roadmap", [])
+    if roadmap:
+        lines.append("Roadmap: " + " -> ".join(roadmap) + ".")
+    probes = output.get("key_probes", [])
+    if probes:
+        lines.append("Key probes: " + "; ".join(probes[:3]) + ".")
+    tech = output.get("technical_questions", [])
+    if tech:
+        lines.append("Sample technical questions: " + "; ".join(tech[:3]) + ".")
+    validations = output.get("risk_validations", [])
+    if validations:
+        lines.append(
+            "Risk validations: "
+            + "; ".join(f"{v['risk']} -> {v['question']}" for v in validations[:2])
+            + "."
+        )
+    bands = output.get("decision_bands", [])
+    if bands:
+        lines.append("Decision matrix bands: " + ", ".join(bands) + ".")
+    lines.append("Every question traces back to existing intelligence; this plans the interview, it does not run it.")
+    return "\n".join(lines)
+
+
+def _summarize_compensation(output: Dict[str, Any]) -> str:
+    lines = [
+        f"**Compensation governance for {output.get('candidate_id', '?')}** — recommends "
+        f"**{output.get('recommended_range', 'n/a')}** ({output.get('market_position', 'n/a')}, "
+        f"{output.get('hire_type', 'n/a')}, {output.get('confidence', 'n/a')} confidence). "
+        "This is a defensible range, not a salary prediction.",
+    ]
+    if output.get("executive_summary"):
+        lines.append(output["executive_summary"])
+    scenarios = output.get("scenarios", [])
+    if scenarios:
+        lines.append("Scenarios: " + "; ".join(f"{s['name']} {s['range']}" for s in scenarios[:4]) + ".")
+    lines.append(
+        f"Negotiation: acceptance {output.get('acceptance_likelihood', 'n/a')}, "
+        f"probability {output.get('negotiation_probability', 'n/a')}."
+    )
+    strategy = output.get("negotiation_strategy", [])
+    if strategy:
+        lines.append("Strategy: " + "; ".join(strategy[:2]) + ".")
+    justifications = output.get("key_justifications", [])
+    if justifications:
+        lines.append("Justification: " + "; ".join(justifications[:3]) + ".")
+    assumptions = output.get("key_assumptions", [])
+    if assumptions:
+        lines.append("Assumptions: " + "; ".join(assumptions[:2]) + ".")
+    lines.append(f"Market data: {output.get('market_data_note', 'internal heuristic model')}")
+    lines.append(f"Internal equity: {output.get('internal_equity', 'unavailable')}")
+    lines.append(
+        f"Audit trail {output.get('audit_decision_id', 'n/a')} — approvals: "
+        f"{', '.join(output.get('approvals_required', []))} "
+        f"({output.get('human_review_status', 'pending')})."
+    )
+    return "\n".join(lines)
+
+
+def _summarize_pay_equity(output: Dict[str, Any]) -> str:
+    lines = [
+        f"**Pay-equity review for {output.get('candidate_id', '?')}** — equity risk "
+        f"**{output.get('equity_risk', 'n/a')}**"
+        + ("" if output.get("data_available") else " (no internal data — provisional)")
+        + f"; compression {output.get('compression_risk', 'n/a')}, inversion "
+        f"{output.get('inversion_risk', 'n/a')}. Governance assessment only — no legal conclusion.",
+    ]
+    if output.get("executive_summary"):
+        lines.append(output["executive_summary"])
+    lines.append(output.get("data_availability_note", ""))
+    lines.append(
+        f"Policy '{output.get('policy', 'n/a')}': {output.get('policy_alignment', 'n/a')}."
+        + (" Violations: " + "; ".join(output.get("policy_violations", [])) if output.get("policy_violations") else "")
+    )
+    approvers = output.get("required_approvers", [])
+    if approvers:
+        lines.append(f"{output.get('review_level', 'Standard')} review — approvers: {', '.join(approvers)}.")
+    recs = output.get("human_review_recommendations", [])
+    if recs:
+        lines.append("Human review: " + "; ".join(recs[:3]) + ".")
+    return "\n".join(l for l in lines if l)
+
+
+def _summarize_compliance(output: Dict[str, Any]) -> str:
+    lines = [
+        f"**Hiring compliance for {output.get('candidate_id', '?')}** — workflow "
+        f"**{output.get('workflow_status', 'n/a')}** "
+        f"({output.get('workflow_completed', 0)}/{output.get('workflow_total', 0)} steps), "
+        f"governance risk {output.get('governance_risk', 'n/a')}, audit {output.get('audit_status', 'n/a')}. "
+        "Governance assessment only — not legal advice.",
+    ]
+    if output.get("executive_summary"):
+        lines.append(output["executive_summary"])
+    outstanding = output.get("outstanding_approvals", [])
+    if outstanding:
+        lines.append("Outstanding approvals: " + ", ".join(outstanding) + ".")
+    missing_docs = output.get("missing_documentation", [])
+    if missing_docs:
+        lines.append("Missing documentation: " + ", ".join(missing_docs) + ".")
+    exceptions = output.get("exceptions", [])
+    real = [e for e in exceptions if e.get("kind") != "No exceptions detected"]
+    if real:
+        lines.append("Exceptions: " + "; ".join(f"{e['kind']} ({e['severity']})" for e in real[:4]) + ".")
+    policies = [p for p in output.get("policy_checks", []) if p.get("status") not in ("Not Applicable",)]
+    if policies:
+        lines.append("Policy: " + "; ".join(f"{p['policy']}: {p['status']}" for p in policies[:4]) + ".")
+    if output.get("reviewers"):
+        lines.append(f"Recommend {', '.join(output['reviewers'])} review.")
+    actions = output.get("required_actions", [])
+    if actions:
+        lines.append("Required actions: " + "; ".join(actions[:3]) + ".")
+    return "\n".join(lines)
+
+
+def _summarize_audit(output: Dict[str, Any]) -> str:
+    lines = [
+        f"**Hiring-decision audit for {output.get('candidate_id', '?')}** — "
+        f"{output.get('agent_count', 0)} AI agent(s) participated; audit readiness "
+        f"**{output.get('audit_readiness', 'n/a')}** ({output.get('readiness_level', 'n/a')}). "
+        "Reconstructed from artefacts on record; no fabrication, no legal opinion.",
+    ]
+    if output.get("executive_summary"):
+        lines.append(output["executive_summary"])
+    trace = [t for t in output.get("decision_trace", []) if t.get("status") == "Observed"]
+    if trace:
+        lines.append("Decision journey: " + " -> ".join(t["stage"] for t in trace) + ".")
+    ai = output.get("ai_decisions", [])
+    if ai:
+        lines.append("AI decisions: " + "; ".join(ai[:4]) + ".")
+    human = output.get("human_decisions_verified", [])
+    lines.append(
+        "Verified human approvals: " + (", ".join(human) if human else "none on record (pending review).")
+    )
+    outstanding = output.get("outstanding_approvals", [])
+    if outstanding:
+        lines.append("Outstanding approvals: " + ", ".join(outstanding) + ".")
+    risks = output.get("outstanding_risks", [])
+    if risks:
+        lines.append("Outstanding audit gaps: " + "; ".join(risks[:3]) + ".")
+    if not output.get("history_available"):
+        lines.append("(No historical audit archive connected — showing the current decision only.)")
+    return "\n".join(lines)
+
+
+def _summarize_hiring_intelligence(output: Dict[str, Any]) -> str:
+    lines = [
+        f"**Workforce hiring intelligence** over {output.get('cohort_size', 0)} analyzed candidate(s) — "
+        f"Hiring Health **{output.get('hiring_health', 'n/a')}**"
+        + (f" ({output.get('hiring_health_value'):.0f}/100)" if isinstance(output.get('hiring_health_value'), (int, float)) else "")
+        + ". Organizational intelligence only — never candidate ranking; no fabricated statistics.",
+    ]
+    if output.get("executive_summary"):
+        lines.append(output["executive_summary"])
+    kpis = [k for k in output.get("kpis", []) if k.get("register") == "Observed"]
+    if kpis:
+        lines.append("KPIs: " + "; ".join(f"{k['name']}: {k['label']}" for k in kpis) + ".")
+    bottlenecks = output.get("estimated_bottlenecks", [])
+    if bottlenecks:
+        lines.append("Estimated bottlenecks: " + "; ".join(f"{b['stage']} ({b['severity']})" for b in bottlenecks) + ".")
+    opts = [o for o in output.get("optimizations", []) if o.get("priority") in ("Critical", "High")]
+    if opts:
+        lines.append("Priority optimizations: " + "; ".join(o["recommendation"] for o in opts[:3]) + ".")
+    unavailable = output.get("unavailable_trends", [])
+    if unavailable and not output.get("data_available"):
+        lines.append(
+            f"{len(unavailable)} trend(s) UNAVAILABLE — no workforce-analytics source connected (connect one to unlock time-series)."
+        )
+    return "\n".join(lines)
+
+
 _SUMMARIZERS = {
     "faiss_search": _summarize_search,
     "candidate_search": _summarize_search,
@@ -179,6 +471,16 @@ _SUMMARIZERS = {
     "pipeline": _summarize_pipeline,
     "dashboard": _summarize_dashboard,
     "explainability": _summarize_explainability,
+    "resume_analysis": _summarize_resume_analysis,
+    "jd_analysis": _summarize_jd_analysis,
+    "hiring_committee": _summarize_committee,
+    "executive_report": _summarize_executive_report,
+    "interview_studio": _summarize_interview_studio,
+    "compensation_governance": _summarize_compensation,
+    "pay_equity_guardian": _summarize_pay_equity,
+    "hiring_compliance": _summarize_compliance,
+    "hiring_audit": _summarize_audit,
+    "hiring_intelligence": _summarize_hiring_intelligence,
 }
 
 _INTENT_LEAD = {
@@ -192,6 +494,16 @@ _INTENT_LEAD = {
     "Pipeline Question": "Here is the pipeline status.",
     "Dashboard Question": "Here is the cohort overview.",
     "Recommendation Question": "Here is the hiring recommendation and its basis.",
+    "Resume Review": "Here is a recruiter-grade review of the resume's quality (not a hiring decision).",
+    "JD Analysis": "Here is an enterprise analysis of the job description's quality, intent and risks.",
+    "Hiring Committee": "The AI Hiring Committee convened, debated the evidence and reached a decision.",
+    "Executive Report": "Here is the executive hiring report, synthesizing every existing intelligence source.",
+    "Interview Studio": "Here is the complete interview plan, personalized from every existing intelligence source.",
+    "Compensation Governance": "Here is the transparent, defensible compensation governance analysis — evidence, reasoning and a full audit trail.",
+    "Pay Equity": "Here is the internal pay-equity and fairness review — governance risks and human-review needs only, never a legal conclusion.",
+    "Hiring Compliance": "Here is the hiring-compliance governance review — workflow, approvals, policy, documentation and audit readiness. It supports compliance; it is not legal advice.",
+    "Hiring Audit": "Here is the reconstructed hiring-decision journey — decision trace, evidence provenance, human vs AI responsibility and audit readiness. It reconstructs the record; it gives no legal opinion.",
+    "Hiring Intelligence": "Here is the enterprise workforce hiring intelligence — hiring health, KPIs, bottlenecks and optimization opportunities. Organizational intelligence only, with unavailable metrics marked honestly.",
     "General Hiring Question": "Here is guidance based on recruiting best practice.",
 }
 

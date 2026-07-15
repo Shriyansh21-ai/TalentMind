@@ -72,6 +72,51 @@ _FOLLOW_UPS = {
         "Want the interview plan for this candidate?",
         "Shall I move them to the shortlist?",
     ],
+    Intent.RESUME_REVIEW: [
+        "Want the prioritized improvement plan?",
+        "Should I check ATS keyword coverage against a JD?",
+        "Shall I highlight the biggest resume weaknesses?",
+    ],
+    Intent.JD_ANALYSIS: [
+        "Want the prioritized JD improvement plan?",
+        "Should I explain the inferred hiring intent?",
+        "Shall I separate the mandatory vs preferred requirements?",
+    ],
+    Intent.HIRING_COMMITTEE: [
+        "What did the committee disagree on?",
+        "What are the remaining unknowns?",
+        "What evidence supports the recommendation?",
+    ],
+    Intent.INTERVIEW_STUDIO: [
+        "What questions validate the committee's concerns?",
+        "Generate a backend/ML interviewer packet for this candidate.",
+        "Show the evaluation rubric and decision matrix.",
+    ],
+    Intent.COMPENSATION_GOVERNANCE: [
+        "Show the full offer justification and audit trail.",
+        "What is the negotiation strategy?",
+        "Create the finance approval report.",
+    ],
+    Intent.PAY_EQUITY: [
+        "Show the compression and inversion analysis.",
+        "Who should approve this offer?",
+        "Does this violate our pay policy?",
+    ],
+    Intent.HIRING_COMPLIANCE: [
+        "What approvals are missing?",
+        "What documentation is missing?",
+        "Show the audit trail and governance risk.",
+    ],
+    Intent.HIRING_AUDIT: [
+        "Show the decision timeline.",
+        "Which agents and evidence influenced this decision?",
+        "Show the approval history and audit readiness.",
+    ],
+    Intent.HIRING_INTELLIGENCE: [
+        "What are our hiring bottlenecks?",
+        "Which departments need improvement?",
+        "Generate the executive workforce report.",
+    ],
     Intent.GENERAL_HIRING_QUESTION: [
         "Would you like to search for candidates?",
         "Should I analyze a specific candidate?",
@@ -107,6 +152,13 @@ def suggest_actions(plan: CopilotPlan) -> List[CopilotAction]:
         Intent.RECOMMENDATION_QUESTION,
         Intent.EXPLAIN_RANKING,
         Intent.GENERATE_INTERVIEW_PLAN,
+        Intent.HIRING_COMMITTEE,
+        Intent.RESUME_REVIEW,
+        Intent.INTERVIEW_STUDIO,
+        Intent.COMPENSATION_GOVERNANCE,
+        Intent.PAY_EQUITY,
+        Intent.HIRING_COMPLIANCE,
+        Intent.HIRING_AUDIT,
     }
 
     if plan.intent in single_intents and candidate:

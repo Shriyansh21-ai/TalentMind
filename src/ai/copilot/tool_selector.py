@@ -29,6 +29,16 @@ INTENT_TOOLS: Dict[Intent, List[str]] = {
     Intent.PIPELINE_QUESTION: ["pipeline"],
     Intent.DASHBOARD_QUESTION: ["dashboard"],
     Intent.RECOMMENDATION_QUESTION: ["recommendation", "candidate_intelligence"],
+    Intent.RESUME_REVIEW: ["resume_analysis"],
+    Intent.JD_ANALYSIS: ["jd_analysis"],
+    Intent.HIRING_COMMITTEE: ["hiring_committee"],
+    Intent.EXECUTIVE_REPORT: ["executive_report"],
+    Intent.INTERVIEW_STUDIO: ["interview_studio"],
+    Intent.COMPENSATION_GOVERNANCE: ["compensation_governance"],
+    Intent.PAY_EQUITY: ["pay_equity_guardian"],
+    Intent.HIRING_COMPLIANCE: ["hiring_compliance"],
+    Intent.HIRING_AUDIT: ["hiring_audit"],
+    Intent.HIRING_INTELLIGENCE: ["hiring_intelligence"],
     Intent.GENERAL_HIRING_QUESTION: [],
 }
 

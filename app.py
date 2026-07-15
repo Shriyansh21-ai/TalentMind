@@ -124,15 +124,343 @@ def _render_copilot_workspace() -> None:
     )
 
 
+def _render_orchestration_workspace() -> None:
+    """Render the Multi-Agent Orchestration console (Phase 3 / Milestone 3).
+
+    Self-contained and fully offline: it drives the orchestration framework with
+    generic demo agents, so it renders instantly and never loads the dataset or
+    a provider. All logic lives in ``src/ai/orchestration``.
+    """
+    from src.ui.orchestration_page import render_orchestration
+
+    render_orchestration()
+
+
+def _render_resume_workspace() -> None:
+    """Render the Resume Intelligence workspace (Phase 4 / Milestone 1).
+
+    Builds the candidate repository lazily (same cached loaders + FAISS index as
+    the console) and delegates to the ResumeAnalystAgent for recruiter-grade
+    resume analysis. Resume quality only — never hiring ranking.
+    """
+    from src.ui.resume_intelligence_tab import render_resume_workspace
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_resume_workspace(_build_repository)
+
+
+def _render_jd_workspace() -> None:
+    """Render the JD Intelligence workspace (Phase 4 / Milestone 2).
+
+    Fully self-contained and offline: the recruiter pastes a JD and the
+    JDAnalystAgent produces enterprise JD intelligence. JD quality only — never
+    candidate ranking. All logic lives in ``src/ai/agents/jd``.
+    """
+    from src.ui.jd_intelligence_tab import render_jd_workspace
+
+    render_jd_workspace()
+
+
+def _render_committee_workspace() -> None:
+    """Render the AI Hiring Committee workspace (Phase 4 / Milestone 3).
+
+    Builds the candidate repository lazily (same cached loaders + FAISS index as
+    the console) and convenes the multi-agent committee, which only consumes
+    cached structured outputs. All logic lives in ``src/ai/committee``.
+    """
+    from src.ui.committee_tab import render_committee_workspace
+    from src.ui.helpers import get_insights
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_committee_workspace(
+        _build_repository,
+        insights_fn=lambda candidate, jd: get_insights(candidate, jd),
+    )
+
+
+def _render_executive_report_workspace() -> None:
+    """Render the Executive Hiring Report workspace (Phase 4 / Milestone 4).
+
+    Builds the candidate repository lazily (same cached loaders + FAISS index as
+    the console) and synthesizes every existing intelligence output into a
+    boardroom-grade executive report with PDF/DOCX/HTML/PPTX export. It consumes
+    existing outputs only. All logic lives in ``src/ai/agents/executive_report``.
+    """
+    from src.ui.executive_report_tab import render_executive_report_workspace
+    from src.ui.helpers import get_insights
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_executive_report_workspace(
+        _build_repository,
+        insights_fn=lambda candidate, jd: get_insights(candidate, jd),
+    )
+
+
+def _render_interview_studio_workspace() -> None:
+    """Render the Enterprise AI Interview Studio workspace (Phase 4 / Milestone 5).
+
+    Builds the candidate repository lazily (same cached loaders + FAISS index as
+    the console) and synthesizes every existing intelligence output into a
+    complete, personalized interview plan — strategy, adaptive question flow,
+    rubrics, decision matrix, feedback templates and interviewer guides. It
+    consumes existing outputs only. All logic lives in
+    ``src/ai/agents/interview_studio``.
+    """
+    from src.ui.interview_studio_tab import render_interview_studio_workspace
+    from src.ui.helpers import get_insights
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_interview_studio_workspace(
+        _build_repository,
+        insights_fn=lambda candidate, jd: get_insights(candidate, jd),
+    )
+
+
+def _render_compensation_workspace() -> None:
+    """Render the Enterprise Compensation Governance workspace (Phase 5 / Milestone 1).
+
+    Builds the candidate repository lazily (same cached loaders + FAISS index as
+    the console) and synthesizes every existing intelligence output into a
+    transparent, defensible compensation governance report — a defensible range,
+    offer justification, governance checks, negotiation strategy and a flagship
+    transparency audit trail. It consumes existing outputs only and fabricates no
+    salary/market data. All logic lives in ``src/ai/agents/compensation``.
+    """
+    from src.ui.compensation_tab import render_compensation_workspace
+    from src.ui.helpers import get_insights
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_compensation_workspace(
+        _build_repository,
+        insights_fn=lambda candidate, jd: get_insights(candidate, jd),
+    )
+
+
+def _render_pay_equity_workspace() -> None:
+    """Render the Enterprise Pay Equity Guardian workspace (Phase 5 / Milestone 2).
+
+    Builds the candidate repository lazily (same cached loaders + FAISS index as
+    the console), reuses the Compensation Governance offer and evaluates internal
+    fairness — compression, inversion, promotion equity, policy alignment and the
+    executive-review chain. It fabricates no payroll and concludes no legal
+    violation. All logic lives in ``src/ai/agents/pay_equity``.
+    """
+    from src.ui.pay_equity_tab import render_pay_equity_workspace
+    from src.ui.helpers import get_insights
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_pay_equity_workspace(
+        _build_repository,
+        insights_fn=lambda candidate, jd: get_insights(candidate, jd),
+    )
+
+
+def _render_compliance_workspace() -> None:
+    """Render the Enterprise Hiring Compliance workspace (Phase 5 / Milestone 3).
+
+    Builds the candidate repository lazily (same cached loaders + FAISS index as
+    the console), reuses the whole hiring-intelligence chain and evaluates whether
+    the workflow follows company governance — required steps, approvals, policy,
+    documentation, audit readiness and governance risk. It gives no legal advice
+    and fabricates no compliance conclusion. All logic lives in
+    ``src/ai/agents/compliance``.
+    """
+    from src.ui.compliance_tab import render_compliance_workspace
+    from src.ui.helpers import get_insights
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_compliance_workspace(
+        _build_repository,
+        insights_fn=lambda candidate, jd: get_insights(candidate, jd),
+    )
+
+
+def _render_audit_workspace() -> None:
+    """Render the Enterprise Hiring Audit & Explainability workspace (Phase 5 / M4).
+
+    Builds the candidate repository lazily (same cached loaders + FAISS index as
+    the console), reuses the whole hiring-intelligence chain (via the compliance
+    engine) and reconstructs the complete decision journey — decision trace,
+    evidence provenance, timeline, human-vs-AI responsibility and audit readiness.
+    It never fabricates evidence/approvals/history. All logic lives in
+    ``src/ai/agents/audit``.
+    """
+    from src.ui.audit_tab import render_audit_workspace
+    from src.ui.helpers import get_insights
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_audit_workspace(
+        _build_repository,
+        insights_fn=lambda candidate, jd: get_insights(candidate, jd),
+    )
+
+
+def _render_hiring_intelligence_workspace() -> None:
+    """Render the Enterprise Hiring Intelligence & Workforce Analytics workspace (Phase 5 / M5).
+
+    Builds the candidate repository lazily (same cached loaders + FAISS index as
+    the console) and aggregates the platform's existing per-candidate intelligence
+    into organizational analytics — hiring health, KPIs, bottlenecks, team
+    analytics, forecasts and optimization opportunities. It provides organizational
+    intelligence only (never candidate ranking) and marks unavailable metrics
+    honestly. All logic lives in ``src/ai/agents/hiring_intelligence``.
+    """
+    from src.ui.hiring_intelligence_tab import render_hiring_intelligence_workspace
+    from src.ui.helpers import get_insights
+    from src.ai.tools.provider import InMemoryCandidateRepository
+
+    def _build_repository():
+        candidates = get_candidates()
+        initialize_faiss(candidates)
+        from src.semantic.recruiter_search import recruiter_search
+
+        return InMemoryCandidateRepository(
+            candidates,
+            search_fn=lambda query, k: recruiter_search(query, top_k=k),
+        )
+
+    render_hiring_intelligence_workspace(
+        _build_repository,
+        insights_fn=lambda candidate, jd: get_insights(candidate, jd),
+    )
+
+
 def main() -> None:
     """Drive the end-to-end recruiter pipeline for a single run."""
     workspace = st.sidebar.radio(
         "Workspace",
-        ["Recruiter Console", "AI Recruiter Copilot"],
+        [
+            "Recruiter Console",
+            "AI Recruiter Copilot",
+            "Multi-Agent Orchestration",
+            "Resume Intelligence",
+            "JD Intelligence",
+            "AI Hiring Committee",
+            "Executive Hiring Report",
+            "Interview Studio",
+            "Compensation Governance",
+            "Pay Equity Guardian",
+            "Hiring Compliance",
+            "Hiring Audit",
+            "Hiring Intelligence",
+        ],
         key="workspace_nav",
     )
     if workspace == "AI Recruiter Copilot":
         _render_copilot_workspace()
+        return
+    if workspace == "Multi-Agent Orchestration":
+        _render_orchestration_workspace()
+        return
+    if workspace == "Resume Intelligence":
+        _render_resume_workspace()
+        return
+    if workspace == "JD Intelligence":
+        _render_jd_workspace()
+        return
+    if workspace == "AI Hiring Committee":
+        _render_committee_workspace()
+        return
+    if workspace == "Executive Hiring Report":
+        _render_executive_report_workspace()
+        return
+    if workspace == "Interview Studio":
+        _render_interview_studio_workspace()
+        return
+    if workspace == "Compensation Governance":
+        _render_compensation_workspace()
+        return
+    if workspace == "Pay Equity Guardian":
+        _render_pay_equity_workspace()
+        return
+    if workspace == "Hiring Compliance":
+        _render_compliance_workspace()
+        return
+    if workspace == "Hiring Audit":
+        _render_audit_workspace()
+        return
+    if workspace == "Hiring Intelligence":
+        _render_hiring_intelligence_workspace()
         return
 
     uploaded_jd, run_button = render_sidebar()

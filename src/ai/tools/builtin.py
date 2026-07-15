@@ -26,6 +26,16 @@ from src.ai.tools.workspace_tools import (
     DashboardTool,
     PipelineTool,
 )
+from src.ai.tools.resume_tools import ResumeAnalysisTool
+from src.ai.tools.jd_tools import JDAnalysisTool
+from src.ai.tools.committee_tools import HiringCommitteeTool
+from src.ai.tools.executive_report_tools import ExecutiveReportTool
+from src.ai.tools.interview_studio_tools import InterviewStudioTool
+from src.ai.tools.compensation_tools import CompensationGovernanceTool
+from src.ai.tools.pay_equity_tools import PayEquityTool
+from src.ai.tools.compliance_tools import HiringComplianceTool
+from src.ai.tools.audit_tools import HiringAuditTool
+from src.ai.tools.hiring_intelligence_tools import HiringIntelligenceTool
 
 _BUILTIN_TOOLS = [
     FAISSSearchTool,
@@ -40,6 +50,16 @@ _BUILTIN_TOOLS = [
     ComparisonTool,
     PipelineTool,
     DashboardTool,
+    ResumeAnalysisTool,
+    JDAnalysisTool,
+    HiringCommitteeTool,
+    ExecutiveReportTool,
+    InterviewStudioTool,
+    CompensationGovernanceTool,
+    PayEquityTool,
+    HiringComplianceTool,
+    HiringAuditTool,
+    HiringIntelligenceTool,
 ]
 
 

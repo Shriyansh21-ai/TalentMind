@@ -24,6 +24,16 @@ class Intent(str, Enum):
     DASHBOARD_QUESTION = "Dashboard Question"
     SKILL_SEARCH = "Skill Search"
     RECOMMENDATION_QUESTION = "Recommendation Question"
+    RESUME_REVIEW = "Resume Review"
+    JD_ANALYSIS = "JD Analysis"
+    HIRING_COMMITTEE = "Hiring Committee"
+    EXECUTIVE_REPORT = "Executive Report"
+    INTERVIEW_STUDIO = "Interview Studio"
+    COMPENSATION_GOVERNANCE = "Compensation Governance"
+    PAY_EQUITY = "Pay Equity"
+    HIRING_COMPLIANCE = "Hiring Compliance"
+    HIRING_AUDIT = "Hiring Audit"
+    HIRING_INTELLIGENCE = "Hiring Intelligence"
     GENERAL_HIRING_QUESTION = "General Hiring Question"
 
 
