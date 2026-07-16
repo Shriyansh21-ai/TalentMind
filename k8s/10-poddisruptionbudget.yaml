@@ -1,0 +1,13 @@
+# Keep a quorum of pods available during voluntary disruptions (node drains).
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: talentmind
+  namespace: talentmind
+  labels:
+    app.kubernetes.io/name: talentmind
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: talentmind

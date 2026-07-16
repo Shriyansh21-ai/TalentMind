@@ -1,0 +1,62 @@
+# TalentMind — project metadata & tooling configuration (Phase 6 / Milestone 5).
+# This file is additive: it configures tooling (ruff, pytest, mypy) and records
+# distributable package metadata. The application runs via `streamlit run app.py`.
+
+[project]
+name = "talentmind"
+version = "1.0.0"
+description = "TalentMind — Enterprise Candidate Intelligence Platform"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "TalentMind" }]
+keywords = ["recruiting", "ai", "candidate-intelligence", "enterprise", "platform"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Human Resources",
+]
+dynamic = ["dependencies"]
+
+[project.urls]
+Homepage = "https://github.com/your-org/talentmind"
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools]
+# The application uses `src.<package>` imports with the repo root on sys.path
+# (see tests/conftest.py). Packaging is metadata-oriented; the entry point is
+# `streamlit run app.py`.
+py-modules = []
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = ["venv", "outputs", "data", ".pytest_cache"]
+
+[tool.ruff.lint]
+# A pragmatic rule set: pyflakes (F), pycodestyle (E/W), import order (I),
+# bugbear (B), pyupgrade (UP). Add more as the codebase adopts them.
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = [
+    "E501",  # line length is enforced by the formatter, not the linter
+    "B008",  # function calls in argument defaults (pydantic Field patterns)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # re-exports
+"tests/*" = ["B011"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+warn_unused_ignores = false
+check_untyped_defs = false

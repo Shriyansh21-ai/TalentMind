@@ -1,0 +1,35 @@
+# Persistent storage for candidate data, outputs and logs.
+#
+# The PersistentVolume below is a hostPath example for single-node / bare-metal
+# clusters; in a managed cloud, delete it and let the PVC bind dynamically to a
+# default StorageClass.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: talentmind-pv
+  labels:
+    app.kubernetes.io/name: talentmind
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: talentmind-standard
+  hostPath:
+    path: /data/talentmind
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: talentmind-data
+  namespace: talentmind
+  labels:
+    app.kubernetes.io/name: talentmind
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: talentmind-standard

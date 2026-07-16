@@ -9,3 +9,4 @@ torch
 joblib
 streamlit
 plotly
+faiss-cpu

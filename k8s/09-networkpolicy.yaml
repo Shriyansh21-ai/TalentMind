@@ -1,0 +1,34 @@
+# Default-deny network policy with explicit allows.
+# Ingress: only from the ingress controller namespace, to the HTTP port.
+# Egress: DNS only by default (TalentMind is offline by design). Add explicit
+# egress rules when binding real integrations.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: talentmind
+  namespace: talentmind
+  labels:
+    app.kubernetes.io/name: talentmind
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: talentmind
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8501
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

@@ -1,0 +1,32 @@
+# Ingress exposing TalentMind. Streamlit needs websocket support and sticky
+# sessions — annotations below target the ingress-nginx controller; adjust for
+# your controller of choice. TLS references a cert-manager-issued secret.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: talentmind
+  namespace: talentmind
+  labels:
+    app.kubernetes.io/name: talentmind
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - talentmind.example.com
+      secretName: talentmind-tls
+  rules:
+    - host: talentmind.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: talentmind
+                port:
+                  number: 80

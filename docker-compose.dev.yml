@@ -1,0 +1,20 @@
+# ---------------------------------------------------------------------------
+# TalentMind — development override (Phase 6 / Milestone 5).
+#
+# Mounts the source tree for live reload and runs in the development profile.
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ---------------------------------------------------------------------------
+services:
+  talentmind:
+    environment:
+      TALENTMIND_ENV: development
+      TALENTMIND_LOG_LEVEL: DEBUG
+    volumes:
+      # Bind-mount the source for live editing (overrides the image copy).
+      - ./src:/app/src
+      - ./app.py:/app/app.py
+    command:
+      - "--server.port=8501"
+      - "--server.address=0.0.0.0"
+      - "--server.runOnSave=true"
+    restart: "no"

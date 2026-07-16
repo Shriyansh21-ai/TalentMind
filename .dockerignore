@@ -1,0 +1,43 @@
+# Build context exclusions — keep the image small and reproducible.
+.git
+.gitignore
+.github
+.pytest_cache
+**/__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Tests & dev-only assets (not needed at runtime)
+tests/
+requirements-dev.txt
+
+# Local data, outputs and logs (mounted as volumes at runtime)
+data/raw/
+outputs/
+logs/
+*.log
+
+# Editor / OS / tooling
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.claude/
+memory/
+
+# Large local ML artifacts (rebuilt or mounted)
+faiss_index.bin
+candidate_embeddings.npy
+.cache/
+huggingface/
+
+# Docs & reports (not required to run)
+PHASE6_MILESTONE*_REPORT.md
+docs/
+k8s/

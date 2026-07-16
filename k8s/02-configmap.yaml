@@ -1,0 +1,17 @@
+# Non-secret runtime configuration (mirrors the "production" config profile).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: talentmind-config
+  namespace: talentmind
+  labels:
+    app.kubernetes.io/name: talentmind
+data:
+  TALENTMIND_ENV: "production"
+  TALENTMIND_LOG_LEVEL: "INFO"
+  TALENTMIND_WORKERS: "4"
+  TALENTMIND_CACHE_TTL_SECONDS: "600"
+  TALENTMIND_TELEMETRY_ENABLED: "true"
+  STREAMLIT_SERVER_PORT: "8501"
+  STREAMLIT_SERVER_HEADLESS: "true"
+  STREAMLIT_BROWSER_GATHER_USAGE_STATS: "false"

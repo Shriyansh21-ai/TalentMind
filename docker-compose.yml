@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# TalentMind — base compose file (Phase 6 / Milestone 5).
+#
+# Defines the core service with a healthcheck, named volumes, an isolated
+# network and sensible defaults. Environment-specific overrides live in
+# docker-compose.dev.yml and docker-compose.prod.yml:
+#
+#   dev :  docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#   prod:  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ---------------------------------------------------------------------------
+services:
+  talentmind:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: talentmind:1.0.0
+    container_name: talentmind
+    ports:
+      - "8501:8501"
+    environment:
+      TALENTMIND_ENV: ${TALENTMIND_ENV:-production}
+      TALENTMIND_LOG_LEVEL: ${TALENTMIND_LOG_LEVEL:-INFO}
+    volumes:
+      - talentmind-data:/app/data
+      - talentmind-outputs:/app/outputs
+      - talentmind-logs:/app/logs
+    networks:
+      - talentmind-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+networks:
+  talentmind-net:
+    driver: bridge
+
+volumes:
+  talentmind-data:
+  talentmind-outputs:
+  talentmind-logs:

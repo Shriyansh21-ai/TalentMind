@@ -405,6 +405,61 @@ def _render_hiring_intelligence_workspace() -> None:
     )
 
 
+def _render_platform_admin_workspace() -> None:
+    """Render the Platform Administration workspace (Phase 6 / Milestone 1).
+
+    Fully self-contained and offline: an enterprise operations console over the
+    additive ``src/platform`` foundation (organizations, tenants, identity,
+    RBAC, subscriptions, configuration, audit and system health). It never loads
+    the dataset or a provider, and touches no Phase 1-5 business logic.
+    """
+    from src.ui.platform_admin import render_platform_admin
+
+    render_platform_admin()
+
+
+def _render_integration_marketplace_workspace() -> None:
+    """Render the Integration Marketplace workspace (Phase 6 / Milestone 2).
+
+    Fully self-contained and offline: an enterprise integration console over the
+    additive ``src/platform/integrations`` foundation (provider marketplace,
+    installed integrations, health, webhooks, synchronization, event bus and
+    developer SDKs). It never loads the dataset or a provider, makes no network
+    call, and touches no Phase 1-5 business logic.
+    """
+    from src.ui.integration_marketplace import render_integration_marketplace
+
+    render_integration_marketplace()
+
+
+def _render_runtime_operations_workspace() -> None:
+    """Render the Runtime Operations workspace (Phase 6 / Milestone 3).
+
+    Fully self-contained and offline: an enterprise runtime console over the
+    additive ``src/platform/runtime`` infrastructure (background jobs, workers,
+    queues, cache, health, resilience, load management and resource
+    utilization). It never loads the dataset or a provider, makes no network
+    call, and touches no Phase 1-5 business logic.
+    """
+    from src.ui.runtime_operations import render_runtime_operations
+
+    render_runtime_operations()
+
+
+def _render_security_operations_workspace() -> None:
+    """Render the Security & Operations Center workspace (Phase 6 / Milestone 4).
+
+    Fully self-contained and offline: an enterprise security & operations console
+    over the additive ``src/platform/security`` foundation (identity, audit,
+    secrets, monitoring, governance, compliance, threat detection, configuration
+    governance and incidents). It never loads the dataset or a provider, makes no
+    network call, and touches no Phase 1-5 business logic.
+    """
+    from src.ui.security_operations import render_security_operations
+
+    render_security_operations()
+
+
 def main() -> None:
     """Drive the end-to-end recruiter pipeline for a single run."""
     workspace = st.sidebar.radio(
@@ -423,9 +478,25 @@ def main() -> None:
             "Hiring Compliance",
             "Hiring Audit",
             "Hiring Intelligence",
+            "Platform Administration",
+            "Integration Marketplace",
+            "Runtime Operations",
+            "Security & Operations Center",
         ],
         key="workspace_nav",
     )
+    if workspace == "Platform Administration":
+        _render_platform_admin_workspace()
+        return
+    if workspace == "Integration Marketplace":
+        _render_integration_marketplace_workspace()
+        return
+    if workspace == "Runtime Operations":
+        _render_runtime_operations_workspace()
+        return
+    if workspace == "Security & Operations Center":
+        _render_security_operations_workspace()
+        return
     if workspace == "AI Recruiter Copilot":
         _render_copilot_workspace()
         return
