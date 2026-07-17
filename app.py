@@ -32,6 +32,7 @@ from src.ui.dashboard import render_dashboard
 from src.ui.export import render_export
 from src.ui.recruiter_search import render_recruiter_search
 from src.ui.sidebar import render_sidebar
+from src.ui.theme import inject_theme
 from src.ui.workspace import render_enterprise_workspace
 
 # --------------------------------------------------
@@ -55,11 +56,15 @@ TOP_CANDIDATES = 20
 
 st.set_page_config(
     page_title="TalentMind",
-    page_icon="🧠",
+    page_icon="assets/favicon.png" if os.path.exists("assets/favicon.png") else None,
     layout="wide",
+    initial_sidebar_state="expanded",
 )
 
-st.title("🧠 TalentMind")
+# Enterprise design system — one global CSS pass shared by every workspace.
+inject_theme()
+
+st.title("TalentMind")
 
 st.markdown(
     """
@@ -458,78 +463,87 @@ def _render_security_operations_workspace() -> None:
     render_security_operations()
 
 
+# Grouped workspace navigation. "Recruiter Console" is the default landing
+# workspace; every other entry maps to its self-contained render function.
+_WORKSPACE_GROUPS: dict[str, list[str]] = {
+    "Hiring": [
+        "Recruiter Console",
+        "Resume Intelligence",
+        "JD Intelligence",
+        "AI Recruiter Copilot",
+        "AI Hiring Committee",
+        "Interview Studio",
+    ],
+    "Governance": [
+        "Compensation Governance",
+        "Pay Equity Guardian",
+        "Hiring Compliance",
+        "Hiring Audit",
+    ],
+    "Analytics": [
+        "Hiring Intelligence",
+        "Executive Hiring Report",
+    ],
+    "Platform": [
+        "Multi-Agent Orchestration",
+        "Integration Marketplace",
+        "Runtime Operations",
+    ],
+    "Administration": [
+        "Platform Administration",
+        "Security & Operations Center",
+    ],
+}
+
+# Workspace -> render function. The Recruiter Console is intentionally absent
+# (it is the default pipeline path handled inline in ``main``).
+_WORKSPACE_DISPATCH = {
+    "Resume Intelligence": _render_resume_workspace,
+    "JD Intelligence": _render_jd_workspace,
+    "AI Recruiter Copilot": _render_copilot_workspace,
+    "AI Hiring Committee": _render_committee_workspace,
+    "Interview Studio": _render_interview_studio_workspace,
+    "Compensation Governance": _render_compensation_workspace,
+    "Pay Equity Guardian": _render_pay_equity_workspace,
+    "Hiring Compliance": _render_compliance_workspace,
+    "Hiring Audit": _render_audit_workspace,
+    "Hiring Intelligence": _render_hiring_intelligence_workspace,
+    "Executive Hiring Report": _render_executive_report_workspace,
+    "Multi-Agent Orchestration": _render_orchestration_workspace,
+    "Integration Marketplace": _render_integration_marketplace_workspace,
+    "Runtime Operations": _render_runtime_operations_workspace,
+    "Platform Administration": _render_platform_admin_workspace,
+    "Security & Operations Center": _render_security_operations_workspace,
+}
+
+
+def _navigate() -> str:
+    """Render the grouped sidebar navigation and return the active workspace."""
+    st.sidebar.caption("Workspace")
+    group = st.sidebar.radio(
+        "Workspace group",
+        list(_WORKSPACE_GROUPS),
+        key="workspace_group",
+        label_visibility="collapsed",
+    )
+    st.sidebar.caption(group)
+    workspace = st.sidebar.radio(
+        group,
+        _WORKSPACE_GROUPS[group],
+        key=f"workspace_nav_{group}",
+        label_visibility="collapsed",
+    )
+    st.sidebar.divider()
+    return workspace
+
+
 def main() -> None:
     """Drive the end-to-end recruiter pipeline for a single run."""
-    workspace = st.sidebar.radio(
-        "Workspace",
-        [
-            "Recruiter Console",
-            "AI Recruiter Copilot",
-            "Multi-Agent Orchestration",
-            "Resume Intelligence",
-            "JD Intelligence",
-            "AI Hiring Committee",
-            "Executive Hiring Report",
-            "Interview Studio",
-            "Compensation Governance",
-            "Pay Equity Guardian",
-            "Hiring Compliance",
-            "Hiring Audit",
-            "Hiring Intelligence",
-            "Platform Administration",
-            "Integration Marketplace",
-            "Runtime Operations",
-            "Security & Operations Center",
-        ],
-        key="workspace_nav",
-    )
-    if workspace == "Platform Administration":
-        _render_platform_admin_workspace()
-        return
-    if workspace == "Integration Marketplace":
-        _render_integration_marketplace_workspace()
-        return
-    if workspace == "Runtime Operations":
-        _render_runtime_operations_workspace()
-        return
-    if workspace == "Security & Operations Center":
-        _render_security_operations_workspace()
-        return
-    if workspace == "AI Recruiter Copilot":
-        _render_copilot_workspace()
-        return
-    if workspace == "Multi-Agent Orchestration":
-        _render_orchestration_workspace()
-        return
-    if workspace == "Resume Intelligence":
-        _render_resume_workspace()
-        return
-    if workspace == "JD Intelligence":
-        _render_jd_workspace()
-        return
-    if workspace == "AI Hiring Committee":
-        _render_committee_workspace()
-        return
-    if workspace == "Executive Hiring Report":
-        _render_executive_report_workspace()
-        return
-    if workspace == "Interview Studio":
-        _render_interview_studio_workspace()
-        return
-    if workspace == "Compensation Governance":
-        _render_compensation_workspace()
-        return
-    if workspace == "Pay Equity Guardian":
-        _render_pay_equity_workspace()
-        return
-    if workspace == "Hiring Compliance":
-        _render_compliance_workspace()
-        return
-    if workspace == "Hiring Audit":
-        _render_audit_workspace()
-        return
-    if workspace == "Hiring Intelligence":
-        _render_hiring_intelligence_workspace()
+    workspace = _navigate()
+
+    render = _WORKSPACE_DISPATCH.get(workspace)
+    if render is not None:
+        render()
         return
 
     uploaded_jd, run_button = render_sidebar()
@@ -592,7 +606,7 @@ def main() -> None:
 
     render_recruiter_search()
 
-    st.header("🏆 Top Ranked Candidates")
+    st.header("Top Ranked Candidates")
     for rank, (candidate, score) in enumerate(results[:TOP_CANDIDATES], start=1):
         render_candidate_card(rank, candidate, score, jd)
 

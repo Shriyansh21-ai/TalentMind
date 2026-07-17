@@ -24,7 +24,7 @@ def render_export(results: list[tuple[Candidate, float]]) -> None:
     Args:
         results: Ranked ``(candidate, score)`` tuples (highest first).
     """
-    st.header("📥 Export")
+    st.header("Export")
 
     if not results:
         st.info("No ranked candidates to export.")

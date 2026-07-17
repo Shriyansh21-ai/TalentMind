@@ -1,0 +1,21 @@
+# TalentMind — base Streamlit theme (UI layer only).
+#
+# This sets the native theme primitives (color, font). The full enterprise
+# design system — spacing, cards, badges, tables, metrics — is layered on top
+# via CSS injected from ``src/ui/theme.py`` (``inject_theme``). Keep the two in
+# sync: token values here mirror ``src/ui/theme.py``.
+
+[theme]
+base = "light"
+primaryColor = "#2563EB"           # blue-600 — primary actions / accents
+backgroundColor = "#FFFFFF"        # app canvas
+secondaryBackgroundColor = "#F8FAFC"  # slate-50 — sidebar / cards
+textColor = "#0F172A"              # slate-900 — primary text
+font = "sans serif"
+
+[client]
+showErrorDetails = false           # never expose stack traces to end users
+toolbarMode = "minimal"
+
+[ui]
+hideTopBar = false

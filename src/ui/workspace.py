@@ -41,7 +41,7 @@ def render_enterprise_workspace(
         results: Ranked ``(candidate, score)`` tuples, highest first.
         jd: Raw job-description text.
     """
-    st.header("🏢 Enterprise Hiring Workspace")
+    st.header("Enterprise Hiring Workspace")
 
     if not results:
         st.info("Rank candidates to unlock the enterprise workspace.")
@@ -60,7 +60,7 @@ def render_enterprise_workspace(
     pipeline_states = PipelineStore().load()
 
     tab_dashboard, tab_pools, tab_filters, tab_compare = st.tabs(
-        ["📈 Dashboard", "🗂 Talent Pools", "🎛 Smart Filters", "🆚 Compare"]
+        ["Dashboard", "Talent Pools", "Smart Filters", "Compare"]
     )
 
     with tab_dashboard:

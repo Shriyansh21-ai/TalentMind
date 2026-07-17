@@ -17,6 +17,7 @@ import streamlit as st
 from src.ai.orchestration import Goal
 from src.ai.orchestration.builtin import build_demo_orchestrator
 from src.ai.orchestration.simulation import SimulationRunner
+from src.ui.theme import strip_emoji
 
 _LAST_KEY = "orch_last_result"
 _GOAL_KEY = "orch_goal_input"
@@ -30,7 +31,7 @@ _EXAMPLES = [
 
 def render_orchestration(*, jd: str = "") -> None:
     """Render the Multi-Agent Orchestration console."""
-    st.title("🧩 Multi-Agent Orchestration")
+    st.title("Multi-Agent Orchestration")
     st.caption(
         "The orchestration backbone: a high-level goal is planned into a task "
         "graph, scheduled into parallel groups, delegated to capability-matched "
@@ -46,9 +47,9 @@ def render_orchestration(*, jd: str = "") -> None:
         placeholder="e.g. Analyze the subject in full across every facet",
     )
     cols = st.columns([1, 1, 1, 2])
-    run = cols[0].button("▶️ Run orchestration", type="primary")
-    dry = cols[1].button("🧪 Dry-run (simulate)")
-    clear = cols[2].button("🧹 Clear")
+    run = cols[0].button("Run orchestration", type="primary")
+    dry = cols[1].button("Dry-run (simulate)")
+    clear = cols[2].button("Clear")
 
     if clear:
         st.session_state.pop(_LAST_KEY, None)
@@ -100,7 +101,7 @@ def _run_and_store(orchestrator, goal: Goal) -> None:
 def _render_sidebar(orchestrator) -> None:
     """Render the agent registry + capability index in the sidebar."""
     with st.sidebar:
-        st.markdown("### 🧩 Orchestration Registry")
+        st.markdown("### Orchestration Registry")
         rows = orchestrator.registry.describe()
         st.caption(f"{len(rows)} agent(s) registered")
         for row in rows:
@@ -120,10 +121,7 @@ def _render_result(orchestrator, workflow_id: str) -> None:
 
     st.divider()
     status = result.status.value
-    color = {"completed": "🟢", "partial": "🟡", "failed": "🔴", "cancelled": "⚪"}.get(
-        status, "⚪"
-    )
-    st.subheader(f"{color} Workflow `{result.workflow_id}` — {status}")
+    st.subheader(f"Workflow `{result.workflow_id}` — {status}")
 
     m = orchestrator.monitor.summary()
     cols = st.columns(4)
@@ -133,7 +131,7 @@ def _render_result(orchestrator, workflow_id: str) -> None:
     cols[3].metric("Latency", f"{result.latency_ms:.0f} ms")
 
     # Unified merged answer.
-    st.markdown("#### 🧠 Unified response")
+    st.markdown("#### Unified response")
     st.markdown(result.answer)
     if result.evidence_sources:
         st.caption("Evidence: " + ", ".join(result.evidence_sources))
@@ -142,7 +140,7 @@ def _render_result(orchestrator, workflow_id: str) -> None:
             st.warning(warning)
 
     tab_plan, tab_graph, tab_agents, tab_timeline = st.tabs(
-        ["📋 Plan", "🕸️ Task graph", "🤖 Agent graph", "⏱️ Timeline"]
+        ["Plan", "Task graph", "Agent graph", "Timeline"]
     )
 
     with tab_plan:
@@ -184,7 +182,7 @@ def _render_task_graph(result) -> None:
     status_of = (
         {tid: ts.status.value for tid, ts in result.state.tasks.items()} if result.state else {}
     )
-    dot = ["digraph G {", "  rankdir=LR; node [shape=box style=rounded];"]
+    dot = ["digraph G {", " rankdir=LR; node [shape=box style=rounded];"]
     for task in result.graph:
         color = {
             "completed": "#1a7f37",
@@ -192,10 +190,10 @@ def _render_task_graph(result) -> None:
             "skipped": "#9a6700",
         }.get(status_of.get(task.id, ""), "#57606a")
         label = f"{task.id}\\n({task.capability})"
-        dot.append(f'  "{task.id}" [label="{label}" color="{color}"];')
+        dot.append(f' "{task.id}" [label="{label}" color="{color}"];')
     for task in result.graph:
         for dep in task.dependencies:
-            dot.append(f'  "{dep}" -> "{task.id}";')
+            dot.append(f' "{dep}" -> "{task.id}";')
     dot.append("}")
     try:
         st.graphviz_chart("\n".join(dot))
@@ -227,7 +225,7 @@ def _render_timeline(orchestrator, workflow_id: str) -> None:
     if not log:
         st.info("No events recorded.")
         return
-    st.code("\n".join(log), language="text")
+    st.code("\n".join(strip_emoji(line) for line in log), language="text")
 
 
 def _render_dry_run(goal: Goal) -> None:
@@ -235,7 +233,7 @@ def _render_dry_run(goal: Goal) -> None:
     sim = SimulationRunner()
     report = sim.dry_run(goal)
     st.divider()
-    st.subheader("🧪 Dry-run (simulated agents)")
+    st.subheader("Dry-run (simulated agents)")
     st.caption(
         "Plan validated + executed against deterministic stand-ins — no LLM, no "
         "providers. This is exactly what the unit tests exercise."

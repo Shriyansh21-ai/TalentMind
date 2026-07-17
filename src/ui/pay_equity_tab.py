@@ -48,7 +48,7 @@ def render_pay_equity(
     key_prefix: str = "pe",
 ) -> None:
     """Build the pay-equity report for a candidate and render the workspace."""
-    st.subheader("⚖️ Enterprise Pay Equity Guardian")
+    st.subheader("Enterprise Pay Equity Guardian")
     st.caption(
         "Internal fairness & governance intelligence. It reuses the Compensation "
         "Governance offer and asks: is this offer internally fair, will it create "
@@ -77,29 +77,29 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
 
     if not report.data_available:
         st.info(
-            "ℹ️ No internal compensation data connected — internal comparisons are unavailable and findings are provisional (Module 14)."
+            "No internal compensation data connected — internal comparisons are unavailable and findings are provisional (Module 14)."
         )
     for warning in report.warnings:
         st.warning(warning)
 
     tabs = st.tabs(
         [
-            "📄 Summary",
-            "⚖️ Equity",
-            "📉 Compression",
-            "🔀 Inversion",
-            "📈 Promotion",
-            "📋 Policy",
-            "🧭 Fairness",
-            "✅ Approvals",
-            "🎚️ Scenarios",
-            "📊 Dashboard",
+            "Summary",
+            "Equity",
+            "Compression",
+            "Inversion",
+            "Promotion",
+            "Policy",
+            "Fairness",
+            "Approvals",
+            "Scenarios",
+            "Dashboard",
         ]
     )
 
     with tabs[0]:
         st.info(narrative.executive_summary)
-        st.caption("🔎 " + narrative.data_availability_note)
+        st.caption("" + narrative.data_availability_note)
         c = st.columns(2)
         with c[0]:
             st.markdown("**Key findings**")
@@ -109,7 +109,7 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
             _bullets(narrative.human_review_recommendations, "")
         st.markdown("**Assumptions**")
         _bullets(narrative.assumptions, "")
-        st.caption("📌 " + narrative.confidence_note)
+        st.caption("" + narrative.confidence_note)
 
     with tabs[1]:
         er = report.equity_risk
@@ -119,8 +119,7 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
         _bullets(er.drivers, "")
         st.markdown("**Internal-equity findings (each explains WHY)**")
         for f in report.equity_findings:
-            badge = {"Consistent": "✅", "Review": "⚠️", "Not Evaluable": "➖"}.get(f.status, "•")
-            st.markdown(f"{badge} **{f.dimension}** — {f.status}  _({f.register})_")
+            st.markdown(f"**{f.dimension}** — {f.status}  _({f.register})_")
             st.caption(f.rationale)
 
     with tabs[2]:
@@ -189,7 +188,7 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
         st.metric("Review level", er.review_level)
         st.write(er.rationale)
         for a in er.approvals:
-            badge = "✅ required" if a.required else "— not required"
+            badge = "required" if a.required else "— not required"
             st.markdown(f"**{a.approver}** · {badge}")
             st.caption(a.reason)
 
@@ -228,8 +227,8 @@ def _render_dashboard(report: PayEquityReport) -> None:
 
     st.markdown("**Approval flow**")
     for step in charts.get("approval_flow", []):
-        mark = "✅" if step.get("required") else "—"
-        st.caption(f"{mark} {step.get('approver')}")
+        mark = "required" if step.get("required") else "optional"
+        st.caption(f"{step.get('approver')} ({mark})")
 
     oa = charts.get("offer_alignment", {})
     st.markdown("**Offer alignment**")
@@ -270,7 +269,7 @@ RepositoryFactory = Callable[[], Any]
 
 def render_pay_equity_workspace(repository_factory: RepositoryFactory, *, insights_fn=None) -> None:
     """Render the Pay Equity Guardian workspace (pick candidate + policy → run)."""
-    st.title("⚖️ Enterprise Pay Equity Guardian")
+    st.title("Enterprise Pay Equity Guardian")
     st.caption(
         "TalentMind's internal fairness & governance engine. It helps HR, Finance, "
         "Legal and Executives evaluate compensation fairness with transparent, "
@@ -302,7 +301,7 @@ def render_pay_equity_workspace(repository_factory: RepositoryFactory, *, insigh
     cols[2].caption(get_policy(policy).summary)
     jd_text = st.text_area("Optional job description (sharpens role alignment)", key="pe_jd")
 
-    if st.button("⚖️ Run pay-equity review", type="primary", key="pe_run"):
+    if st.button("Run pay-equity review", type="primary", key="pe_run"):
         candidate = repository.get(chosen)
         if candidate is not None:
             render_pay_equity(

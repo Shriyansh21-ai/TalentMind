@@ -21,6 +21,7 @@ import streamlit as st
 from src.ai.agents.compliance.compliance_report import HiringComplianceEngine
 from src.ai.agents.compliance.schemas import HiringComplianceReport
 from src.ai.core.runner import AgentRunner
+from src.ui.theme import level_pill, status_pill
 
 _runner: AgentRunner | None = None
 _engine: HiringComplianceEngine | None = None
@@ -45,7 +46,7 @@ def render_compliance(
     key_prefix: str = "cp",
 ) -> None:
     """Build the compliance report for a candidate and render the workspace."""
-    st.subheader("🛡️ Enterprise Hiring Compliance")
+    st.subheader("Enterprise Hiring Compliance")
     st.caption(
         "Governance & compliance intelligence. It reuses the whole hiring "
         "intelligence chain and asks: does this workflow follow company "
@@ -61,27 +62,6 @@ def render_compliance(
     _render_report(report, key_prefix=key_prefix)
 
 
-_STATUS_BADGE = {
-    "Completed": "✅",
-    "Compliant": "✅",
-    "Present": "✅",
-    "Complete": "✅",
-    "Missing": "❌",
-    "Violation": "❌",
-    "Requires Review": "⚠️",
-    "Incomplete": "⚠️",
-    "Partial": "⚠️",
-    "Needs Investigation": "🔍",
-    "Not Applicable": "➖",
-    "Not Required": "➖",
-    "Not Evaluable": "➖",
-}
-
-
-def _badge(status: str) -> str:
-    return _STATUS_BADGE.get(status, "•")
-
-
 def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
     """Render a full :class:`HiringComplianceReport`."""
     narrative = report.narrative
@@ -95,23 +75,23 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
 
     if not report.data_available:
         st.info(
-            "ℹ️ No governance / workflow / document system connected — approvals and documents that need an external system are shown as pending review (Module 14)."
+            "No governance / workflow / document system connected — approvals and documents that need an external system are shown as pending review (Module 14)."
         )
     for warning in report.warnings:
         st.warning(warning)
 
     tabs = st.tabs(
         [
-            "📄 Summary",
-            "🧭 Workflow",
-            "✅ Approvals",
-            "📋 Policy",
-            "🗂️ Documentation",
-            "🔍 Audit",
-            "⚠️ Risk & Exceptions",
-            "⚖️ Review",
-            "🎚️ Scenarios",
-            "📊 Dashboard",
+            "Summary",
+            "Workflow",
+            "Approvals",
+            "Policy",
+            "Documentation",
+            "Audit",
+            "Risk & Exceptions",
+            "Review",
+            "Scenarios",
+            "Dashboard",
         ]
     )
 
@@ -128,13 +108,14 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
             _bullets(narrative.human_review_recommendations, "")
             st.markdown("**Assumptions**")
             _bullets(narrative.assumptions, "")
-        st.caption("📌 " + narrative.confidence_note)
+        st.caption(narrative.confidence_note)
 
     with tabs[1]:
         st.caption(narrative.workflow_note)
         for step in report.workflow.steps:
             st.markdown(
-                f"{_badge(step.status)} **{step.name}** — {step.status}  _({step.register})_"
+                f"{status_pill(step.status)} **{step.name}** _({step.register})_",
+                unsafe_allow_html=True,
             )
             st.caption(step.rationale)
 
@@ -142,13 +123,16 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
         st.caption(narrative.approval_note)
         for a in report.approvals.approvals:
             tag = "required" if a.required else "not required"
-            st.markdown(f"{_badge(a.state)} **{a.approver}** · {tag} · {a.state}")
+            st.markdown(
+                f"{status_pill(a.state)} **{a.approver}** · {tag}",
+                unsafe_allow_html=True,
+            )
             st.caption(a.reason)
 
     with tabs[3]:
         st.caption(narrative.policy_note)
         for p in report.policy_checks:
-            st.markdown(f"{_badge(p.status)} **{p.policy_name}** — {p.status}")
+            st.markdown(f"{status_pill(p.status)} **{p.policy_name}**", unsafe_allow_html=True)
             st.caption(p.rationale)
             if p.required_actions:
                 _bullets(p.required_actions, "")
@@ -156,7 +140,10 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
     with tabs[4]:
         st.caption(narrative.documentation_note)
         for d in report.documentation.documents:
-            st.markdown(f"{_badge(d.state)} **{d.name}** — {d.state}  _({d.register})_")
+            st.markdown(
+                f"{status_pill(d.state)} **{d.name}** _({d.register})_",
+                unsafe_allow_html=True,
+            )
         missing = report.documentation.missing()
         if missing:
             st.error("Missing: " + ", ".join(missing))
@@ -164,7 +151,7 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
     with tabs[5]:
         st.metric("Audit-trail readiness", report.audit.status)
         for f in report.audit.findings:
-            st.markdown(f"{_badge(f.status)} **{f.dimension}** — {f.status}")
+            st.markdown(f"{status_pill(f.status)} **{f.dimension}**", unsafe_allow_html=True)
             st.caption(f.rationale)
 
     with tabs[6]:
@@ -177,9 +164,10 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
         st.markdown("**Exceptions**")
         for e in report.exceptions:
             st.markdown(
-                f"{_badge(e.severity if e.severity in _STATUS_BADGE else '')}**[{e.severity}] {e.kind}**"
+                f"{level_pill(e.severity)} **[{e.severity}] {e.kind}**",
+                unsafe_allow_html=True,
             )
-            st.caption(e.detail + (f"  → {e.recommendation}" if e.recommendation else ""))
+            st.caption(e.detail + (f" → {e.recommendation}" if e.recommendation else ""))
 
     with tabs[7]:
         rv = report.review
@@ -226,12 +214,12 @@ def _render_dashboard(report: HiringComplianceReport) -> None:
     st.markdown("**Approval flow**")
     for step in charts.get("approval_flow", []):
         if step.get("required"):
-            st.caption(f"{_badge(step.get('state'))} {step.get('approver')} — {step.get('state')}")
+            st.caption(f"{step.get('approver')} — {step.get('state')}")
 
     ar = charts.get("audit_readiness", {})
     st.markdown("**Audit readiness**")
     for dim, status in ar.get("findings", {}).items():
-        st.caption(f"{_badge(status)} {dim}: {status}")
+        st.caption(f"{dim}: {status}")
 
     gh = charts.get("governance_health", {})
     st.markdown("**Governance health**")
@@ -261,7 +249,7 @@ RepositoryFactory = Callable[[], Any]
 
 def render_compliance_workspace(repository_factory: RepositoryFactory, *, insights_fn=None) -> None:
     """Render the Hiring Compliance workspace (pick candidate → run)."""
-    st.title("🛡️ Enterprise Hiring Compliance")
+    st.title("Enterprise Hiring Compliance")
     st.caption(
         "TalentMind's governance & compliance layer. It helps HR, Compliance, "
         "Legal, Finance and Executive teams understand whether a hiring process "
@@ -285,7 +273,7 @@ def render_compliance_workspace(repository_factory: RepositoryFactory, *, insigh
     chosen = cols[0].selectbox("Candidate", ids, key="cp_pick")
     jd_text = cols[1].text_area("Optional job description (sharpens role alignment)", key="cp_jd")
 
-    if st.button("🛡️ Run compliance review", type="primary", key="cp_run"):
+    if st.button("Run compliance review", type="primary", key="cp_run"):
         candidate = repository.get(chosen)
         if candidate is not None:
             render_compliance(candidate, jd=jd_text, insights_fn=insights_fn, key_prefix="cp_ws")

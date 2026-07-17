@@ -3,7 +3,7 @@ import streamlit as st
 
 def show_job_dashboard(profile):
 
-    st.header("🧠 AI Job Intelligence")
+    st.header("AI Job Intelligence")
 
     c1, c2, c3, c4 = st.columns(4)
 

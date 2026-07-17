@@ -1,13 +1,4 @@
-# syntax=docker/dockerfile:1
-# ---------------------------------------------------------------------------
-# TalentMind — production-ready multi-stage image (Phase 6 / Milestone 5).
-#
-# Stage 1 (builder) installs Python dependencies into an isolated virtualenv.
-# Stage 2 (runtime) is a slim image that copies only the venv + application,
-# runs as a non-root user, and exposes a Streamlit health endpoint. The build is
-# additive: it installs the existing requirements.txt and runs the existing
-# app.py — no application code is changed.
-# ---------------------------------------------------------------------------
+
 
 # ----- Stage 1: builder ----------------------------------------------------
 FROM python:3.13-slim AS builder

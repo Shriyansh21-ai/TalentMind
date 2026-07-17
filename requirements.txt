@@ -10,3 +10,4 @@ joblib
 streamlit
 plotly
 faiss-cpu
+pytest

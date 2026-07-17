@@ -9,19 +9,14 @@ from collections.abc import Iterable
 
 import streamlit as st
 
+from src.ui.theme import level_pill
+
 # Map a semantic style to the matching Streamlit status renderer.
 _STATUS_RENDERERS = {
     "success": st.success,
     "info": st.info,
     "warning": st.warning,
     "error": st.error,
-}
-
-# Map a Low/Medium/High level to a card style + emoji.
-_LEVEL_STYLE = {
-    "Low": ("success", "🟢"),
-    "Medium": ("warning", "🟡"),
-    "High": ("error", "🔴"),
 }
 
 
@@ -68,10 +63,13 @@ def render_meter(
 
 
 def render_level_badge(label: str, level: str) -> None:
-    """Render a Low/Medium/High level as a colored status badge.
+    """Render a Low/Medium/High level as a colored status pill.
 
-    Falls back to an informational badge for unrecognized levels.
+    The level is colored via the centralized :func:`~src.ui.theme.level_pill`
+    (green/amber/red), so risk levels look identical everywhere.
     """
-    style, emoji = _LEVEL_STYLE.get(level, ("info", "⚪"))
-    renderer = _STATUS_RENDERERS.get(style, st.info)
-    renderer(f"{emoji} {label}: **{level}**")
+    st.markdown(
+        f'<div style="display:flex;align-items:center;gap:0.5rem;margin:0.15rem 0">'
+        f'<span style="color:#475569;font-weight:550">{label}</span>{level_pill(level)}</div>',
+        unsafe_allow_html=True,
+    )

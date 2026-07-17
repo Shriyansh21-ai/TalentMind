@@ -35,7 +35,7 @@ def render_smart_filters(
         insights: The bounded insight cohort to filter.
         pipeline_states: Pipeline state map (for the stage filter).
     """
-    st.subheader("🎛 Smart Filters")
+    st.subheader("Smart Filters")
 
     if not insights:
         st.info("No candidates available to filter.")

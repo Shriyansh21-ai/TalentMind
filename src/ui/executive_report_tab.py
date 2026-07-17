@@ -54,7 +54,7 @@ def render_executive_report(
     key_prefix: str = "er",
 ) -> None:
     """Build the executive report for a candidate and render the full workspace."""
-    st.subheader("📊 Executive Hiring Report")
+    st.subheader("Executive Hiring Report")
     st.caption(
         "A McKinsey-grade executive briefing that synthesizes every existing "
         "TalentMind intelligence source — committee, resume, JD, candidate "
@@ -84,16 +84,16 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
 
     tabs = st.tabs(
         [
-            "📄 Executive Summary",
-            "👤 Candidate",
-            "🧭 Role",
-            "🏛️ Committee",
-            "⚠️ Risk",
-            "🎯 Interview",
-            "✅ Action Plan",
-            "💼 Business",
-            "📈 Visuals",
-            "⬇️ Export",
+            "Executive Summary",
+            "Candidate",
+            "Role",
+            "Committee",
+            "Risk",
+            "Interview",
+            "Action Plan",
+            "Business",
+            "Visuals",
+            "Export",
         ]
     )
 
@@ -119,7 +119,7 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
         with c2[1]:
             st.markdown("**Top concerns**")
             _bullets(narrative.top_concerns, "None surfaced.")
-        st.caption("📌 " + narrative.confidence_note)
+        st.caption("" + narrative.confidence_note)
 
     with tabs[1]:
         ci = report.candidate_intelligence
@@ -223,7 +223,7 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
                 st.markdown(f"**{title}**")
                 _bullets(items, "")
         if iv.post_interview_recommendation:
-            st.caption("📌 " + iv.post_interview_recommendation)
+            st.caption("" + iv.post_interview_recommendation)
 
     with tabs[6]:
         ap = report.action_plan
@@ -284,7 +284,7 @@ def _render_export(report: ExecutiveHiringReport, *, template: str, key_prefix: 
         try:
             data = export_report(report, packet.default_format, packet.template)
             st.download_button(
-                f"📦 {packet.name} ({packet.default_format.upper()})",
+                f"{packet.name} ({packet.default_format.upper()})",
                 data=data,
                 file_name=f"{report.candidate_id}_{pk_key}.{suffix_for(packet.default_format)}",
                 mime=mime_for(packet.default_format),
@@ -315,7 +315,7 @@ def render_executive_report_workspace(
     repository_factory: RepositoryFactory, *, insights_fn=None
 ) -> None:
     """Render the Executive Hiring Report workspace (pick candidate + template → run)."""
-    st.title("📊 Executive Hiring Report")
+    st.title("Executive Hiring Report")
     st.caption(
         "TalentMind's Executive Decision Layer — it turns all existing hiring "
         "intelligence into a boardroom-ready briefing for CTOs, CEOs, HR directors, "
@@ -346,7 +346,7 @@ def render_executive_report_workspace(
     st.caption(get_template(template).summary)
     jd_text = st.text_area("Optional job description (sharpens role-fit)", key="er_jd")
 
-    if st.button("📊 Generate executive report", type="primary", key="er_run"):
+    if st.button("Generate executive report", type="primary", key="er_run"):
         candidate = repository.get(chosen)
         if candidate is not None:
             render_executive_report(

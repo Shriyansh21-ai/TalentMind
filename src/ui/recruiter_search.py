@@ -13,7 +13,7 @@ def render_recruiter_search() -> None:
     with title, company, location, similarity and a summary preview. Empty
     queries and empty result sets are handled gracefully.
     """
-    st.header("🔍 Recruiter Search")
+    st.header("Recruiter Search")
 
     search_query = st.text_input(
         "Search Candidates",

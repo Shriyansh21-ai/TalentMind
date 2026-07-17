@@ -34,7 +34,7 @@ def render_enterprise_dashboard(
         insights: Bounded insight cohort (engine-backed charts).
         pipeline_states: Persisted pipeline state map (workflow charts).
     """
-    st.subheader("📈 Enterprise Analytics")
+    st.subheader("Enterprise Analytics")
     st.caption(
         f"Field analytics over {len(candidates):,} candidates · "
         f"intelligence analytics over the top {len(insights):,} ranked · "

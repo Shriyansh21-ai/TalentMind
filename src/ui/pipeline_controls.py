@@ -33,7 +33,7 @@ def render_pipeline_controls(candidate: Candidate) -> None:
     cid = candidate.candidate_id
     status = get_or_create(cid)
 
-    st.markdown("#### 🧭 Hiring Pipeline")
+    st.markdown("#### Hiring Pipeline")
 
     header = st.columns(3)
     header[0].metric("Stage", status.current_stage.value)

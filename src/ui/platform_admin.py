@@ -44,7 +44,7 @@ def _get_platform():
 
 def render_platform_admin() -> None:
     """Render the Platform Administration workspace."""
-    st.title("🏛️ Platform Administration")
+    st.title("Platform Administration")
     st.caption(
         "Enterprise operations console — organizations, tenants, identity, "
         "access control, subscriptions, configuration, audit and system health "
@@ -66,13 +66,13 @@ def render_platform_admin() -> None:
         tab_audit,
     ) = st.tabs(
         [
-            "📊 Overview & Health",
-            "🏢 Organizations",
-            "👥 Users",
-            "💳 Subscriptions & Usage",
-            "🔑 Licensing & Features",
-            "⚙️ Configuration",
-            "🧾 Audit Events",
+            "Overview & Health",
+            "Organizations",
+            "Users",
+            "Subscriptions & Usage",
+            "Licensing & Features",
+            "Configuration",
+            "Audit Events",
         ]
     )
 
@@ -132,7 +132,7 @@ def _render_overview(platform, orgs) -> None:
 
     st.markdown("#### Module Health")
     health_rows = [
-        {"module": label, "status": "🟢 healthy", "registered": platform.container.has(key)}
+        {"module": label, "status": "healthy", "registered": platform.container.has(key)}
         for label, key in _MODULES
     ]
     st.dataframe(health_rows, use_container_width=True, hide_index=True)
@@ -145,7 +145,7 @@ def _render_overview(platform, orgs) -> None:
                 "organization": org.display_name,
                 "status": org.status.value,
                 "tenant": org.id,
-                "audit_chain": "✅ intact" if platform.audit.verify_chain(org.id) else "❌ broken",
+                "audit_chain": "intact" if platform.audit.verify_chain(org.id) else "broken",
             }
         )
     st.dataframe(rows, use_container_width=True, hide_index=True)
@@ -189,7 +189,7 @@ def _render_users(platform, orgs) -> None:
                     "user": user.display_name or user.email,
                     "email": user.email,
                     "status": user.status.value,
-                    "verified": "✅" if user.email_verified else "—",
+                    "verified": "Yes" if user.email_verified else "—",
                     "roles": roles,
                 }
             )
@@ -247,7 +247,7 @@ def _render_licensing(platform, orgs) -> None:
                 {
                     "organization": org.slug,
                     "feature": key,
-                    "enabled": "🟢 on" if enabled else "⚪ off",
+                    "enabled": "on" if enabled else "off",
                 }
             )
     if feat_rows:

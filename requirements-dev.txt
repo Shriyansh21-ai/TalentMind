@@ -1,3 +1,0 @@
-# Test-only dependencies (not imported by the application).
-# Install with: pip install -r requirements-dev.txt
-pytest

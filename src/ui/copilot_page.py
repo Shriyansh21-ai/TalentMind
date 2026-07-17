@@ -19,6 +19,8 @@ from src.ai.copilot.controller import RecruiterCopilot, build_recruiter_copilot
 from src.ai.copilot.models import CopilotAction, CopilotTurn
 from src.ai.services.hiring_analyst_service import get_platform_status
 from src.ai.tools.base import CandidateRepository
+from src.ui.theme import badge as tm_badge
+from src.ui.theme import strip_emoji
 
 RepositoryFactory = Callable[[], CandidateRepository]
 
@@ -48,7 +50,7 @@ def render_copilot(
         insights_fn: Optional cached insights builder passed to the tools.
         jd: Current job-description context (optional).
     """
-    st.title("🤝 AI Recruiter Copilot")
+    st.title("AI Recruiter Copilot")
     st.caption(
         "An enterprise AI assistant that reasons over TalentMind's deterministic "
         "engines — evidence-based, never fabricated."
@@ -128,7 +130,7 @@ def _render_context_panel(jd: str) -> None:
     """Render the current-context + platform indicators in the sidebar."""
     status = get_platform_status()
     with st.sidebar:
-        st.markdown("### 🤖 Copilot Context")
+        st.markdown("### Copilot Context")
         st.caption(f"Provider: **{status['provider']}** · Model: **{status['model']}**")
         st.caption(f"Cache: {'on' if status['cache_enabled'] else 'off'}")
 
@@ -146,7 +148,7 @@ def _render_context_panel(jd: str) -> None:
         if jd:
             st.caption("JD context: attached")
 
-        if st.button("🧹 Clear conversation", key="copilot_clear"):
+        if st.button("Clear conversation", key="copilot_clear"):
             st.session_state[_HISTORY_KEY] = []
             copilot = st.session_state.get(_INSTANCE_KEY)
             if isinstance(copilot, RecruiterCopilot):
@@ -169,7 +171,7 @@ def _render_turn(turn: CopilotTurn, index: int) -> None:
     st.markdown(turn.answer)
 
     # Provenance indicators.
-    badge = "💾 cached" if turn.cache_hit else "🟢 generated"
+    badge = "cached" if turn.cache_hit else "generated"
     bits = [
         f"intent: {turn.intent.value}",
         badge,
@@ -178,15 +180,20 @@ def _render_turn(turn: CopilotTurn, index: int) -> None:
     ]
     st.caption(" · ".join(bits))
     if turn.confidence_note:
-        st.caption(f"📊 {turn.confidence_note}")
+        st.caption(f"{turn.confidence_note}")
 
     # Tool visibility (Module 9).
     if turn.tools_used:
-        with st.expander(f"🔧 Tools used ({len(turn.tools_used)})"):
+        with st.expander(f"Tools used ({len(turn.tools_used)})"):
             for tool in turn.tools_used:
-                icon = "✅" if tool.get("ok") else "⚠"
+                pill = (
+                    tm_badge("ok", "success", size="sm")
+                    if tool.get("ok")
+                    else tm_badge("error", "danger", size="sm")
+                )
                 st.markdown(
-                    f"{icon} **{tool.get('name')}** — {tool.get('summary') or tool.get('error', '')}"
+                    f"{pill} **{tool.get('name')}** — {tool.get('summary') or tool.get('error', '')}",
+                    unsafe_allow_html=True,
                 )
                 meta = (
                     f"confidence {tool.get('confidence', 0):.0f} · "
@@ -197,14 +204,14 @@ def _render_turn(turn: CopilotTurn, index: int) -> None:
                     meta += f" · evidence: {sources}"
                 st.caption(meta)
             if turn.reasoning_summary:
-                st.caption(f"🧠 {turn.reasoning_summary}")
+                st.caption(f"{turn.reasoning_summary}")
 
     # Actions (Module 10).
     if turn.actions:
         st.markdown("**Actions**")
         cols = st.columns(min(len(turn.actions), 3))
         for i, action in enumerate(turn.actions):
-            if cols[i % len(cols)].button(action.label, key=f"act_{index}_{i}"):
+            if cols[i % len(cols)].button(strip_emoji(action.label), key=f"act_{index}_{i}"):
                 _execute_action(action)
 
     # Follow-ups (Module 7).

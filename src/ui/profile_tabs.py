@@ -33,6 +33,7 @@ from src.semantic.similar_candidates import find_similar_candidates
 from src.ui.ai_analyst_tab import render_ai_analyst_tab
 from src.ui.interview_tab import render_interview_tab
 from src.ui.risk_tab import render_risk_tab
+from src.ui.theme import strip_emoji
 from src.ui.timeline_tab import render_timeline_tab
 
 # ---------------------------------------------------------------------------
@@ -42,7 +43,7 @@ from src.ui.timeline_tab import render_timeline_tab
 
 def _render_summary_tab(candidate: Candidate, summary: list[str]) -> None:
     """Render the Summary tab: AI recruiter summary + professional summary."""
-    st.subheader("🤖 AI Recruiter Summary")
+    st.subheader("AI Recruiter Summary")
     if summary:
         st.info("\n\n".join([f"• {x}" for x in summary]))
     else:
@@ -54,7 +55,7 @@ def _render_summary_tab(candidate: Candidate, summary: list[str]) -> None:
 
 def _render_intelligence_tab(intel: CandidateIntelligence) -> None:
     """Render the Candidate Intelligence tab (engine output, unchanged)."""
-    st.subheader("🧠 Candidate Intelligence")
+    st.subheader("Candidate Intelligence")
 
     c1, c2, c3 = st.columns(3)
     c1.metric("Overall", f"{intel.overall_score:.1f}%")
@@ -73,11 +74,11 @@ def _render_intelligence_tab(intel: CandidateIntelligence) -> None:
 
     st.progress(intel.overall_score / 100)
 
-    st.subheader("💪 Top Strengths")
+    st.subheader("Top Strengths")
     for strength in intel.strengths:
         st.success(strength)
 
-    st.subheader("⚠ Areas to Validate")
+    st.subheader("Areas to Validate")
     for weakness in intel.weaknesses:
         st.warning(weakness)
 
@@ -98,11 +99,11 @@ def _render_skills_tab(candidate: Candidate, gap: dict[str, Any]) -> None:
     with a:
         st.success(f"Matched Skills ({len(gap['matched'])})")
         for skill in gap["matched"]:
-            st.write("✅", skill)
+            st.write(skill)
     with b:
         st.error(f"Missing Skills ({len(gap['missing'])})")
         for skill in gap["missing"]:
-            st.write("❌", skill)
+            st.write(skill)
 
     st.progress(gap["match_percent"] / 100)
     st.write(f"Skill Match: {gap['match_percent']}%")
@@ -138,16 +139,19 @@ def _render_hiring_tab(
     original profile.
     """
     # --- Intelligence-engine recommendation --------------------------------
-    st.subheader("🎯 Hiring Recommendation")
+    st.subheader("Hiring Recommendation")
 
+    # The backend recommendation string is used as-is for classification, but
+    # rendered through the presentation sanitizer so no decorative glyphs show.
+    rec_text = strip_emoji(recommendation.recommendation)
     if "Strong Hire" in recommendation.recommendation:
-        st.success(recommendation.recommendation)
+        st.success(rec_text)
     elif "Hire" in recommendation.recommendation:
-        st.info(recommendation.recommendation)
+        st.info(rec_text)
     elif "Hold" in recommendation.recommendation:
-        st.warning(recommendation.recommendation)
+        st.warning(rec_text)
     else:
-        st.error(recommendation.recommendation)
+        st.error(rec_text)
 
     a, b = st.columns(2)
     with a:
@@ -159,16 +163,16 @@ def _render_hiring_tab(
 
     left, right = st.columns(2)
     with left:
-        st.markdown("### ✅ Hiring Reasons")
+        st.markdown("### Hiring Reasons")
         for reason in recommendation.reasons:
             st.success(reason)
     with right:
-        st.markdown("### ⚠ Interview Focus")
+        st.markdown("### Interview Focus")
         for topic in recommendation.interview_focus:
             st.info(topic)
 
     if recommendation.concerns:
-        st.markdown("### 🚨 Concerns")
+        st.markdown("### Concerns")
         for concern in recommendation.concerns:
             st.warning(concern)
 
@@ -181,15 +185,15 @@ def _render_hiring_tab(
         explanation.get("red_flag_penalty", 0),
     )
 
-    st.subheader("🧮 Rule-Based Recommendation")
+    st.subheader("Rule-Based Recommendation")
     if rule_recommendation == "Strong Hire":
-        st.success("🟢 Strong Hire")
+        st.success("Strong Hire")
     elif rule_recommendation == "Interview":
-        st.info("🔵 Interview")
+        st.info("Interview")
     elif rule_recommendation == "Consider":
-        st.warning("🟡 Consider")
+        st.warning("Consider")
     else:
-        st.error("🔴 Reject")
+        st.error("Reject")
     st.write(reason)
 
     st.divider()
@@ -202,13 +206,13 @@ def _render_hiring_tab(
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        if st.button("⭐ Shortlist", key=f"short_{candidate.candidate_id}"):
+        if st.button("Shortlist", key=f"short_{candidate.candidate_id}"):
             save_status(candidate.candidate_id, "Shortlisted")
     with c2:
-        if st.button("❌ Reject", key=f"reject_{candidate.candidate_id}"):
+        if st.button("Reject", key=f"reject_{candidate.candidate_id}"):
             save_status(candidate.candidate_id, "Rejected")
     with c3:
-        if st.button("🎉 Hire", key=f"hire_{candidate.candidate_id}"):
+        if st.button("Hire", key=f"hire_{candidate.candidate_id}"):
             save_status(candidate.candidate_id, "Hired")
 
     current_status = get_status(candidate.candidate_id)
@@ -229,7 +233,7 @@ def _render_interview_plan_tab(
         render_interview_tab(interview_plan)
         return
 
-    st.subheader("🗓 Interview Plan")
+    st.subheader("Interview Plan")
     if recommendation.interview_focus:
         st.markdown("### Suggested Focus Areas")
         for topic in recommendation.interview_focus:
@@ -246,7 +250,7 @@ def _render_similar_candidates(candidate: Candidate) -> None:
         for sim in sims:
             if sim.candidate_id == candidate.candidate_id:
                 continue
-            st.write(f"🔹 {sim.profile.current_title} | {sim.profile.current_company}")
+            st.write(f"{sim.profile.current_title} | {sim.profile.current_company}")
     except Exception:
         pass
 
@@ -304,16 +308,16 @@ def render_profile_tabs(
         tab_ai,
     ) = st.tabs(
         [
-            "📄 Summary",
-            "🧠 Candidate Intelligence",
-            "📈 Career Timeline",
-            "🚨 Risk Analysis",
-            "📊 Skills",
-            "💼 Career History",
-            "📄 Explainability",
-            "🎯 Hiring Recommendation",
-            "🗓 Interview Plan",
-            "🤖 AI Hiring Analyst",
+            "Summary",
+            "Candidate Intelligence",
+            "Career Timeline",
+            "Risk Analysis",
+            "Skills",
+            "Career History",
+            "Explainability",
+            "Hiring Recommendation",
+            "Interview Plan",
+            "AI Hiring Analyst",
         ]
     )
 

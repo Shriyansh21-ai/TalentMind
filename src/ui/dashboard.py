@@ -25,7 +25,7 @@ def render_dashboard(
         jd: Raw job-description text.
         actions: Recruiter pipeline action map (``candidate_id -> status``).
     """
-    st.header("📊 Dashboard")
+    st.header("Dashboard")
 
     tallies = count_actions(actions)
     best_match = results[0][1] if results else 0

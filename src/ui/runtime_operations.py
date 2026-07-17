@@ -30,7 +30,7 @@ def _get_runtime():
 
 def render_runtime_operations() -> None:
     """Render the Runtime Operations workspace."""
-    st.title("⚙️ Runtime Operations")
+    st.title("Runtime Operations")
     st.caption(
         "Enterprise runtime console — background jobs, workers, queues, cache, "
         "health, resilience, load management and resource utilization for the "
@@ -51,14 +51,14 @@ def render_runtime_operations() -> None:
         tab_events,
     ) = st.tabs(
         [
-            "❤️ Health",
-            "👷 Workers",
-            "📥 Queues & Jobs",
-            "🗃️ Cache",
-            "🚀 Performance",
-            "📊 Resources",
-            "🔌 Circuit Breakers",
-            "📡 Runtime Events",
+            "Health",
+            "Workers",
+            "Queues & Jobs",
+            "Cache",
+            "Performance",
+            "Resources",
+            "Circuit Breakers",
+            "Runtime Events",
         ]
     )
 

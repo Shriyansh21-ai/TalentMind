@@ -31,7 +31,7 @@ def _get_platform():
 
 def render_security_operations() -> None:
     """Render the Security & Operations Center workspace."""
-    st.title("🛡️ Security & Operations Center")
+    st.title("Security & Operations Center")
     st.caption(
         "Enterprise security, governance, compliance and observability — "
         "identity, audit, secrets, monitoring, threats, policy and incidents "
@@ -51,13 +51,13 @@ def render_security_operations() -> None:
         tab_incidents,
     ) = st.tabs(
         [
-            "📊 System Overview",
-            "🧾 Audit Timeline",
-            "🚨 Alerts",
-            "🕵️ Threat Events",
-            "📜 Policy & Governance",
-            "✅ Compliance Status",
-            "🔥 Incidents",
+            "System Overview",
+            "Audit Timeline",
+            "Alerts",
+            "Threat Events",
+            "Policy & Governance",
+            "Compliance Status",
+            "Incidents",
         ]
     )
 
@@ -118,32 +118,32 @@ def _render_overview(sp) -> None:
     rows = [
         {
             "component": "Identity",
-            "status": "🟢 operational",
+            "status": "operational",
             "detail": f"{len(sp.identity.list(_TENANT))} identities",
         },
         {
             "component": "Audit chain",
-            "status": "✅ intact" if sp.audit.verify_chain(_TENANT) else "❌ broken",
+            "status": "intact" if sp.audit.verify_chain(_TENANT) else "broken",
             "detail": f"{sp.audit.count(_TENANT)} entries",
         },
         {
             "component": "Secrets",
-            "status": "🟢 operational",
+            "status": "operational",
             "detail": f"{len(sp.secrets.metadata(_TENANT))} managed",
         },
         {
             "component": "Monitoring",
-            "status": "🟢 operational",
+            "status": "operational",
             "detail": f"{len(sp.monitoring.rules_for(_TENANT))} rules",
         },
         {
             "component": "Governance",
-            "status": "🟢 operational",
+            "status": "operational",
             "detail": f"{len(sp.governance.policies_for(_TENANT))} policies",
         },
         {
             "component": "Threat detection",
-            "status": "🟢 operational",
+            "status": "operational",
             "detail": f"{threat.total_events} events",
         },
     ]
@@ -172,7 +172,7 @@ def _render_audit(sp) -> None:
     st.dataframe(rows, use_container_width=True, hide_index=True)
     st.caption(
         f"{sp.audit.count(_TENANT)} immutable entries · chain "
-        + ("✅ intact" if sp.audit.verify_chain(_TENANT) else "❌ broken")
+        + ("intact" if sp.audit.verify_chain(_TENANT) else "broken")
     )
 
 
@@ -188,7 +188,7 @@ def _render_alerts(sp) -> None:
             "metric": a.metric,
             "value": a.value,
             "threshold": a.threshold,
-            "resolved": "✅" if a.resolved else "—",
+            "resolved": "Yes" if a.resolved else "—",
         }
         for a in alerts
     ]
@@ -212,7 +212,7 @@ def _render_threats(sp) -> None:
             "risk": e.risk_level.value,
             "actor": e.actor_id or "—",
             "description": e.description,
-            "resolved": "✅" if e.resolved else "—",
+            "resolved": "Yes" if e.resolved else "—",
         }
         for e in sp.threat.list_events(_TENANT)
     ]
@@ -229,7 +229,7 @@ def _render_policy(sp) -> None:
             "domain": p.domain.value,
             "enforcement": p.enforcement.value,
             "rules": len(p.rules),
-            "enabled": "🟢" if p.enabled else "⚪",
+            "enabled": "Yes" if p.enabled else "No",
         }
         for p in sp.governance.policies_for(_TENANT)
     ]

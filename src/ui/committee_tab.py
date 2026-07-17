@@ -19,24 +19,10 @@ import streamlit as st
 from src.ai.committee.committee import HiringCommitteeEngine
 from src.ai.committee.schemas import CommitteeMode, CommitteeReport
 from src.ai.core.runner import AgentRunner
+from src.ui.theme import empty_state
 
 _runner: AgentRunner | None = None
 _engine: HiringCommitteeEngine | None = None
-
-_REC_BADGE = {
-    "Strong Hire": "🟢",
-    "Hire": "🟢",
-    "Lean Hire": "🟩",
-    "Hold": "🟡",
-    "Lean No Hire": "🟥",
-    "No Hire": "🔴",
-}
-_LEVEL_BADGE = {
-    "Strong Consensus": "🟢",
-    "Moderate Consensus": "🟡",
-    "Split Decision": "🟠",
-    "No Consensus": "🔴",
-}
 
 
 def _get_engine(insights_fn=None) -> HiringCommitteeEngine:
@@ -58,7 +44,7 @@ def render_committee(
     key_prefix: str = "cm",
 ) -> None:
     """Convene the committee for a candidate and render the full dashboard."""
-    st.subheader("🏛️ AI Hiring Committee")
+    st.subheader("AI Hiring Committee")
     st.caption(
         "A panel of AI specialists independently reviews the existing engine "
         "outputs, debates, resolves conflicts and produces one transparent, "
@@ -80,26 +66,21 @@ def _render_report(report: CommitteeReport) -> None:
     # -- headline ----------------------------------------------------------
     top = st.columns(4)
     top[0].metric("Recommendation", consensus.recommendation.value)
-    top[1].metric(
-        "Consensus",
-        f"{_LEVEL_BADGE.get(consensus.level.value, '')} {consensus.level.value}",
-    )
+    top[1].metric("Consensus", consensus.level.value)
     top[2].metric("Confidence", f"{report.confidence.overall:.0f}/100")
     top[3].metric("Conflicts", len(report.conflicts))
 
     # Consensus meter: map weighted stance (-2..3) onto 0..1.
     meter = max(0.0, min(1.0, (consensus.weighted_stance + 2.0) / 5.0))
     st.caption(
-        f"Consensus meter (No Hire ◄──► Strong Hire) · stance {consensus.weighted_stance:+.2f}"
+        f"Consensus meter (No Hire to Strong Hire) · stance {consensus.weighted_stance:+.2f}"
     )
     st.progress(meter)
 
     for warning in report.warnings:
         st.warning(warning)
 
-    tabs = st.tabs(
-        ["⚖️ Decision", "👥 Opinions", "💬 Discussion", "⚡ Conflicts", "📊 Confidence", "🧾 Report"]
-    )
+    tabs = st.tabs(["Decision", "Opinions", "Discussion", "Conflicts", "Confidence", "Report"])
 
     with tabs[0]:
         st.info(decision.executive_summary)
@@ -118,18 +99,17 @@ def _render_report(report: CommitteeReport) -> None:
             _bullets(decision.interview_priorities, "None.")
             st.markdown("**Follow-up actions**")
             _bullets(decision.follow_up_actions, "None.")
-        st.caption("📌 " + decision.confidence_note)
+        st.caption(decision.confidence_note)
 
     with tabs[1]:
         st.caption("Each specialist reviewed independently (no member saw another's opinion).")
         st.caption("Consensus reasoning: " + consensus.reasoning)
         for opinion in report.opinions:
-            badge = _REC_BADGE.get(opinion.recommendation.value, "⚪")
             weight = consensus.member_weights.get(opinion.role, 0.0)
             with st.expander(
-                f"{badge} {opinion.role_title} — {opinion.recommendation.value} "
+                f"{opinion.role_title} — {opinion.recommendation.value} "
                 f"(confidence {opinion.confidence:.0f}%, weight {weight:.2f})"
-                + ("  ·  abstained" if opinion.abstained else "")
+                + (" · abstained" if opinion.abstained else "")
             ):
                 st.write(opinion.opinion)
                 if opinion.strengths:
@@ -163,7 +143,7 @@ def _render_report(report: CommitteeReport) -> None:
             st.success("No material conflicts — the panel's differences are only of degree.")
         for conflict in report.conflicts:
             with st.expander(
-                f"⚡ {conflict.member_a} vs {conflict.member_b} (gap {conflict.stance_gap:.0f})"
+                f"{conflict.member_a} vs {conflict.member_b} (gap {conflict.stance_gap:.0f})"
             ):
                 st.markdown(f"**Root cause:** {conflict.root_cause}")
                 st.markdown(f"**Missing evidence:** {conflict.missing_evidence}")
@@ -218,7 +198,7 @@ RepositoryFactory = Callable[[], Any]
 
 def render_committee_workspace(repository_factory: RepositoryFactory, *, insights_fn=None) -> None:
     """Render the Hiring Committee workspace (pick candidate + JD + mode → run)."""
-    st.title("🏛️ AI Hiring Committee")
+    st.title("AI Hiring Committee")
     st.caption(
         "TalentMind's flagship multi-agent decision engine — an executive hiring "
         "panel that debates the evidence and produces a transparent recommendation."
@@ -232,7 +212,10 @@ def render_committee_workspace(repository_factory: RepositoryFactory, *, insight
 
     candidates = repository.sample(limit=50)
     if not candidates:
-        st.info("No candidates available.")
+        empty_state(
+            "No candidates available",
+            "Load a candidate dataset to convene the hiring committee.",
+        )
         return
 
     ids = [c.candidate_id for c in candidates]
@@ -243,7 +226,7 @@ def render_committee_workspace(repository_factory: RepositoryFactory, *, insight
     )
     jd_text = st.text_area("Optional job description (sharpens role-fit)", key="cm_jd")
 
-    if st.button("🏛️ Convene committee", type="primary", key="cm_run"):
+    if st.button("Convene committee", type="primary", key="cm_run"):
         candidate = repository.get(chosen)
         if candidate is not None:
             render_committee(

@@ -30,10 +30,10 @@ def calculate_badge(score: float) -> str:
     >=140 Good, otherwise Weak).
     """
     if score >= STRONG_MATCH_THRESHOLD:
-        return "🟢 Strong Match"
+        return "Strong Match"
     if score >= GOOD_MATCH_THRESHOLD:
-        return "🟡 Good Match"
-    return "🔴 Weak Match"
+        return "Good Match"
+    return "Weak Match"
 
 
 def count_actions(actions: dict[str, str]) -> dict[str, int]:

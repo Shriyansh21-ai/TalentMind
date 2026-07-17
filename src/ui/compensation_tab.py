@@ -45,7 +45,7 @@ def render_compensation(
     key_prefix: str = "cg",
 ) -> None:
     """Build the compensation governance report for a candidate and render it."""
-    st.subheader("💰 Enterprise Compensation Governance")
+    st.subheader("Enterprise Compensation Governance")
     st.caption(
         "Not a salary predictor — a transparency system. It explains, justifies, "
         "documents and governs a compensation recommendation using evidence from "
@@ -77,18 +77,18 @@ def _render_report(report: CompensationReport, *, key_prefix: str) -> None:
 
     tabs = st.tabs(
         [
-            "📄 Summary",
-            "💵 Recommendation",
-            "🧾 Justification",
-            "🏛️ Governance",
-            "📈 Market",
-            "🎚️ Scenarios",
-            "🤝 Negotiation",
-            "💼 Budget",
-            "⚖️ Internal Equity",
-            "🌱 Future",
-            "📊 Dashboard",
-            "🔍 Audit Trail",
+            "Summary",
+            "Recommendation",
+            "Justification",
+            "Governance",
+            "Market",
+            "Scenarios",
+            "Negotiation",
+            "Budget",
+            "Internal Equity",
+            "Future",
+            "Dashboard",
+            "Audit Trail",
         ]
     )
 
@@ -103,8 +103,8 @@ def _render_report(report: CompensationReport, *, key_prefix: str) -> None:
         with c[1]:
             st.markdown("**Key assumptions**")
             _bullets(narrative.key_assumptions, "None flagged.")
-        st.caption("📌 " + narrative.confidence_note)
-        st.caption("🔎 " + narrative.transparency_note)
+        st.caption("" + narrative.confidence_note)
+        st.caption("" + narrative.transparency_note)
 
     with tabs[1]:
         st.success(f"Recommended range: **{band.formatted()}**")
@@ -126,13 +126,7 @@ def _render_report(report: CompensationReport, *, key_prefix: str) -> None:
             "Every line is tagged Evidence / Reasoning / Business Impact / Assumption and cites its source."
         )
         for entry in report.justification:
-            icon = {
-                "Evidence": "📎",
-                "Reasoning": "🧠",
-                "Business Impact": "💼",
-                "Assumption": "❓",
-            }.get(entry.kind, "•")
-            st.markdown(f"{icon} **{entry.kind}** — {entry.statement}")
+            st.markdown(f"**{entry.kind}** — {entry.statement}")
             st.caption(
                 f"Source: {entry.source}"
                 + (f" · confidence {entry.confidence:.0f}" if entry.confidence else "")
@@ -141,9 +135,8 @@ def _render_report(report: CompensationReport, *, key_prefix: str) -> None:
     with tabs[3]:
         st.caption("Every governance conclusion explains WHY (Module 3).")
         for check in report.governance_checks:
-            badge = {"Aligned": "✅", "Review": "⚠️", "Not Evaluable": "➖"}.get(check.status, "•")
-            st.markdown(f"{badge} **{check.dimension}** — {check.status}")
-            st.caption(check.rationale + f"  ·  {check.source}")
+            st.markdown(f"**{check.dimension}** — {check.status}")
+            st.caption(check.rationale + f" · {check.source}")
 
     with tabs[4]:
         mp = report.market_position
@@ -207,7 +200,7 @@ def _render_report(report: CompensationReport, *, key_prefix: str) -> None:
     with tabs[8]:
         eq = report.internal_equity
         if not eq.available:
-            st.info(f"⚖️ {eq.status_message}")
+            st.info(f"{eq.status_message}")
             st.caption(
                 "No payroll/HRIS source is connected. TalentMind ships no payroll connector (Module 8)."
             )
@@ -274,7 +267,7 @@ def _render_dashboard(report: CompensationReport) -> None:
 def _render_audit_trail(report: CompensationReport, *, key_prefix: str) -> None:
     """Render + export the flagship transparency audit trail (Module 12)."""
     audit = report.audit_trail
-    st.markdown("### 🔍 Transparency Audit Trail")
+    st.markdown("### Transparency Audit Trail")
     c = st.columns(3)
     c[0].metric("Decision ID", audit.decision_id)
     c[1].metric("Confidence", f"{audit.confidence:.0f}/100")
@@ -295,7 +288,7 @@ def _render_audit_trail(report: CompensationReport, *, key_prefix: str) -> None:
 
     export_text = audit.to_export_text()
     st.download_button(
-        "⬇️ Export audit trail (.txt)",
+        "Export audit trail (.txt)",
         data=export_text.encode("utf-8"),
         file_name=f"{audit.decision_id}_audit.txt",
         mime="text/plain",
@@ -304,7 +297,7 @@ def _render_audit_trail(report: CompensationReport, *, key_prefix: str) -> None:
     import json
 
     st.download_button(
-        "⬇️ Export full report (.json)",
+        "Export full report (.json)",
         data=json.dumps(report.to_dict(), indent=2).encode("utf-8"),
         file_name=f"{report.report_id}.json",
         mime="application/json",
@@ -347,7 +340,7 @@ def render_compensation_workspace(
     repository_factory: RepositoryFactory, *, insights_fn=None
 ) -> None:
     """Render the Compensation Governance workspace (pick candidate → run)."""
-    st.title("💰 Enterprise Compensation Governance")
+    st.title("Enterprise Compensation Governance")
     st.caption(
         "TalentMind's compensation transparency system — it explains, justifies, "
         "documents and governs every compensation recommendation using evidence "
@@ -373,7 +366,7 @@ def render_compensation_workspace(
         "Optional job description (sharpens role alignment + governance)", key="cg_jd"
     )
 
-    if st.button("💰 Generate compensation governance report", type="primary", key="cg_run"):
+    if st.button("Generate compensation governance report", type="primary", key="cg_run"):
         candidate = repository.get(chosen)
         if candidate is not None:
             render_compensation(candidate, jd=jd_text, insights_fn=insights_fn, key_prefix="cg_ws")

@@ -34,7 +34,7 @@ def _get_platform():
 
 def render_integration_marketplace() -> None:
     """Render the Integration Marketplace workspace."""
-    st.title("🔌 Integration Marketplace")
+    st.title("Integration Marketplace")
     st.caption(
         "Enterprise integration platform — HRIS, ATS, calendar, communication "
         "and document providers, API gateway, webhooks, event bus and "
@@ -53,12 +53,12 @@ def render_integration_marketplace() -> None:
         tab_sdk,
     ) = st.tabs(
         [
-            "🛍️ Marketplace",
-            "🧩 Installed",
-            "❤️ Health & Logs",
-            "🪝 Webhooks & Sync",
-            "📡 Event Bus",
-            "🧰 Developer SDKs",
+            "Marketplace",
+            "Installed",
+            "Health & Logs",
+            "Webhooks & Sync",
+            "Event Bus",
+            "Developer SDKs",
         ]
     )
 
@@ -118,12 +118,12 @@ def _render_marketplace(platform) -> None:
         st.markdown(f"#### {category.value.upper()} ({len(definitions)})")
         rows = [
             {
-                "provider": f"{d.metadata.logo_emoji} {d.metadata.display_name}",
+                "provider": d.metadata.display_name,
                 "vendor": d.metadata.vendor,
                 "auth": ", ".join(a.value for a in d.metadata.auth_schemes),
-                "sync": "✅" if d.capabilities.supports_incremental_sync else "—",
-                "webhooks": "✅" if d.capabilities.supports_webhooks else "—",
-                "write": "✅" if d.capabilities.supports_write else "—",
+                "sync": "Yes" if d.capabilities.supports_incremental_sync else "—",
+                "webhooks": "Yes" if d.capabilities.supports_webhooks else "—",
+                "write": "Yes" if d.capabilities.supports_write else "—",
             }
             for d in definitions
         ]
@@ -209,7 +209,7 @@ def _render_webhooks_sync(platform) -> None:
                 "url": s.url,
                 "direction": s.direction.value,
                 "filters": ", ".join(s.event_filters),
-                "active": "✅" if s.active else "—",
+                "active": "Yes" if s.active else "—",
             }
             for s in subs
         ]

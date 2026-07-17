@@ -20,17 +20,11 @@ import streamlit as st
 from src.ai.agents.resume.agent import ResumeAnalystInput, resume_analyst_agent
 from src.ai.agents.resume.schemas import ResumeAnalysis
 from src.ai.core.runner import AgentRunner
+from src.ui.theme import level_pill
 
 _runner: AgentRunner | None = None
 
-_PRIORITY_BADGE = {"high": "🔴 High", "medium": "🟠 Medium", "low": "🟡 Low"}
-_RISK_BADGE = {"high": "🔴", "medium": "🟠", "low": "🟡"}
-_LEVEL_COLOR = {
-    "Low": "🟢",
-    "Low-Medium": "🟢",
-    "Medium": "🟡",
-    "High": "🔴",
-}
+_PRIORITY_BADGE = {"high": "High", "medium": "Medium", "low": "Low"}
 
 
 def _get_runner() -> AgentRunner:
@@ -55,7 +49,7 @@ def render_resume_intelligence(
         key_prefix: Unique Streamlit widget-key prefix.
     """
     candidate_id = getattr(candidate, "candidate_id", "resume")
-    st.subheader("📄 Resume Intelligence")
+    st.subheader("Resume Intelligence")
     st.caption(
         "Recruiter-grade resume quality analysis — structure, writing, ATS, "
         "projects, achievements and evidence-based risks. **Resume quality only; "
@@ -67,9 +61,9 @@ def render_resume_intelligence(
 
     result = runner.peek(resume_analyst_agent, payload)
     cols = st.columns([1, 1, 4])
-    generate = cols[0].button("✨ Analyze", key=f"{key_prefix}_gen_{candidate_id}")
+    generate = cols[0].button("Analyze", key=f"{key_prefix}_gen_{candidate_id}")
     refresh = cols[1].button(
-        "♻ Refresh", key=f"{key_prefix}_ref_{candidate_id}", disabled=result is None
+        "Refresh", key=f"{key_prefix}_ref_{candidate_id}", disabled=result is None
     )
     if generate or refresh or result is None:
         with st.spinner("Analyzing resume…"):
@@ -80,11 +74,11 @@ def render_resume_intelligence(
         return
 
     st.caption(
-        f"provider: {result.provider} · {'💾 cached' if result.cache_hit else '🟢 generated'} "
+        f"provider: {result.provider} · {'cached' if result.cache_hit else 'generated'} "
         f"· {result.latency_ms:.0f} ms"
     )
     for warning in result.warnings:
-        st.caption(f"⚠ {warning}")
+        st.caption(f"{warning}")
 
     _render_dashboard(result.data, key_prefix)
 
@@ -98,13 +92,13 @@ def _render_dashboard(analysis: ResumeAnalysis, key_prefix: str) -> None:
     top[0].metric("Overall Resume Quality", f"{q.overall:.0f}/100")
     top[1].metric("ATS", analysis.ats_report.friendliness or "—")
     level = analysis.risk_report.level
-    top[2].metric("Resume Risk", f"{_LEVEL_COLOR.get(level, '⚪')} {level}")
+    top[2].metric("Resume Risk", level)
     top[3].metric("Career Direction", analysis.career_story.direction or "—")
 
     st.info(analysis.executive_summary)
 
     # -- quality dimensions -------------------------------------------------
-    st.markdown("#### 📊 Quality Dimensions")
+    st.markdown("#### Quality Dimensions")
     dims = {
         "Structure": q.structure,
         "Writing": q.writing,
@@ -128,23 +122,23 @@ def _render_dashboard(analysis: ResumeAnalysis, key_prefix: str) -> None:
     # -- strengths / weaknesses --------------------------------------------
     sw = st.columns(2)
     with sw[0]:
-        st.markdown("#### ✅ Strengths")
+        st.markdown("#### Strengths")
         _bullets(analysis.strengths, "None surfaced.")
     with sw[1]:
-        st.markdown("#### ⚠️ Weaknesses")
+        st.markdown("#### Weaknesses")
         _bullets(analysis.weaknesses, "None surfaced.")
 
     # -- detailed tabs ------------------------------------------------------
     tabs = st.tabs(
         [
-            "🧭 Career",
-            "✍️ Writing",
-            "🧪 Technical",
-            "📦 Projects",
-            "🏆 Achievements",
-            "🔎 ATS",
-            "🚨 Risk",
-            "🗺️ Roadmap",
+            "Career",
+            "Writing",
+            "Technical",
+            "Projects",
+            "Achievements",
+            "ATS",
+            "Risk",
+            "Roadmap",
         ]
     )
 
@@ -223,19 +217,21 @@ def _render_dashboard(analysis: ResumeAnalysis, key_prefix: str) -> None:
         _bullets(ats.suggestions, "")
 
     with tabs[6]:
-        st.markdown(f"**Overall resume risk: {_LEVEL_COLOR.get(level, '⚪')} {level}**")
+        st.markdown(f"**Overall resume risk:** {level_pill(level)}", unsafe_allow_html=True)
         if not analysis.risk_report.findings:
             st.success("No evidence-based resume risks detected.")
         for finding in analysis.risk_report.findings:
-            badge = _RISK_BADGE.get(finding.severity, "🟡")
-            st.markdown(f"{badge} **{finding.type}** — {finding.issue}")
+            st.markdown(
+                f"{level_pill(finding.severity)} **{finding.type}** — {finding.issue}",
+                unsafe_allow_html=True,
+            )
             st.caption("Evidence: " + finding.evidence)
         if analysis.risk_report.positive_signals:
             st.markdown("**Positive signals**")
             _bullets(analysis.risk_report.positive_signals, "")
 
     with tabs[7]:
-        st.markdown("#### 🗺️ Improvement Roadmap (highest impact first)")
+        st.markdown("#### Improvement Roadmap (highest impact first)")
         if not analysis.improvement_plan:
             st.caption("No improvements suggested — the resume is in good shape.")
         for i, imp in enumerate(analysis.improvement_plan, start=1):
@@ -245,7 +241,7 @@ def _render_dashboard(analysis: ResumeAnalysis, key_prefix: str) -> None:
                 if imp.example:
                     st.caption("Example: " + imp.example)
 
-    st.caption("📌 " + analysis.confidence_note)
+    st.caption("" + analysis.confidence_note)
 
 
 def _bullets(items: list[str], empty_message: str) -> None:
@@ -267,7 +263,7 @@ RepositoryFactory = Callable[[], Any]
 
 def render_resume_workspace(repository_factory: RepositoryFactory, *, jd: str = "") -> None:
     """Render the Resume Intelligence workspace with a candidate picker."""
-    st.title("📄 Resume Intelligence")
+    st.title("Resume Intelligence")
     st.caption(
         "Enterprise resume analysis powered by the ResumeAnalystAgent — an "
         "evidence-based recruiter + career coach. Resume quality only."

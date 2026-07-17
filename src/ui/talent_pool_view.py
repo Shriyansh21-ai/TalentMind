@@ -23,7 +23,7 @@ def render_talent_pools(insights: Sequence[CandidateInsights]) -> None:
     Args:
         insights: The bounded insight cohort to segment.
     """
-    st.subheader("🗂 Talent Pools")
+    st.subheader("Talent Pools")
 
     if not insights:
         st.info("No candidates available to segment.")

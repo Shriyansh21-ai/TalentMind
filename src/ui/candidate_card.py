@@ -61,11 +61,11 @@ def render_candidate_card(
         if "reasons" in explanation:
             st.write("### Why Ranked High?")
             for reason in explanation["reasons"]:
-                st.write("✅", reason)
+                st.write(reason)
 
         # --- Compare toggle (feeds the Comparison workspace) ---------------
         selected = is_selected(candidate.candidate_id)
-        compare_label = "✓ Comparing" if selected else "➕ Compare"
+        compare_label = "Comparing" if selected else "Compare"
         if st.button(compare_label, key=f"compare_{candidate.candidate_id}"):
             toggle_compare(candidate.candidate_id)
             _rerun()

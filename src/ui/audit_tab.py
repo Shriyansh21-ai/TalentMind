@@ -20,6 +20,7 @@ import streamlit as st
 from src.ai.agents.audit.audit_engine import HiringAuditEngine
 from src.ai.agents.audit.schemas import HiringAuditReport
 from src.ai.core.runner import AgentRunner
+from src.ui.theme import status_pill
 
 _runner: AgentRunner | None = None
 _engine: HiringAuditEngine | None = None
@@ -44,7 +45,7 @@ def render_audit(
     key_prefix: str = "au",
 ) -> None:
     """Build the audit report for a candidate and render the workspace."""
-    st.subheader("🔎 Enterprise Hiring Audit & Explainability")
+    st.subheader("Enterprise Hiring Audit & Explainability")
     st.caption(
         "Reconstructs the complete hiring journey — why the decision was made, "
         "which AI agents participated, which evidence influenced it, which "
@@ -58,22 +59,6 @@ def render_audit(
         report = engine.build(candidate=candidate, jd=jd, generated_on=generated_on)
 
     _render_report(report, key_prefix=key_prefix)
-
-
-_STATUS_BADGE = {
-    "Observed": "✅",
-    "Complete": "✅",
-    "Ready": "✅",
-    "Unavailable": "➖",
-    "Unverified": "⚠️",
-    "Partially Ready": "⚠️",
-    "Not Ready": "❌",
-    "Requires Review": "⚠️",
-}
-
-
-def _badge(status: str) -> str:
-    return _STATUS_BADGE.get(status, "•")
 
 
 def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
@@ -96,30 +81,30 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
 
     if not report.data_available:
         st.info(
-            "ℹ️ No audit archive connected — human approvals and historical decisions are unverified; the reconstruction reflects on-record artefacts only (Module 14)."
+            "No audit archive connected — human approvals and historical decisions are unverified; the reconstruction reflects on-record artefacts only (Module 14)."
         )
     for warning in report.warnings:
         st.warning(warning)
 
     tabs = st.tabs(
         [
-            "📄 Summary",
-            "🧭 Decision Trace",
-            "🔗 Evidence & Provenance",
-            "🕸️ Evidence Graph",
-            "🧠 Reasoning",
-            "⏱️ Timeline",
-            "👥 Human vs AI",
-            "🏛️ Governance",
-            "✅ Audit Readiness",
-            "📚 History",
-            "📊 Dashboard",
+            "Summary",
+            "Decision Trace",
+            "Evidence & Provenance",
+            "Evidence Graph",
+            "Reasoning",
+            "Timeline",
+            "Human vs AI",
+            "Governance",
+            "Audit Readiness",
+            "History",
+            "Dashboard",
         ]
     )
 
     with tabs[0]:
         st.info(narrative.executive_summary)
-        st.caption("🔎 " + narrative.data_availability_note)
+        st.caption(narrative.data_availability_note)
         c = st.columns(2)
         with c[0]:
             st.markdown("**Key findings**")
@@ -131,20 +116,21 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
             _bullets(narrative.outstanding_risks, "")
             st.markdown("**Assumptions**")
             _bullets(narrative.assumptions, "")
-        st.caption("📌 " + narrative.confidence_note)
+        st.caption(narrative.confidence_note)
 
     with tabs[1]:
         st.caption(narrative.decision_journey_note)
         for s in report.decision_trace:
             st.markdown(
-                f"{_badge(s.status)} **{s.order}. {s.stage}** — {s.status}  _({s.origin_agent})_"
+                f"{status_pill(s.status)} **{s.order}. {s.stage}** _({s.origin_agent})_",
+                unsafe_allow_html=True,
             )
             st.caption(s.summary)
 
     with tabs[2]:
         st.caption(narrative.evidence_note)
         for p in report.provenance:
-            st.markdown(f"{_badge(p.register)} **{p.evidence_source}** — {p.evidence_type}")
+            st.markdown(f"**{p.evidence_source}** — {p.evidence_type}")
             st.caption(
                 f"Origin: {p.origin_agent} · confidence: {p.confidence} · register: {p.register}"
             )
@@ -152,7 +138,9 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
     with tabs[3]:
         graph = report.evidence_graph
         st.markdown("**Nodes**")
-        st.caption(", ".join(f"{'●' if n.present else '○'} {n.label}" for n in graph.nodes))
+        st.caption(
+            ", ".join(f"{n.label} ({'present' if n.present else 'absent'})" for n in graph.nodes)
+        )
         st.markdown("**Active edges (evidence flow)**")
         for e in graph.edges:
             if e.active:
@@ -173,24 +161,25 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
 
     with tabs[5]:
         for t in report.timeline:
-            st.markdown(f"{_badge(t.status)} **{t.order}. {t.name}** · {t.actor} · {t.status}")
+            st.markdown(
+                f"{status_pill(t.status)} **{t.order}. {t.name}** · {t.actor}",
+                unsafe_allow_html=True,
+            )
             st.caption(t.detail)
 
     with tabs[6]:
         st.caption(narrative.responsibility_note)
         cols = st.columns(2)
         with cols[0]:
-            st.markdown("**🤖 AI decisions**")
+            st.markdown("**AI decisions**")
             for d in report.responsibility:
                 if d.responsible_party == "AI":
-                    st.caption(f"{_badge(d.status)} {d.decision} — {d.kind} ({d.status})")
+                    st.caption(f"{d.decision} — {d.kind} ({d.status})")
         with cols[1]:
-            st.markdown("**👤 Human decisions**")
+            st.markdown("**Human decisions**")
             for d in report.responsibility:
                 if d.responsible_party != "AI":
-                    st.caption(
-                        f"{_badge(d.status)} {d.decision} — {d.responsible_party} · {d.kind} ({d.status})"
-                    )
+                    st.caption(f"{d.decision} — {d.responsible_party} · {d.kind} ({d.status})")
 
     with tabs[7]:
         st.caption(narrative.governance_note)
@@ -244,9 +233,7 @@ def _render_dashboard(report: HiringAuditReport) -> None:
 
     st.markdown("**Approval chain**")
     for step in charts.get("approval_chain", []):
-        st.caption(
-            f"{_badge(step.get('status'))} {step.get('decision')} ({step.get('party')}) — {step.get('status')}"
-        )
+        st.caption(f"{step.get('decision')} ({step.get('party')}) — {step.get('status')}")
 
     gh = charts.get("governance_health", {})
     st.markdown("**Governance health / audit readiness**")
@@ -280,7 +267,7 @@ RepositoryFactory = Callable[[], Any]
 
 def render_audit_workspace(repository_factory: RepositoryFactory, *, insights_fn=None) -> None:
     """Render the Hiring Audit workspace (pick candidate → run)."""
-    st.title("🔎 Enterprise Hiring Audit & Explainability")
+    st.title("Enterprise Hiring Audit & Explainability")
     st.caption(
         "TalentMind's audit & explainability platform. It reconstructs the "
         "complete hiring journey with transparent, evidence-backed reasoning — "
@@ -307,7 +294,7 @@ def render_audit_workspace(repository_factory: RepositoryFactory, *, insights_fn
         "Optional job description (sharpens the reconstruction)", key="au_jd"
     )
 
-    if st.button("🔎 Reconstruct hiring decision", type="primary", key="au_run"):
+    if st.button("Reconstruct hiring decision", type="primary", key="au_run"):
         candidate = repository.get(chosen)
         if candidate is not None:
             render_audit(candidate, jd=jd_text, insights_fn=insights_fn, key_prefix="au_ws")

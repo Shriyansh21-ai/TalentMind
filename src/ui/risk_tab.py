@@ -13,7 +13,7 @@ from src.ui.components import render_cards, render_level_badge, render_meter
 
 def render_risk_tab(report: RiskReport) -> None:
     """Render the Risk Analysis tab from a precomputed report."""
-    st.subheader("🚨 Resume Risk Analysis")
+    st.subheader("Resume Risk Analysis")
 
     header = st.columns([1, 1])
     with header[0]:
@@ -29,7 +29,7 @@ def render_risk_tab(report: RiskReport) -> None:
 
     st.divider()
 
-    st.markdown("### 🎛 Risk Breakdown")
+    st.markdown("### Risk Breakdown")
     row1 = st.columns(3)
     with row1[0]:
         render_level_badge("Employment Gaps", report.employment_gap_risk)
@@ -50,14 +50,14 @@ def render_risk_tab(report: RiskReport) -> None:
 
     left, right = st.columns(2)
     with left:
-        st.markdown("### 🚩 Red Flags")
+        st.markdown("### Red Flags")
         render_cards(
             report.red_flags,
             style="error",
             empty_message="No red flags detected.",
         )
     with right:
-        st.markdown("### ✅ Positive Signals")
+        st.markdown("### Positive Signals")
         render_cards(
             report.positive_signals,
             style="success",
@@ -65,10 +65,10 @@ def render_risk_tab(report: RiskReport) -> None:
         )
 
     if report.risk_factors:
-        st.markdown("### 🔎 Contributing Factors")
+        st.markdown("### Contributing Factors")
         render_cards(report.risk_factors, style="warning")
 
-    st.markdown("### ❓ Recommended Validation Questions")
+    st.markdown("### Recommended Validation Questions")
     render_cards(
         report.validation_questions,
         style="info",

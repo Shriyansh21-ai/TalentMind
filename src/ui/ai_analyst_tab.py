@@ -24,11 +24,11 @@ from src.insights.models import CandidateInsights
 from src.interview.models import InterviewPlan
 
 _DECISION_STYLE = {
-    "Strong Hire": ("success", "🟢"),
-    "Hire": ("info", "🔵"),
-    "Hold": ("warning", "🟡"),
-    "Reject": ("error", "🔴"),
-    "Insufficient Evidence": ("warning", "⚪"),
+    "Strong Hire": "success",
+    "Hire": "info",
+    "Hold": "warning",
+    "Reject": "error",
+    "Insufficient Evidence": "warning",
 }
 
 
@@ -46,7 +46,7 @@ def render_ai_analyst_tab(
         interview_plan: The candidate's deterministic interview plan.
         jd: Raw job-description text.
     """
-    st.subheader("🤖 AI Hiring Analyst")
+    st.subheader("AI Hiring Analyst")
 
     status = get_platform_status()
     st.caption(
@@ -60,10 +60,10 @@ def render_ai_analyst_tab(
 
     controls = st.columns([1, 1, 3])
     with controls[0]:
-        generate = st.button("✨ Generate", key=f"ai_gen_{candidate_id}")
+        generate = st.button("Generate", key=f"ai_gen_{candidate_id}")
     with controls[1]:
         refresh = st.button(
-            "♻ Refresh",
+            "Refresh",
             key=f"ai_refresh_{candidate_id}",
             disabled=result is None,
             help="Recompute and overwrite the cached analysis.",
@@ -91,9 +91,9 @@ def render_ai_analyst_tab(
 def _render_status_line(result: AgentResult) -> None:
     """Render a small provenance/telemetry line for the analysis."""
     badge = {
-        AgentStatus.SUCCESS: "🟢 generated",
-        AgentStatus.CACHED: "💾 cached",
-        AgentStatus.FALLBACK: "🟡 deterministic fallback",
+        AgentStatus.SUCCESS: "generated",
+        AgentStatus.CACHED: "cached",
+        AgentStatus.FALLBACK: "deterministic fallback",
     }.get(result.status, result.status.value)
 
     bits = [
@@ -106,59 +106,59 @@ def _render_status_line(result: AgentResult) -> None:
     st.caption(" · ".join(bits))
 
     for warning in result.warnings:
-        st.caption(f"⚠ {warning}")
+        st.caption(f"{warning}")
 
 
 def _render_analysis(analysis: HiringAnalysis) -> None:
     """Render the full analysis with collapsible sections."""
     # Executive verdict banner.
-    style, emoji = _DECISION_STYLE.get(analysis.executive_decision, ("info", "⚪"))
+    style = _DECISION_STYLE.get(analysis.executive_decision, "info")
     renderer = {
         "success": st.success,
         "info": st.info,
         "warning": st.warning,
         "error": st.error,
     }.get(style, st.info)
-    renderer(f"{emoji} Executive Decision: **{analysis.executive_decision}**")
+    renderer(f"Executive Decision: **{analysis.executive_decision}**")
 
     st.markdown("### Executive Summary")
     st.write(analysis.executive_summary)
 
-    with st.expander("🧭 Overall Analysis", expanded=True):
+    with st.expander("Overall Analysis", expanded=True):
         st.write(analysis.overall_reasoning)
 
-    with st.expander("🧪 Technical Assessment"):
+    with st.expander("Technical Assessment"):
         st.write(analysis.technical_reasoning)
 
-    with st.expander("📈 Career Assessment"):
+    with st.expander("Career Assessment"):
         st.write(analysis.career_reasoning)
 
-    with st.expander("👥 Leadership Assessment"):
+    with st.expander("Leadership Assessment"):
         st.write(analysis.leadership_reasoning)
 
-    with st.expander("🚨 Risk Assessment"):
+    with st.expander("Risk Assessment"):
         st.write(analysis.risk_reasoning)
 
-    with st.expander("🎯 JD Alignment"):
+    with st.expander("JD Alignment"):
         st.write(analysis.jd_alignment)
 
     col_a, col_b = st.columns(2)
     with col_a:
-        with st.expander("💡 Hidden Strengths", expanded=True):
+        with st.expander("Hidden Strengths", expanded=True):
             _bullets(analysis.hidden_strengths, "No hidden strengths surfaced.")
-        with st.expander("🔁 Transferable Skills"):
+        with st.expander("Transferable Skills"):
             _bullets(analysis.transferable_skills, "None identified.")
     with col_b:
-        with st.expander("⚠ Hidden Concerns", expanded=True):
+        with st.expander("Hidden Concerns", expanded=True):
             _bullets(analysis.hidden_concerns, "No hidden concerns surfaced.")
 
-    with st.expander("🗺 Interview Strategy"):
+    with st.expander("Interview Strategy"):
         _bullets(analysis.interview_strategy, "No strategy items generated.")
 
-    with st.expander("💼 Business Impact"):
+    with st.expander("Business Impact"):
         st.write(analysis.business_impact)
 
-    with st.expander("📊 Confidence"):
+    with st.expander("Confidence"):
         st.write(analysis.confidence_reasoning)
 
 

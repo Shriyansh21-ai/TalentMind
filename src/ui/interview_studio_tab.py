@@ -52,7 +52,7 @@ def render_interview_studio(
     key_prefix: str = "is",
 ) -> None:
     """Build the interview package for a candidate and render the full workspace."""
-    st.subheader("🎯 Enterprise AI Interview Studio")
+    st.subheader("Enterprise AI Interview Studio")
     st.caption(
         "A complete, personalized interview plan synthesized from every existing "
         "TalentMind intelligence source — committee, resume, JD, candidate "
@@ -84,17 +84,17 @@ def _render_report(report: InterviewStudioReport, *, key_prefix: str) -> None:
 
     tabs = st.tabs(
         [
-            "🧭 Strategy",
-            "🗺️ Roadmap",
-            "💻 Technical",
-            "🤝 Behavioral",
-            "🎭 Role-Specific",
-            "🛡️ Risk Validation",
-            "📋 Rubrics",
-            "⚖️ Decision Matrix",
-            "📝 Feedback",
-            "🎧 Live Assistant",
-            "📊 Dashboard",
+            "Strategy",
+            "Roadmap",
+            "Technical",
+            "Behavioral",
+            "Role-Specific",
+            "Risk Validation",
+            "Rubrics",
+            "Decision Matrix",
+            "Feedback",
+            "Live Assistant",
+            "Dashboard",
         ]
     )
 
@@ -121,8 +121,8 @@ def _render_report(report: InterviewStudioReport, *, key_prefix: str) -> None:
         with c2[1]:
             st.markdown("**Watch areas**")
             _bullets(narrative.watch_areas, "None surfaced.")
-        st.caption("📌 " + narrative.confidence_note)
-        st.caption("🎯 " + narrative.personalization_note)
+        st.caption("" + narrative.confidence_note)
+        st.caption("" + narrative.personalization_note)
 
     with tabs[1]:
         st.caption(narrative.coverage_note)
@@ -136,7 +136,7 @@ def _render_report(report: InterviewStudioReport, *, key_prefix: str) -> None:
                     st.markdown("**Focus:**")
                     _bullets(stage.focus, "")
                 if stage.checkpoint:
-                    st.caption("✅ Checkpoint: " + stage.checkpoint)
+                    st.caption("Checkpoint: " + stage.checkpoint)
 
     with tabs[2]:
         _render_questions(report.technical_questions, "No technical questions generated.")
@@ -176,7 +176,7 @@ def _render_report(report: InterviewStudioReport, *, key_prefix: str) -> None:
                 st.caption(f"Confidence: {band.confidence_label}")
                 _bullets(band.signals, "")
                 if band.escalation:
-                    st.caption("➡ " + band.escalation)
+                    st.caption("" + band.escalation)
         st.markdown("**Escalation criteria**")
         _bullets(matrix.escalation_criteria, "")
 
@@ -212,7 +212,7 @@ def _render_report(report: InterviewStudioReport, *, key_prefix: str) -> None:
             st.markdown("**Timer hooks**")
             for hook in la.timer_hooks:
                 st.caption(
-                    f"⏱ {hook['at_minute']} min — {hook['stage']} ({hook['duration_minutes']} min)"
+                    f"{hook['at_minute']} min — {hook['stage']} ({hook['duration_minutes']} min)"
                 )
 
     with tabs[10]:
@@ -256,7 +256,7 @@ def _render_dashboard(report: InterviewStudioReport) -> None:
     st.markdown("**Risk heatmap (0 = none, 3 = high)**")
     heat = charts.get("risk_heatmap", {})
     for name, level in heat.items():
-        st.caption(f"{name}: {'🟥' * level or '⬜'}")
+        st.caption(f"{name}: {'' * level or ''}")
 
     st.markdown("**Interview timeline**")
     for item in charts.get("timeline", []):
@@ -296,7 +296,7 @@ def render_interview_studio_workspace(
     repository_factory: RepositoryFactory, *, insights_fn=None
 ) -> None:
     """Render the Interview Studio workspace (pick candidate + role + depth → run)."""
-    st.title("🎯 Enterprise AI Interview Studio")
+    st.title("Enterprise AI Interview Studio")
     st.caption(
         "TalentMind's final hiring-lifecycle layer — it turns all existing hiring "
         "intelligence into recruiter-ready interview strategies, adaptive question "
@@ -338,7 +338,7 @@ def render_interview_studio_workspace(
         "Optional job description (sharpens role-fit + risk validation)", key="is_jd"
     )
 
-    if st.button("🎯 Generate interview plan", type="primary", key="is_run"):
+    if st.button("Generate interview plan", type="primary", key="is_run"):
         candidate = repository.get(chosen)
         if candidate is not None:
             render_interview_studio(

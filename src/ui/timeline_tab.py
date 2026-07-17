@@ -13,7 +13,7 @@ from src.ui.components import render_cards, render_meter
 
 def render_timeline_tab(analysis: CareerTimelineAnalysis) -> None:
     """Render the Career Timeline tab from a precomputed analysis."""
-    st.subheader("📈 Career Timeline Intelligence")
+    st.subheader("Career Timeline Intelligence")
     st.caption(analysis.timeline_summary)
 
     top = st.columns(3)
@@ -38,19 +38,19 @@ def render_timeline_tab(analysis: CareerTimelineAnalysis) -> None:
 
     st.divider()
 
-    st.markdown("### 🧭 Career Story")
+    st.markdown("### Career Story")
     st.info(analysis.career_story)
 
     left, right = st.columns(2)
     with left:
-        st.markdown("### 💪 Trajectory Strengths")
+        st.markdown("### Trajectory Strengths")
         render_cards(
             analysis.strengths,
             style="success",
             empty_message="No standout trajectory strengths detected.",
         )
     with right:
-        st.markdown("### ⚠ Trajectory Concerns")
+        st.markdown("### Trajectory Concerns")
         render_cards(
             analysis.concerns,
             style="warning",

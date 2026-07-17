@@ -47,7 +47,7 @@ def render_hiring_intelligence(
     key_prefix: str = "hi",
 ) -> None:
     """Analyze a cohort and render the workforce-intelligence workspace."""
-    st.subheader("📈 Enterprise Hiring Intelligence & Workforce Analytics")
+    st.subheader("Enterprise Hiring Intelligence & Workforce Analytics")
     st.caption(
         "Strategic organizational intelligence — how healthy is our hiring "
         "organization, where are the bottlenecks, which teams hire well, and how "
@@ -61,20 +61,6 @@ def render_hiring_intelligence(
         report = engine.build(candidates=candidates, jd=jd, limit=limit, generated_on=generated_on)
 
     _render_report(report, key_prefix=key_prefix)
-
-
-_REGISTER_BADGE = {
-    "Observed": "✅",
-    "Estimated": "≈",
-    "Forecast": "🔮",
-    "Unavailable": "➖",
-    "Recommendation": "💡",
-    "Human Review": "👤",
-}
-
-
-def _badge(register: str) -> str:
-    return _REGISTER_BADGE.get(register, "•")
 
 
 def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None:
@@ -93,30 +79,30 @@ def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None
 
     if not report.data_available:
         st.info(
-            "ℹ️ No workforce-analytics source connected — trends, delays, team breakdowns and capacity are Unavailable and marked as such (Module 15). Analytics run over a bounded analyzed cohort."
+            "No workforce-analytics source connected — trends, delays, team breakdowns and capacity are Unavailable and marked as such (Module 15). Analytics run over a bounded analyzed cohort."
         )
     for warning in report.warnings:
         st.warning(warning)
 
     tabs = st.tabs(
         [
-            "📄 Summary",
-            "📊 KPIs",
-            "🥧 Distributions",
-            "🚧 Bottlenecks",
-            "🏢 Teams",
-            "📉 Trends",
-            "🧑‍🤝‍🧑 Capacity",
-            "🔮 Forecast",
-            "⚖️ Benchmarks",
-            "💡 Optimization",
-            "📈 Dashboard",
+            "Summary",
+            "KPIs",
+            "Distributions",
+            "Bottlenecks",
+            "Teams",
+            "Trends",
+            "Capacity",
+            "Forecast",
+            "Benchmarks",
+            "Optimization",
+            "Dashboard",
         ]
     )
 
     with tabs[0]:
         st.info(narrative.executive_summary)
-        st.caption("🔎 " + narrative.data_availability_note)
+        st.caption("" + narrative.data_availability_note)
         c = st.columns(2)
         with c[0]:
             st.markdown("**Key insights**")
@@ -126,13 +112,13 @@ def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None
         with c[1]:
             st.markdown("**Assumptions**")
             _bullets(narrative.assumptions, "")
-        st.caption("📌 " + narrative.confidence_note)
+        st.caption("" + narrative.confidence_note)
 
     with tabs[1]:
         st.caption(narrative.kpi_note)
         for k in report.kpis:
             val = f"{k.value:.0f}/100" if isinstance(k.value, (int, float)) else "n/a"
-            st.markdown(f"{_badge(k.register)} **{k.name}** — {k.label} ({val})  _({k.register})_")
+            st.markdown(f"**{k.name}** — {k.label} ({val})  _({k.register})_")
             if k.basis:
                 st.caption(k.basis)
 
@@ -146,7 +132,7 @@ def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None
     with tabs[3]:
         st.caption(narrative.pipeline_note)
         for b in report.bottlenecks:
-            st.markdown(f"{_badge(b.register)} **{b.stage}** — {b.severity}  _({b.register})_")
+            st.markdown(f"**{b.stage}** — {b.severity}  _({b.register})_")
             if b.potential_cause:
                 st.caption("Cause: " + b.potential_cause)
             if b.improvement:
@@ -156,7 +142,7 @@ def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None
         observed = [t for t in report.team_metrics if t.register == "Observed"]
         unavailable = [t for t in report.team_metrics if t.register == "Unavailable"]
         for t in observed:
-            st.markdown(f"✅ **{t.dimension}: {t.group}** — {t.hiring_health}")
+            st.markdown(f"**{t.dimension}: {t.group}** — {t.hiring_health}")
             st.caption(t.detail)
         if unavailable:
             st.caption(
@@ -167,13 +153,13 @@ def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None
     with tabs[5]:
         st.caption(narrative.trend_note)
         for t in report.trends:
-            st.markdown(f"{_badge(t.register)} **{t.name}** — {t.direction}")
+            st.markdown(f"**{t.name}** — {t.direction}  _({t.register})_")
             st.caption(t.evidence)
 
     with tabs[6]:
         st.caption(narrative.capacity_note)
         for cap in report.capacity:
-            st.markdown(f"{_badge(cap.register)} **{cap.area}** — {cap.workload_level}")
+            st.markdown(f"**{cap.area}** — {cap.workload_level}  _({cap.register})_")
             if cap.recommendation:
                 st.caption(cap.recommendation)
 
@@ -221,11 +207,11 @@ def _render_dashboard(report: HiringIntelligenceReport) -> None:
     st.markdown("**Executive KPIs**")
     for name, k in charts.get("executive_kpis", {}).items():
         val = f"{k['value']:.0f}" if isinstance(k.get("value"), (int, float)) else "n/a"
-        st.caption(f"{_badge(k.get('register'))} {name}: {k.get('label')} ({val})")
+        st.caption(f"{name}: {k.get('label')} ({val}) · {k.get('register')}")
 
     st.markdown("**Pipeline flow**")
     for step in charts.get("pipeline_flow", []):
-        st.caption(f"{_badge(step.get('register'))} {step.get('stage')} — {step.get('severity')}")
+        st.caption(f"{step.get('stage')} — {step.get('severity')} · {step.get('register')}")
 
     st.markdown("**Department / role comparison**")
     for row in charts.get("department_comparison", [])[:8]:
@@ -268,7 +254,7 @@ def render_hiring_intelligence_workspace(
     repository_factory: RepositoryFactory, *, insights_fn=None
 ) -> None:
     """Render the Hiring Intelligence workspace (organization-level; analyze a cohort)."""
-    st.title("📈 Enterprise Hiring Intelligence & Workforce Analytics")
+    st.title("Enterprise Hiring Intelligence & Workforce Analytics")
     st.caption(
         "TalentMind's enterprise workforce intelligence layer. It helps CHROs, "
         "CEOs, Talent Acquisition leaders, HR Operations, Finance and executives "
@@ -294,7 +280,7 @@ def render_hiring_intelligence_workspace(
         "Optional job description (sharpens role alignment across the cohort)", key="hi_jd"
     )
 
-    if st.button("📈 Generate workforce intelligence", type="primary", key="hi_run"):
+    if st.button("Generate workforce intelligence", type="primary", key="hi_run"):
         candidates = repository.sample(limit=cohort_size)
         if not candidates:
             st.info("No candidates available.")

@@ -21,8 +21,9 @@ def render_sidebar() -> tuple[Any | None, bool]:
     )
 
     run_button = st.sidebar.button(
-        "🚀 Rank Candidates",
+        "Rank Candidates",
         use_container_width=True,
+        type="primary",
     )
 
     return uploaded_jd, run_button

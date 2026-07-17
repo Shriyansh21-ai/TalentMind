@@ -18,12 +18,11 @@ import streamlit as st
 from src.ai.agents.jd.agent import JDAnalystInput, jd_analyst_agent
 from src.ai.agents.jd.schemas import JDAnalysis
 from src.ai.core.runner import AgentRunner
+from src.ui.theme import level_pill
 
 _runner: AgentRunner | None = None
 
-_PRIORITY_BADGE = {"high": "🔴 High", "medium": "🟠 Medium", "low": "🟡 Low"}
-_RISK_BADGE = {"high": "🔴", "medium": "🟠", "low": "🟡"}
-_LEVEL_COLOR = {"Low": "🟢", "Low-Medium": "🟢", "Medium": "🟡", "High": "🔴"}
+_PRIORITY_BADGE = {"high": "High", "medium": "Medium", "low": "Low"}
 
 _SAMPLE_JD = """Senior Machine Learning Engineer
 Department: AI Platform
@@ -63,7 +62,7 @@ def _get_runner() -> AgentRunner:
 
 def render_jd_intelligence(jd_text: str, *, jd_id: str = "", key_prefix: str = "jdi") -> None:
     """Render the JD Intelligence dashboard for a given JD text."""
-    st.subheader("🧾 JD Intelligence")
+    st.subheader("JD Intelligence")
     st.caption(
         "Enterprise job-description analysis — role level, hiring intent, "
         "requirement hierarchy, market posture and evidence-based risks. "
@@ -81,11 +80,11 @@ def render_jd_intelligence(jd_text: str, *, jd_id: str = "", key_prefix: str = "
         return
 
     st.caption(
-        f"provider: {result.provider} · {'💾 cached' if result.cache_hit else '🟢 generated'} "
+        f"provider: {result.provider} · {'cached' if result.cache_hit else 'generated'} "
         f"· {result.latency_ms:.0f} ms"
     )
     for warning in result.warnings:
-        st.caption(f"⚠ {warning}")
+        st.caption(f"{warning}")
 
     _render_dashboard(result.data)
 
@@ -98,13 +97,13 @@ def _render_dashboard(a: JDAnalysis) -> None:
     top[0].metric("Overall JD Quality", f"{q.overall:.0f}/100")
     top[1].metric("Role", a.role_intelligence.seniority or "—")
     level = a.risk_report.level
-    top[2].metric("JD Risk", f"{_LEVEL_COLOR.get(level, '⚪')} {level}")
+    top[2].metric("JD Risk", level)
     top[3].metric("Hiring Intent", a.hiring_intent.primary_intent or "—")
 
     st.info(a.executive_summary)
 
     # -- quality dimensions -------------------------------------------------
-    st.markdown("#### 📊 JD Quality Dimensions")
+    st.markdown("#### JD Quality Dimensions")
     dims = {
         "Structure": q.structure,
         "Technical Clarity": q.technical_clarity,
@@ -127,22 +126,22 @@ def _render_dashboard(a: JDAnalysis) -> None:
 
     sw = st.columns(2)
     with sw[0]:
-        st.markdown("#### ✅ Strengths")
+        st.markdown("#### Strengths")
         _bullets(a.strengths, "None surfaced.")
     with sw[1]:
-        st.markdown("#### ⚠️ Weaknesses")
+        st.markdown("#### Weaknesses")
         _bullets(a.weaknesses, "None surfaced.")
 
     tabs = st.tabs(
         [
-            "🧭 Role",
-            "🎯 Hiring Intent",
-            "🧱 Requirements",
-            "🗺️ Technology",
-            "🏢 Organization",
-            "📈 Market",
-            "🚨 Risk",
-            "🛠️ Roadmap",
+            "Role",
+            "Hiring Intent",
+            "Requirements",
+            "Technology",
+            "Organization",
+            "Market",
+            "Risk",
+            "Roadmap",
         ]
     )
 
@@ -222,19 +221,21 @@ def _render_dashboard(a: JDAnalysis) -> None:
             )
 
     with tabs[6]:
-        st.markdown(f"**Overall JD risk: {_LEVEL_COLOR.get(level, '⚪')} {level}**")
+        st.markdown(f"**Overall JD risk:** {level_pill(level)}", unsafe_allow_html=True)
         if not a.risk_report.findings:
             st.success("No evidence-based JD risks detected.")
         for finding in a.risk_report.findings:
-            badge = _RISK_BADGE.get(finding.severity, "🟡")
-            st.markdown(f"{badge} **{finding.type}** — {finding.issue}")
+            st.markdown(
+                f"{level_pill(finding.severity)} **{finding.type}** — {finding.issue}",
+                unsafe_allow_html=True,
+            )
             st.caption("Evidence: " + finding.evidence)
         if a.risk_report.positive_signals:
             st.markdown("**Positive signals**")
             _bullets(a.risk_report.positive_signals, "")
 
     with tabs[7]:
-        st.markdown("#### 🛠️ Improvement Roadmap (highest impact first)")
+        st.markdown("#### Improvement Roadmap (highest impact first)")
         if not a.improvement_plan:
             st.caption("No improvements suggested — the JD is in good shape.")
         for i, imp in enumerate(a.improvement_plan, start=1):
@@ -244,7 +245,7 @@ def _render_dashboard(a: JDAnalysis) -> None:
                 if imp.example:
                     st.caption("Example: " + imp.example)
 
-    st.caption("📌 " + a.confidence_note)
+    st.caption("" + a.confidence_note)
 
 
 def _bullets(items: list[str], empty_message: str) -> None:
@@ -264,13 +265,13 @@ def _bullets(items: list[str], empty_message: str) -> None:
 
 def render_jd_workspace(*, jd: str = "") -> None:
     """Render the JD Intelligence workspace (paste a JD → dashboard)."""
-    st.title("🧾 JD Intelligence")
+    st.title("JD Intelligence")
     st.caption(
         "Enterprise job-description intelligence powered by the JDAnalystAgent — "
         "an evidence-based recruiter + hiring manager + org designer. JD quality only."
     )
 
-    if st.button("📋 Load sample JD", key="jd_sample"):
+    if st.button("Load sample JD", key="jd_sample"):
         st.session_state["jd_text_input"] = _SAMPLE_JD
 
     jd_text = st.text_area(
@@ -279,7 +280,7 @@ def render_jd_workspace(*, jd: str = "") -> None:
         height=300,
         key="jd_text_input",
     )
-    analyze = st.button("✨ Analyze JD", type="primary", key="jd_analyze")
+    analyze = st.button("Analyze JD", type="primary", key="jd_analyze")
 
     if analyze or st.session_state.get("jd_analyzed"):
         st.session_state["jd_analyzed"] = True
