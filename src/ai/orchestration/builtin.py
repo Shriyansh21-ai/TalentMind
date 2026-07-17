@@ -86,7 +86,9 @@ def _synthesis_agent() -> FunctionAgent:
 
     def run(task: Task, context: SharedContext) -> AgentOutput:
         deps = context.dependency_outputs(task)
-        findings = [d.get("finding") for d in deps.values() if isinstance(d, dict) and d.get("finding")]
+        findings = [
+            d.get("finding") for d in deps.values() if isinstance(d, dict) and d.get("finding")
+        ]
         synthesis = (
             f"Synthesised {len(deps)} upstream result(s); "
             f"findings: {', '.join(findings) or 'none'}."

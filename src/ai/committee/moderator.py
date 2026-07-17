@@ -12,8 +12,9 @@ After the reviews, the moderator facilitates the discussion round.
 
 from __future__ import annotations
 
-from typing import List
-
+from src.ai.committee.discussion import run_discussion
+from src.ai.committee.members import CommitteeMember
+from src.ai.committee.schemas import CommitteeMode, DiscussionRound, MemberOpinion
 from src.ai.orchestration.adapters import FunctionAgent
 from src.ai.orchestration.context.context import SharedContext
 from src.ai.orchestration.events.emitter import TelemetryEventBridge
@@ -23,10 +24,6 @@ from src.ai.orchestration.registry.agent_registry import (
     OrchestrationRegistry,
 )
 from src.ai.orchestration.workflow.engine import WorkflowEngine
-
-from src.ai.committee.discussion import run_discussion
-from src.ai.committee.members import CommitteeMember
-from src.ai.committee.schemas import CommitteeMode, DiscussionRound, MemberOpinion
 
 
 class CommitteeModerator:
@@ -38,10 +35,10 @@ class CommitteeModerator:
 
     def collect_independent_reviews(
         self,
-        panel: List[CommitteeMember],
+        panel: list[CommitteeMember],
         bundle,
         mode: CommitteeMode,
-    ) -> List[MemberOpinion]:
+    ) -> list[MemberOpinion]:
         """Run every member's review in parallel via the workflow engine (Module 2)."""
         registry = OrchestrationRegistry()
         for member in panel:
@@ -69,14 +66,14 @@ class CommitteeModerator:
 
         result = engine.run(graph, context=context, name="committee_reviews")
 
-        opinions: List[MemberOpinion] = []
+        opinions: list[MemberOpinion] = []
         for member in panel:  # preserve panel order for stable, testable output
             output = result.outputs.get(member.role)
             if output is not None and output.ok and output.data:
                 opinions.append(MemberOpinion.from_dict(output.data))
         return opinions
 
-    def discuss(self, opinions: List[MemberOpinion]) -> DiscussionRound:
+    def discuss(self, opinions: list[MemberOpinion]) -> DiscussionRound:
         """Facilitate the discussion round over the collected opinions (Module 3)."""
         return run_discussion(opinions)
 

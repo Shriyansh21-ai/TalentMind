@@ -82,7 +82,9 @@ def render_pipeline_controls(candidate: Candidate) -> None:
         value=status.assigned_recruiter or "",
         key=f"rec_{cid}",
     )
-    note = st.text_input("Add note", key=f"note_{cid}", placeholder="e.g. Strong system-design signal")
+    note = st.text_input(
+        "Add note", key=f"note_{cid}", placeholder="e.g. Strong system-design signal"
+    )
 
     action_col = st.columns(2)
     with action_col[0]:

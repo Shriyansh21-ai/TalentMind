@@ -33,9 +33,7 @@ class StorageService:
         self._clock = clock or SystemClock()
         self._providers: dict[StorageClass, StorageProvider] = {}
 
-    def register_provider(
-        self, storage_class: StorageClass, provider: StorageProvider
-    ) -> None:
+    def register_provider(self, storage_class: StorageClass, provider: StorageProvider) -> None:
         """Bind a provider to a storage class."""
         self._providers[storage_class] = provider
 
@@ -86,9 +84,7 @@ class StorageService:
     ) -> None:
         """Delete bytes and de-catalogue the object."""
         self._provider_for(storage_class).delete(tenant_id, key)
-        for record in self.catalogue.list(
-            tenant_id=tenant_id, where=lambda o: o.key == key
-        ):
+        for record in self.catalogue.list(tenant_id=tenant_id, where=lambda o: o.key == key):
             self.catalogue.delete(record.id, tenant_id=tenant_id)
 
     def archive(self, tenant_id: str, key: str) -> StoredObject | None:

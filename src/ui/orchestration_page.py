@@ -12,13 +12,10 @@ fast.
 
 from __future__ import annotations
 
-from typing import List
-
 import streamlit as st
 
 from src.ai.orchestration import Goal
 from src.ai.orchestration.builtin import build_demo_orchestrator
-from src.ai.orchestration.models import Priority
 from src.ai.orchestration.simulation import SimulationRunner
 
 _LAST_KEY = "orch_last_result"
@@ -185,9 +182,7 @@ def _render_task_graph(result) -> None:
         st.info("No graph available.")
         return
     status_of = (
-        {tid: ts.status.value for tid, ts in result.state.tasks.items()}
-        if result.state
-        else {}
+        {tid: ts.status.value for tid, ts in result.state.tasks.items()} if result.state else {}
     )
     dot = ["digraph G {", "  rankdir=LR; node [shape=box style=rounded];"]
     for task in result.graph:
@@ -211,10 +206,7 @@ def _render_task_graph(result) -> None:
 def _render_agent_graph(orchestrator, result) -> None:
     """Render which agent handled each task + per-agent metrics."""
     st.markdown("**Task → agent delegation**")
-    rows = [
-        {"task": tid, "agent": out.agent, "ok": out.ok}
-        for tid, out in result.outputs.items()
-    ]
+    rows = [{"task": tid, "agent": out.agent, "ok": out.ok} for tid, out in result.outputs.items()]
     st.dataframe(rows, use_container_width=True, hide_index=True)
 
     st.markdown("**Per-agent metrics**")

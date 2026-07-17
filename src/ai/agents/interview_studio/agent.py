@@ -23,17 +23,16 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
+from src.ai.agents.interview_studio.composer import compose_interview_narrative
+from src.ai.agents.interview_studio.schemas import InterviewStudioNarrative
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.prompts.loader import PromptLoader
 from src.ai.providers.base import LLMMessage
 from src.ai.providers.composers import register_composer
-
-from src.ai.agents.interview_studio.composer import compose_interview_narrative
-from src.ai.agents.interview_studio.schemas import InterviewStudioNarrative
 
 # Prompts co-locate with the agent; a dedicated loader points at this package's
 # ``prompts/`` dir, leaving the shared prompt library untouched.
@@ -69,18 +68,18 @@ class InterviewStudioInput:
     role: str = "generalist"
     role_name: str = "Software Engineer"
     depth: str = "standard"
-    candidate_overview: Dict[str, Any] = field(default_factory=dict)
-    resume: Dict[str, Any] = field(default_factory=dict)
-    jd: Dict[str, Any] = field(default_factory=dict)
-    committee: Dict[str, Any] = field(default_factory=dict)
-    intelligence: Dict[str, Any] = field(default_factory=dict)
-    timeline: Dict[str, Any] = field(default_factory=dict)
-    risk: Dict[str, Any] = field(default_factory=dict)
-    recommendation: Dict[str, Any] = field(default_factory=dict)
-    interview: Dict[str, Any] = field(default_factory=dict)
+    candidate_overview: dict[str, Any] = field(default_factory=dict)
+    resume: dict[str, Any] = field(default_factory=dict)
+    jd: dict[str, Any] = field(default_factory=dict)
+    committee: dict[str, Any] = field(default_factory=dict)
+    intelligence: dict[str, Any] = field(default_factory=dict)
+    timeline: dict[str, Any] = field(default_factory=dict)
+    risk: dict[str, Any] = field(default_factory=dict)
+    recommendation: dict[str, Any] = field(default_factory=dict)
+    interview: dict[str, Any] = field(default_factory=dict)
 
 
-def build_interview_evidence(payload: InterviewStudioInput) -> Dict[str, Any]:
+def build_interview_evidence(payload: InterviewStudioInput) -> dict[str, Any]:
     """Pack the pre-gathered structured outputs into the evidence dict.
 
     This is the sole factual input to the narrative: it contains only existing
@@ -123,17 +122,17 @@ class InterviewStudioAgent(BaseAgent):
     )
     output_schema = InterviewStudioNarrative
 
-    def build_messages(self, payload, loader, evidence: Dict[str, Any]) -> List[LLMMessage]:
+    def build_messages(self, payload, loader, evidence: dict[str, Any]) -> list[LLMMessage]:
         """Render prompts from the agent's own ``prompts/`` directory."""
         return super().build_messages(payload, _prompt_loader, evidence)
 
-    def build_evidence(self, payload: InterviewStudioInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: InterviewStudioInput) -> dict[str, Any]:
         """Return the aggregated interview evidence for ``payload``."""
         return build_interview_evidence(payload)
 
     def prompt_values(
-        self, payload: InterviewStudioInput, evidence: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, payload: InterviewStudioInput, evidence: dict[str, Any]
+    ) -> dict[str, str]:
         """Supply candidate id + role/depth placeholders for the prompt."""
         return {
             "candidate_id": payload.candidate_id or "unknown",
@@ -141,7 +140,7 @@ class InterviewStudioAgent(BaseAgent):
             "depth": payload.depth or "standard",
         }
 
-    def cache_dimensions(self, payload: InterviewStudioInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: InterviewStudioInput) -> tuple[str, str]:
         """Cache by candidate id (subject) + evidence + role/depth (scope)."""
         scope = json.dumps(
             {
@@ -171,7 +170,11 @@ def _orchestration_payload_builder(task, context) -> InterviewStudioInput:
                 "location": getattr(profile, "location", ""),
             }
     return InterviewStudioInput(
-        candidate_id=str(payload.get("candidate_id", "") or overview.get("candidate_id", "") or "interview_studio"),
+        candidate_id=str(
+            payload.get("candidate_id", "")
+            or overview.get("candidate_id", "")
+            or "interview_studio"
+        ),
         role=payload.get("role", "generalist"),
         role_name=payload.get("role_name", "Software Engineer"),
         depth=payload.get("depth", "standard"),
@@ -187,7 +190,7 @@ def _orchestration_payload_builder(task, context) -> InterviewStudioInput:
     )
 
 
-def _register_with_orchestration(agent: "InterviewStudioAgent") -> None:
+def _register_with_orchestration(agent: InterviewStudioAgent) -> None:
     """Register the agent with the Multi-Agent Orchestration platform (best-effort)."""
     try:
         from src.ai.orchestration.adapters import RunnerAgent

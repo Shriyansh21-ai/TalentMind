@@ -9,18 +9,22 @@ connected (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compliance.schemas import ApprovalMatrix, AuditFinding, AuditTrailValidation
 
 
-def validate_audit_trail(context: Dict[str, Any], approvals: ApprovalMatrix, provider: Any) -> AuditTrailValidation:
+def validate_audit_trail(
+    context: dict[str, Any], approvals: ApprovalMatrix, provider: Any
+) -> AuditTrailValidation:
     """Validate the hiring decision's audit trail (Module 6)."""
     sources = set(context.get("evidence_sources", []))
     has_provider = provider is not None and getattr(provider, "is_available", lambda: False)()
-    audit_events = provider.get_audit_events(context.get("candidate_id", "")) if has_provider else None
+    audit_events = (
+        provider.get_audit_events(context.get("candidate_id", "")) if has_provider else None
+    )
 
-    findings: List[AuditFinding] = []
+    findings: list[AuditFinding] = []
 
     # Evidence chain — derived from the engines that participated.
     findings.append(
@@ -53,7 +57,8 @@ def validate_audit_trail(context: Dict[str, Any], approvals: ApprovalMatrix, pro
         AuditFinding(
             "Decision history",
             "Complete" if audit_events else "Needs Investigation",
-            f"{len(audit_events)} recorded audit event(s)." if audit_events
+            f"{len(audit_events)} recorded audit event(s)."
+            if audit_events
             else "No governance/workflow system connected to confirm the decision history.",
         )
     )
@@ -64,7 +69,10 @@ def validate_audit_trail(context: Dict[str, Any], approvals: ApprovalMatrix, pro
     elif has_provider and not outstanding:
         approval_status, approval_why = "Complete", "All required approvals recorded."
     elif has_provider:
-        approval_status, approval_why = "Incomplete", f"Outstanding approvals: {', '.join(outstanding)}."
+        approval_status, approval_why = (
+            "Incomplete",
+            f"Outstanding approvals: {', '.join(outstanding)}.",
+        )
     else:
         approval_status, approval_why = "Needs Investigation", "No approval system connected."
     findings.append(AuditFinding("Approval history", approval_status, approval_why))

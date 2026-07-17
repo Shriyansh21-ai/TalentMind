@@ -14,7 +14,7 @@ prepared Module 14 extension, not implemented here.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from src.ai.agents.compensation.schemas import CompensationRange
 from src.ai.agents.compensation.templates import PREMIUM_FACTORS, PREMIUM_THRESHOLDS
@@ -24,7 +24,7 @@ _BASELINE_LPA_PER_YEAR = 4.0
 _MIN_BASELINE_LPA = 8.0
 
 
-def _num(source: Dict[str, Any], key: str, default: float = 0.0) -> float:
+def _num(source: dict[str, Any], key: str, default: float = 0.0) -> float:
     """Return a float for ``source[key]`` (0.0 on missing/invalid)."""
     try:
         return float(source.get(key, default))
@@ -41,7 +41,7 @@ def _label(confidence: float) -> str:
     return "Low"
 
 
-def _anchor(evidence: Dict[str, Any]) -> Tuple[float, float, bool, str, str]:
+def _anchor(evidence: dict[str, Any]) -> tuple[float, float, bool, str, str]:
     """Return ``(anchor_min, anchor_max, observed, currency, unit)``.
 
     Uses the candidate's stated expectation when present (Observed Evidence);
@@ -61,7 +61,7 @@ def _anchor(evidence: Dict[str, Any]) -> Tuple[float, float, bool, str, str]:
     return baseline * 0.9, baseline * 1.2, False, currency, unit
 
 
-def derive_pay_band(evidence: Dict[str, Any]) -> CompensationRange:
+def derive_pay_band(evidence: dict[str, Any]) -> CompensationRange:
     """Derive the recommended :class:`CompensationRange` (Module 1).
 
     Args:
@@ -78,8 +78,8 @@ def derive_pay_band(evidence: Dict[str, Any]) -> CompensationRange:
     committee = evidence.get("committee") or {}
     recommendation = evidence.get("recommendation") or {}
 
-    basis: List[str] = []
-    assumptions: List[str] = []
+    basis: list[str] = []
+    assumptions: list[str] = []
 
     if observed:
         basis.append(
@@ -96,14 +96,20 @@ def derive_pay_band(evidence: Dict[str, Any]) -> CompensationRange:
     tech = _num(intelligence, "technical_score")
     if tech >= PREMIUM_THRESHOLDS["technical_strong"]:
         premium += PREMIUM_FACTORS["skill_premium"]
-        basis.append(f"Skill premium applied (technical signal {tech:.0f}/100, Candidate Intelligence).")
+        basis.append(
+            f"Skill premium applied (technical signal {tech:.0f}/100, Candidate Intelligence)."
+        )
 
     lead = _num(intelligence, "leadership_score")
     if lead >= PREMIUM_THRESHOLDS["leadership_strong"]:
         premium += PREMIUM_FACTORS["leadership_premium"]
-        basis.append(f"Leadership premium applied (leadership signal {lead:.0f}/100, Candidate Intelligence).")
+        basis.append(
+            f"Leadership premium applied (leadership signal {lead:.0f}/100, Candidate Intelligence)."
+        )
 
-    stance = str((committee.get("consensus") or {}).get("recommendation", "")) or str(recommendation.get("recommendation", ""))
+    stance = str((committee.get("consensus") or {}).get("recommendation", "")) or str(
+        recommendation.get("recommendation", "")
+    )
     if "strong" in stance.lower():
         premium += PREMIUM_FACTORS["strategic_premium"]
         basis.append(f"Strategic premium applied ('{stance}' from the hiring decision).")
@@ -111,7 +117,9 @@ def derive_pay_band(evidence: Dict[str, Any]) -> CompensationRange:
     discount = 0.0
     if str(risk.get("risk_level", "")).lower() == "high" or _num(risk, "risk_score") >= 70:
         discount = PREMIUM_FACTORS["risk_discount"]
-        basis.append(f"Risk discount applied (risk level {risk.get('risk_level', 'elevated')}, Resume Risk Detection).")
+        basis.append(
+            f"Risk discount applied (risk level {risk.get('risk_level', 'elevated')}, Resume Risk Detection)."
+        )
 
     target = base_target * (1.0 + premium - discount)
     spread = PREMIUM_FACTORS["band_spread"]
@@ -121,7 +129,9 @@ def derive_pay_band(evidence: Dict[str, Any]) -> CompensationRange:
     minimum = min(minimum, target)
     maximum = max(maximum, target)
 
-    assumptions.append("Recommendation based on internal heuristic model; no external salary survey was used.")
+    assumptions.append(
+        "Recommendation based on internal heuristic model; no external salary survey was used."
+    )
 
     # Confidence: coverage of evidence + whether the anchor was observed.
     confidence = 45.0

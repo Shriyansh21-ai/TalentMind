@@ -9,7 +9,7 @@ Unverified — never assumed to have occurred (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.audit.schemas import DecisionResponsibility
 
@@ -33,10 +33,10 @@ def _status_for(state: str) -> str:
     return "Unavailable"
 
 
-def build_human_decisions(context: Dict[str, Any]) -> List[DecisionResponsibility]:
+def build_human_decisions(context: dict[str, Any]) -> list[DecisionResponsibility]:
     """Return the human decision points from the approval matrix (Module 5)."""
     approvals = context.get("approvals", {}) or {}
-    decisions: List[DecisionResponsibility] = []
+    decisions: list[DecisionResponsibility] = []
     for a in approvals.get("approvals", []):
         if not a.get("required"):
             continue

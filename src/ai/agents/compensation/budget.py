@@ -9,19 +9,19 @@ assumption.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compensation.schemas import BudgetAssessment, CompensationRange
 
 
-def _num(source: Dict[str, Any], key: str, default: float = 0.0) -> float:
+def _num(source: dict[str, Any], key: str, default: float = 0.0) -> float:
     try:
         return float(source.get(key, default))
     except (TypeError, ValueError):
         return default
 
 
-def _hire_type(evidence: Dict[str, Any]) -> str:
+def _hire_type(evidence: dict[str, Any]) -> str:
     """Classify the hire from the hiring stance + role signals (heuristic)."""
     committee = evidence.get("committee") or {}
     stance = str((committee.get("consensus") or {}).get("recommendation", "")) or str(
@@ -39,13 +39,13 @@ def _hire_type(evidence: Dict[str, Any]) -> str:
     return "Growth Hire"
 
 
-def assess_budget(evidence: Dict[str, Any], band: CompensationRange) -> BudgetAssessment:
+def assess_budget(evidence: dict[str, Any], band: CompensationRange) -> BudgetAssessment:
     """Assess budget governance for the recommendation (Module 7)."""
     hire_type = _hire_type(evidence)
     intelligence = evidence.get("intelligence") or {}
     overall = _num(intelligence, "overall_score")
 
-    assumptions: List[str] = [
+    assumptions: list[str] = [
         "No department budget or headcount plan is connected; utilization is a "
         "qualitative estimate, not a financial metric.",
     ]

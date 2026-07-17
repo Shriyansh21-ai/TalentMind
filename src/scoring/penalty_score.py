@@ -2,14 +2,7 @@ def calculate_penalty_score(candidate):
 
     penalty = 0
 
-    bad_companies = [
-        "tcs",
-        "infosys",
-        "wipro",
-        "accenture",
-        "capgemini",
-        "cognizant"
-    ]
+    bad_companies = ["tcs", "infosys", "wipro", "accenture", "capgemini", "cognizant"]
 
     company = candidate.profile.current_company.lower()
 

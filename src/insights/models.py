@@ -14,13 +14,13 @@ existing, unmodified engines in ``src/``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
-from src.models.candidates import Candidate
-from src.intelligence.candidate.models import CandidateIntelligence
-from src.intelligence.timeline.models import CareerTimelineAnalysis
-from src.intelligence.risk.models import RiskReport
 from src.hiring.recommendation_model import HiringRecommendation
+from src.intelligence.candidate.models import CandidateIntelligence
+from src.intelligence.risk.models import RiskReport
+from src.intelligence.timeline.models import CareerTimelineAnalysis
+from src.models.candidates import Candidate
 
 
 @dataclass
@@ -48,9 +48,9 @@ class CandidateInsights:
     intelligence: CandidateIntelligence
     timeline: CareerTimelineAnalysis
     risk: RiskReport
-    gap: Dict[str, Any]
-    explanation: Dict[str, Any]
-    summary: List[str] = field(default_factory=list)
+    gap: dict[str, Any]
+    explanation: dict[str, Any]
+    summary: list[str] = field(default_factory=list)
     recommendation: HiringRecommendation = None  # type: ignore[assignment]
 
     # -- Convenience accessors (read-only views over the bundled engine output) --
@@ -86,11 +86,11 @@ class CandidateInsights:
         return float(self.gap.get("match_percent", 0.0))
 
     @property
-    def missing_skills(self) -> List[str]:
+    def missing_skills(self) -> list[str]:
         """Return the JD skills the candidate is missing."""
         return list(self.gap.get("missing", []))
 
     @property
-    def matched_skills(self) -> List[str]:
+    def matched_skills(self) -> list[str]:
         """Return the JD skills the candidate already has."""
         return list(self.gap.get("matched", []))

@@ -9,14 +9,14 @@ are *requests/responses between agents*. They are complementary.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 def _now_iso() -> str:
     """Return the current UTC time as an ISO-8601 string."""
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+    return datetime.now(UTC).isoformat(timespec="milliseconds")
 
 
 class EventType(str, Enum):
@@ -48,13 +48,13 @@ class OrchestrationEvent:
 
     type: EventType
     workflow_id: str = ""
-    task_id: Optional[str] = None
-    agent: Optional[str] = None
+    task_id: str | None = None
+    agent: str | None = None
     message: str = ""
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
     timestamp: str = field(default_factory=_now_iso)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the event."""
         return {
             "type": self.type.value,

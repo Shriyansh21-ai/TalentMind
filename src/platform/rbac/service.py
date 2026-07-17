@@ -46,8 +46,8 @@ class AccessControlService:
         clock: Clock | None = None,
     ) -> None:
         self._clock = clock or SystemClock()
-        self.assignments: InMemoryRepository[RoleAssignment] = (
-            assignments or InMemoryRepository("role_assignment")
+        self.assignments: InMemoryRepository[RoleAssignment] = assignments or InMemoryRepository(
+            "role_assignment"
         )
         self.definitions = definitions or build_default_definitions()
         self.engine = PolicyEngine(self.definitions)

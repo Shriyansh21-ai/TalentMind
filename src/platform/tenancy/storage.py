@@ -29,9 +29,7 @@ class TenantStorage:
 
     def get(self, tenant_id: str, key: str, default: Any = None) -> Any:
         """Return the tenant's value for ``key`` (or ``default``)."""
-        return self._data.get(
-            TenantIsolationGuard.namespaced_key(tenant_id, key), default
-        )
+        return self._data.get(TenantIsolationGuard.namespaced_key(tenant_id, key), default)
 
     def delete(self, tenant_id: str, key: str) -> None:
         """Delete the tenant's ``key`` (no-op if absent)."""
@@ -40,7 +38,7 @@ class TenantStorage:
     def keys(self, tenant_id: str) -> list[str]:
         """Return the un-prefixed keys stored for ``tenant_id``."""
         prefix = TenantIsolationGuard.namespaced_key(tenant_id, "")
-        return [k[len(prefix):] for k in self._data if k.startswith(prefix)]
+        return [k[len(prefix) :] for k in self._data if k.startswith(prefix)]
 
     def purge(self, tenant_id: str) -> int:
         """Delete all of a tenant's keys; return how many were removed."""

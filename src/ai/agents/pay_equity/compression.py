@@ -9,20 +9,22 @@ provider. **Without it, no payroll is fabricated** — the assessment reports
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.pay_equity.schemas import CompressionAssessment
 
 
-def _peers(context: Dict[str, Any], provider: Any) -> List[Dict[str, Any]]:
+def _peers(context: dict[str, Any], provider: Any) -> list[dict[str, Any]]:
     """Return the peer records from the provider (empty when unavailable)."""
     if provider is None or not getattr(provider, "is_available", lambda: False)():
         return []
-    peers = provider.get_peers(context.get("role", ""), context.get("level", ""), context.get("department", ""))
+    peers = provider.get_peers(
+        context.get("role", ""), context.get("level", ""), context.get("department", "")
+    )
     return list(peers or [])
 
 
-def assess_compression(context: Dict[str, Any], provider: Any) -> CompressionAssessment:
+def assess_compression(context: dict[str, Any], provider: Any) -> CompressionAssessment:
     """Assess salary-compression risk for the offer (Module 2)."""
     peers = _peers(context, provider)
     if not peers:
@@ -39,7 +41,7 @@ def assess_compression(context: Dict[str, Any], provider: Any) -> CompressionAss
     unit = context.get("offer", {}).get("unit", "LPA")
 
     # A peer is "compressed" if they have more tenure but comp <= the new offer.
-    compressed: List[Dict[str, Any]] = []
+    compressed: list[dict[str, Any]] = []
     for peer in peers:
         comp = float(peer.get("compensation", 0.0) or 0.0)
         tenure = float(peer.get("tenure_years", 0.0) or 0.0)

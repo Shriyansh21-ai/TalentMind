@@ -39,8 +39,7 @@ class _CloudSecretProvider:
 
     def _not_ready(self) -> SecretError:
         return SecretError(
-            f"{self.name} is an architecture placeholder; bind a real client "
-            "before use",
+            f"{self.name} is an architecture placeholder; bind a real client before use",
             code="secret_provider_not_configured",
         )
 

@@ -13,7 +13,8 @@ subscriber patterns that may use ``*`` to match a single segment or ``#`` /
 
 from __future__ import annotations
 
-from typing import Callable, Protocol, runtime_checkable
+from collections.abc import Callable
+from typing import Protocol, runtime_checkable
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
@@ -53,8 +54,12 @@ class MessageBroker(Protocol):
     """The seam a future Kafka/RabbitMQ backend satisfies."""
 
     def publish(self, event: EnterpriseEvent) -> EnterpriseEvent: ...
-    def subscribe(self, topic_pattern: str, handler: EventHandler, *, subscriber: str) -> Subscription: ...
-    def replay(self, *, topic_pattern: str = "*", from_sequence: int = 0) -> list[EnterpriseEvent]: ...
+    def subscribe(
+        self, topic_pattern: str, handler: EventHandler, *, subscriber: str
+    ) -> Subscription: ...
+    def replay(
+        self, *, topic_pattern: str = "*", from_sequence: int = 0
+    ) -> list[EnterpriseEvent]: ...
 
 
 class EnterpriseEventBus:
@@ -83,9 +88,7 @@ class EnterpriseEventBus:
 
     def unsubscribe(self, subscription_id: str) -> None:
         """Deactivate and remove a subscription."""
-        self._subscriptions = [
-            (s, h) for (s, h) in self._subscriptions if s.id != subscription_id
-        ]
+        self._subscriptions = [(s, h) for (s, h) in self._subscriptions if s.id != subscription_id]
 
     def subscriptions(self) -> list[Subscription]:
         """Return the current subscriptions."""
@@ -151,9 +154,7 @@ class EnterpriseEventBus:
 
     # -- replay & history ---------------------------------------------------
 
-    def replay(
-        self, *, topic_pattern: str = "*", from_sequence: int = 0
-    ) -> list[EnterpriseEvent]:
+    def replay(self, *, topic_pattern: str = "*", from_sequence: int = 0) -> list[EnterpriseEvent]:
         """Return logged events matching ``topic_pattern`` from ``from_sequence``.
 
         Results are in ascending ``sequence`` order — the same order in which

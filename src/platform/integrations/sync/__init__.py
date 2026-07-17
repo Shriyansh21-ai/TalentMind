@@ -16,8 +16,8 @@ from src.platform.integrations.sync.models import (
     SyncState,
 )
 from src.platform.integrations.sync.service import (
-    SyncRunner,
     SynchronizationService,
+    SyncRunner,
     detect_conflicts,
     resolve_conflict,
 )

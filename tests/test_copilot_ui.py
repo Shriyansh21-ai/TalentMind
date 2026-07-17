@@ -7,11 +7,10 @@ through the chat to verify the end-to-end UI flow works offline.
 
 from __future__ import annotations
 
-import faiss  # noqa: F401  (faiss-before-torch load order)
-
 import tempfile
 from pathlib import Path
 
+import faiss  # noqa: F401  (faiss-before-torch load order)
 from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[1].as_posix()

@@ -9,7 +9,7 @@ rate (Module 7 / 15).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.hiring_intelligence.schemas import ForecastScenario
 
@@ -21,7 +21,13 @@ _SCENARIOS = [
 ]
 
 # Downstream demand areas scaled with hiring volume.
-_DEMAND_AREAS = ["Approval demand", "Interview demand", "Committee demand", "Governance demand", "Compliance demand"]
+_DEMAND_AREAS = [
+    "Approval demand",
+    "Interview demand",
+    "Committee demand",
+    "Governance demand",
+    "Compliance demand",
+]
 
 
 def _label(current: int, multiplier: float) -> str:
@@ -29,7 +35,7 @@ def _label(current: int, multiplier: float) -> str:
     return f"~{projected} (from {current})"
 
 
-def build_forecast(cohort: List[Dict[str, Any]], data_available: bool) -> List[ForecastScenario]:
+def build_forecast(cohort: list[dict[str, Any]], data_available: bool) -> list[ForecastScenario]:
     """Produce scenario-based hiring-demand forecasts (Module 7)."""
     current = len(cohort)
     base_assumptions = [
@@ -38,7 +44,7 @@ def build_forecast(cohort: List[Dict[str, Any]], data_available: bool) -> List[F
         "No historical base rate is connected; treat figures as directional, not predictions.",
     ]
 
-    scenarios: List[ForecastScenario] = []
+    scenarios: list[ForecastScenario] = []
     for name, growth, mult, conf in _SCENARIOS:
         demand = {area: _label(current, mult) for area in _DEMAND_AREAS}
         scenarios.append(
@@ -48,7 +54,11 @@ def build_forecast(cohort: List[Dict[str, Any]], data_available: bool) -> List[F
                 demand=demand,
                 confidence=conf,
                 assumptions=list(base_assumptions)
-                + (["A connected analytics source would sharpen these estimates."] if not data_available else []),
+                + (
+                    ["A connected analytics source would sharpen these estimates."]
+                    if not data_available
+                    else []
+                ),
                 register="Forecast",
             )
         )

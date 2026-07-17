@@ -1,11 +1,11 @@
 """Recruiter sidebar controls for TalentMind."""
 
-from typing import Any, Optional, Tuple
+from typing import Any
 
 import streamlit as st
 
 
-def render_sidebar() -> Tuple[Optional[Any], bool]:
+def render_sidebar() -> tuple[Any | None, bool]:
     """Render the recruiter sidebar (JD upload + rank trigger).
 
     Returns:

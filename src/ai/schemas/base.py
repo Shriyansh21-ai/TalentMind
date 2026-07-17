@@ -9,7 +9,7 @@ No raw provider output ever bypasses one of these models.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -25,15 +25,15 @@ class BaseAIResponse(BaseModel):
         return cls.__name__
 
     @classmethod
-    def field_names(cls) -> List[str]:
+    def field_names(cls) -> list[str]:
         """Return the declared field names in declaration order."""
         return list(cls.model_fields.keys())
 
     @classmethod
-    def json_schema(cls) -> Dict[str, Any]:
+    def json_schema(cls) -> dict[str, Any]:
         """Return the JSON schema for embedding in prompts / validation."""
         return cls.model_json_schema()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a plain dict of the validated response."""
         return self.model_dump()

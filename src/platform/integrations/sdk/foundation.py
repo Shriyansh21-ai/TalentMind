@@ -153,9 +153,7 @@ class RestClientFoundation:
         """Dispatch a request through the gateway and return the envelope."""
         if self._gateway is None:
             raise RuntimeError("RestClientFoundation has no gateway bound")
-        return self._gateway.handle(
-            self.build_request(method, path, query=query, body=body)
-        )
+        return self._gateway.handle(self.build_request(method, path, query=query, body=body))
 
     def get(self, path: str, *, query: dict[str, str] | None = None):
         """Convenience GET."""

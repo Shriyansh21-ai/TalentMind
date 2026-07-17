@@ -12,8 +12,12 @@ platform's provider layer, cache, telemetry, safety and structured output.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
+# Importing the agent module auto-registers the ResumeAnalystAgent with the AI
+# platform registry, the composer registry and the orchestration registry, so
+# simply having this tool available guarantees the agent is discoverable.
+from src.ai.agents.resume.agent import ResumeAnalystInput, resume_analyst_agent
 from src.ai.core.runner import AgentRunner
 from src.ai.tools.base import (
     BaseTool,
@@ -23,12 +27,7 @@ from src.ai.tools.base import (
     ToolValidationError,
 )
 
-# Importing the agent module auto-registers the ResumeAnalystAgent with the AI
-# platform registry, the composer registry and the orchestration registry, so
-# simply having this tool available guarantees the agent is discoverable.
-from src.ai.agents.resume.agent import ResumeAnalystInput, resume_analyst_agent
-
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 
 def _get_runner() -> AgentRunner:
@@ -52,21 +51,19 @@ class ResumeAnalysisTool(BaseTool):
         engine="Resume Analyst Agent",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         """Require a candidate id."""
         if not tool_input.get("candidate_id"):
             raise ToolValidationError("resume_analysis requires 'candidate_id'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Resolve the candidate, run the agent, and summarize the analysis."""
         candidate_id = str(tool_input["candidate_id"])
         candidate = context.repository.get(candidate_id)
         if candidate is None:
             raise ToolValidationError(f"Unknown candidate {candidate_id!r}.")
 
-        payload = ResumeAnalystInput(
-            candidate_id=candidate_id, candidate=candidate, jd=context.jd
-        )
+        payload = ResumeAnalystInput(candidate_id=candidate_id, candidate=candidate, jd=context.jd)
         result = _get_runner().run(resume_analyst_agent, payload)
         if not result.ok or result.data is None:
             return ToolResult(

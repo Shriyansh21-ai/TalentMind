@@ -7,14 +7,14 @@ UI layer supplies the (cached) insight bundles.
 
 from __future__ import annotations
 
-from typing import List, Sequence
+from collections.abc import Sequence
 
-from src.insights.models import CandidateInsights
 from src.comparison.models import (
     NUMERIC_METRICS,
     ComparisonReport,
     ComparisonRow,
 )
+from src.insights.models import CandidateInsights
 
 # Product cap: a comparison view stays readable up to five candidates.
 MAX_COMPARISON = 5
@@ -44,14 +44,12 @@ def _to_row(insights: CandidateInsights) -> ComparisonRow:
         strengths=list(intel.strengths),
         weaknesses=list(intel.weaknesses),
         recruiter_summary=list(insights.summary),
-        interview_focus=(
-            list(recommendation.interview_focus) if recommendation else []
-        ),
+        interview_focus=(list(recommendation.interview_focus) if recommendation else []),
         missing_skills=insights.missing_skills,
     )
 
 
-def _best_by_metric(rows: List[ComparisonRow]) -> dict:
+def _best_by_metric(rows: list[ComparisonRow]) -> dict:
     """Return ``{metric: winning_candidate_id}`` across the numeric metrics."""
     winners: dict = {}
     for metric, higher_is_better in NUMERIC_METRICS.items():

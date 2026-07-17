@@ -104,16 +104,12 @@ def build_runtime_platform(
     the_clock = clock or SystemClock()
     container = Container()
 
-    container.register(
-        "runtime.telemetry", lambda _c: RuntimeTelemetry(clock=the_clock)
-    )
+    container.register("runtime.telemetry", lambda _c: RuntimeTelemetry(clock=the_clock))
     container.register(
         "runtime.events",
         lambda _c: RuntimeEventPublisher(event_bus, clock=the_clock),
     )
-    container.register(
-        "runtime.resilience", lambda _c: ResilienceEngine(clock=the_clock)
-    )
+    container.register("runtime.resilience", lambda _c: ResilienceEngine(clock=the_clock))
 
     container.register(
         "runtime.jobs",

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Set
 
 
 @dataclass
@@ -34,20 +33,20 @@ class FilterCriteria:
         min_skill_match: Minimum JD skill-match percentage.
     """
 
-    min_experience: Optional[float] = None
-    max_experience: Optional[float] = None
-    required_skills: List[str] = field(default_factory=list)
-    company: Optional[str] = None
-    location: Optional[str] = None
-    allowed_risk_levels: Set[str] = field(default_factory=set)
-    allowed_recommendations: Set[str] = field(default_factory=set)
-    allowed_stages: Set[str] = field(default_factory=set)
-    min_timeline_score: Optional[float] = None
-    min_technical_score: Optional[float] = None
-    min_leadership_score: Optional[float] = None
-    min_career_growth: Optional[float] = None
-    min_learning_velocity: Optional[float] = None
-    min_skill_match: Optional[float] = None
+    min_experience: float | None = None
+    max_experience: float | None = None
+    required_skills: list[str] = field(default_factory=list)
+    company: str | None = None
+    location: str | None = None
+    allowed_risk_levels: set[str] = field(default_factory=set)
+    allowed_recommendations: set[str] = field(default_factory=set)
+    allowed_stages: set[str] = field(default_factory=set)
+    min_timeline_score: float | None = None
+    min_technical_score: float | None = None
+    min_leadership_score: float | None = None
+    min_career_growth: float | None = None
+    min_learning_velocity: float | None = None
+    min_skill_match: float | None = None
 
     def is_empty(self) -> bool:
         """Return ``True`` when no constraint is set (a pass-through filter)."""

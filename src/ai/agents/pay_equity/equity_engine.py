@@ -17,11 +17,9 @@ insights function, HRIS provider and the pay policy.
 
 from __future__ import annotations
 
-from dataclasses import asdict
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
-from src.ai.core.runner import AgentRunner
-
+from src.ai.agents.compensation.governance import CompensationGovernanceEngine
 from src.ai.agents.pay_equity import charts as charts_mod
 from src.ai.agents.pay_equity import compression as compression_mod
 from src.ai.agents.pay_equity import fairness as fairness_mod
@@ -44,10 +42,8 @@ from src.ai.agents.pay_equity.schemas import (
     PayEquityReport,
 )
 from src.ai.agents.pay_equity.templates import PayPolicy, get_policy
-
-from src.ai.agents.compensation.governance import CompensationGovernanceEngine
 from src.ai.committee.schemas import CommitteeMode
-
+from src.ai.core.runner import AgentRunner
 
 # ---------------------------------------------------------------------------
 # Module 12 — future HRIS data-provider interface (interface only, no connector)
@@ -68,11 +64,11 @@ class PayEquityDataProvider(Protocol):
         """Return True when live internal compensation data can be served."""
         ...
 
-    def get_pay_band(self, role: str, level: str) -> Optional[Dict[str, Any]]:
+    def get_pay_band(self, role: str, level: str) -> dict[str, Any] | None:
         """Return the company pay band for ``(role, level)`` or ``None``."""
         ...
 
-    def get_peers(self, role: str, level: str, department: str = "") -> Optional[List[Dict[str, Any]]]:
+    def get_peers(self, role: str, level: str, department: str = "") -> list[dict[str, Any]] | None:
         """Return peer compensation records for ``(role, level[, department])`` or ``None``."""
         ...
 
@@ -84,11 +80,11 @@ class NullPayEquityDataProvider:
         """Always False — no payroll/HRIS data is connected."""
         return False
 
-    def get_pay_band(self, role: str, level: str) -> Optional[Dict[str, Any]]:
+    def get_pay_band(self, role: str, level: str) -> dict[str, Any] | None:
         """Return ``None`` — no band data available."""
         return None
 
-    def get_peers(self, role: str, level: str, department: str = "") -> Optional[List[Dict[str, Any]]]:
+    def get_peers(self, role: str, level: str, department: str = "") -> list[dict[str, Any]] | None:
         """Return ``None`` — no peer data available."""
         return None
 
@@ -104,7 +100,7 @@ def _level_for(years: float) -> str:
     return "junior"
 
 
-def build_equity_findings(context: Dict[str, Any], provider: Any) -> List[EquityFinding]:
+def build_equity_findings(context: dict[str, Any], provider: Any) -> list[EquityFinding]:
     """Evaluate the Module 1 internal-equity dimensions, each with an explicit WHY."""
     available = bool(provider is not None and getattr(provider, "is_available", lambda: False)())
     dimensions = [
@@ -116,7 +112,7 @@ def build_equity_findings(context: Dict[str, Any], provider: Any) -> List[Equity
         "Department consistency",
         "Role consistency",
     ]
-    findings: List[EquityFinding] = []
+    findings: list[EquityFinding] = []
 
     if not available:
         for dim in dimensions:
@@ -134,7 +130,12 @@ def build_equity_findings(context: Dict[str, Any], provider: Any) -> List[Equity
         return findings
 
     band = provider.get_pay_band(context.get("role", ""), context.get("level", "")) or {}
-    peers = provider.get_peers(context.get("role", ""), context.get("level", ""), context.get("department", "")) or []
+    peers = (
+        provider.get_peers(
+            context.get("role", ""), context.get("level", ""), context.get("department", "")
+        )
+        or []
+    )
     target = float(context.get("offer", {}).get("target", 0.0))
     unit = context.get("offer", {}).get("unit", "LPA")
     lo, hi = float(band.get("min", 0.0)), float(band.get("max", 0.0))
@@ -151,18 +152,57 @@ def build_equity_findings(context: Dict[str, Any], provider: Any) -> List[Equity
             source="Connected internal compensation data",
         )
 
-    findings.append(_finding("Internal consistency", peer_mid == 0 or abs(target - peer_mid) <= 0.2 * max(peer_mid, 1),
-                             f"Offer target {target:.1f} {unit} vs. peer mean {peer_mid:.1f} {unit}."))
-    findings.append(_finding("Compensation alignment", peer_mid == 0 or target <= peer_mid * 1.2,
-                             f"Offer target is {'within' if peer_mid and target <= peer_mid * 1.2 else 'above'} 1.2x the peer mean."))
-    findings.append(_finding("Pay-band consistency", bool(within) if within is not None else True,
-                             f"Offer target {'within' if within else 'outside'} band {lo:.1f}-{hi:.1f} {unit}." if hi else "No band data from provider."))
-    findings.append(_finding("Offer alignment", within is not False,
-                             "Offer aligns with the connected band and peer set." if within is not False else "Offer diverges from the band/peers."))
-    findings.append(_finding("Team consistency", True, "Team-level peer set reviewed against the offer."))
-    findings.append(_finding("Department consistency", True, "Department-level distribution reviewed against the offer."))
-    findings.append(_finding("Role consistency", peer_mid == 0 or target >= peer_mid * 0.8,
-                             "Offer is consistent with role-level compensation." if peer_mid else "No role peers available."))
+    findings.append(
+        _finding(
+            "Internal consistency",
+            peer_mid == 0 or abs(target - peer_mid) <= 0.2 * max(peer_mid, 1),
+            f"Offer target {target:.1f} {unit} vs. peer mean {peer_mid:.1f} {unit}.",
+        )
+    )
+    findings.append(
+        _finding(
+            "Compensation alignment",
+            peer_mid == 0 or target <= peer_mid * 1.2,
+            f"Offer target is {'within' if peer_mid and target <= peer_mid * 1.2 else 'above'} 1.2x the peer mean.",
+        )
+    )
+    findings.append(
+        _finding(
+            "Pay-band consistency",
+            bool(within) if within is not None else True,
+            f"Offer target {'within' if within else 'outside'} band {lo:.1f}-{hi:.1f} {unit}."
+            if hi
+            else "No band data from provider.",
+        )
+    )
+    findings.append(
+        _finding(
+            "Offer alignment",
+            within is not False,
+            "Offer aligns with the connected band and peer set."
+            if within is not False
+            else "Offer diverges from the band/peers.",
+        )
+    )
+    findings.append(
+        _finding("Team consistency", True, "Team-level peer set reviewed against the offer.")
+    )
+    findings.append(
+        _finding(
+            "Department consistency",
+            True,
+            "Department-level distribution reviewed against the offer.",
+        )
+    )
+    findings.append(
+        _finding(
+            "Role consistency",
+            peer_mid == 0 or target >= peer_mid * 0.8,
+            "Offer is consistent with role-level compensation."
+            if peer_mid
+            else "No role peers available.",
+        )
+    )
     return findings
 
 
@@ -174,10 +214,10 @@ class PayEquityGuardianEngine:
     def __init__(
         self,
         *,
-        ai_runner: Optional[AgentRunner] = None,
-        compensation_engine: Optional[CompensationGovernanceEngine] = None,
-        insights_fn: Optional[Any] = None,
-        data_provider: Optional[PayEquityDataProvider] = None,
+        ai_runner: AgentRunner | None = None,
+        compensation_engine: CompensationGovernanceEngine | None = None,
+        insights_fn: Any | None = None,
+        data_provider: PayEquityDataProvider | None = None,
         policy: str = "",
     ) -> None:
         """Wire the engine's collaborators (all optional; sane defaults used)."""
@@ -193,7 +233,7 @@ class PayEquityGuardianEngine:
         self,
         candidate: Any = None,
         *,
-        candidate_id: Optional[str] = None,
+        candidate_id: str | None = None,
         repository: Any = None,
         jd: str = "",
         policy: str = "",
@@ -216,7 +256,9 @@ class PayEquityGuardianEngine:
         comp_engine = self.compensation_engine or CompensationGovernanceEngine(
             insights_fn=self.insights_fn, ai_runner=self.ai_runner
         )
-        comp_report = comp_engine.build(candidate=candidate, jd=jd, mode=mode, generated_on=generated_on)
+        comp_report = comp_engine.build(
+            candidate=candidate, jd=jd, mode=mode, generated_on=generated_on
+        )
         comp_dict = comp_report.to_dict()
 
         overview = dict(comp_report.candidate_overview)
@@ -237,18 +279,29 @@ class PayEquityGuardianEngine:
         data_available = bool(getattr(provider, "is_available", lambda: False)())
 
         # 2) Shared evaluation context (normalized; no engine recomputation).
-        band_lookup = provider.get_pay_band(str(overview.get("title", "")), _level_for(years)) if data_available else None
-        outside_band: Optional[bool] = None
+        band_lookup = (
+            provider.get_pay_band(str(overview.get("title", "")), _level_for(years))
+            if data_available
+            else None
+        )
+        outside_band: bool | None = None
         if band_lookup and float(band_lookup.get("max", 0.0)):
-            outside_band = not (float(band_lookup["min"]) <= band.target <= float(band_lookup["max"]))
+            outside_band = not (
+                float(band_lookup["min"]) <= band.target <= float(band_lookup["max"])
+            )
 
-        context: Dict[str, Any] = {
+        context: dict[str, Any] = {
             "role": str(overview.get("title", "")),
             "level": _level_for(years),
             "department": overview.get("department", ""),
             "years": years,
-            "offer": {"minimum": band.minimum, "target": band.target, "maximum": band.maximum,
-                      "currency": band.currency, "unit": band.unit},
+            "offer": {
+                "minimum": band.minimum,
+                "target": band.target,
+                "maximum": band.maximum,
+                "currency": band.currency,
+                "unit": band.unit,
+            },
             "market_position": comp_report.market_position.position,
             "hire_type": comp_report.budget.hire_type,
             "outside_band": outside_band,
@@ -263,7 +316,9 @@ class PayEquityGuardianEngine:
         promotion = promotion_mod.assess_promotion_equity(context, provider)
         policy_alignment = policy_mod.evaluate_policy(pay_policy, context, compression, inversion)
         equity_risk = risk_mod.build_equity_risk(compression, inversion, policy_alignment)
-        executive_review = review_mod.build_executive_review(context, equity_risk, compression, inversion, policy_alignment)
+        executive_review = review_mod.build_executive_review(
+            context, equity_risk, compression, inversion, policy_alignment
+        )
         fairness = fairness_mod.build_fairness_assessment(
             context, compression, inversion, promotion, policy_alignment, executive_review
         )
@@ -276,7 +331,10 @@ class PayEquityGuardianEngine:
             data_available=data_available,
             candidate_overview=overview,
             offer_summary=offer_summary,
-            compensation={"narrative": comp_dict.get("narrative", {}), "recommended_range": comp_dict.get("recommended_range", {})},
+            compensation={
+                "narrative": comp_dict.get("narrative", {}),
+                "recommended_range": comp_dict.get("recommended_range", {}),
+            },
             intelligence=context["intelligence"],
             timeline=context["timeline"],
             equity_risk=equity_risk.to_dict(),
@@ -293,13 +351,19 @@ class PayEquityGuardianEngine:
         narrative = self._narrative(payload, evidence)
 
         chart_data = charts_mod.build_chart_data(
-            equity_risk=equity_risk, compression=compression, inversion=inversion,
-            policy_alignment=policy_alignment, executive_review=executive_review,
-            scenarios=scenarios, offer=context["offer"],
+            equity_risk=equity_risk,
+            compression=compression,
+            inversion=inversion,
+            policy_alignment=policy_alignment,
+            executive_review=executive_review,
+            scenarios=scenarios,
+            offer=context["offer"],
         )
 
         warnings = validators.evidence_coverage_warnings({**evidence, "compensation": comp_dict})
-        warnings += validators.validate_safety(narrative, compression, inversion, equity_risk, data_available)
+        warnings += validators.validate_safety(
+            narrative, compression, inversion, equity_risk, data_available
+        )
 
         return PayEquityReport(
             report_id=self._next_report_id(comp_report.candidate_id),
@@ -327,7 +391,7 @@ class PayEquityGuardianEngine:
     # -- scenario simulation (Module 8) ------------------------------------
 
     @staticmethod
-    def _build_scenarios(context: Dict[str, Any], compression, inversion) -> List[EquityScenario]:
+    def _build_scenarios(context: dict[str, Any], compression, inversion) -> list[EquityScenario]:
         """Simulate current vs. alternative offers and their equity trade-offs."""
         offer = context["offer"]
         target = float(offer.get("target", 0.0))
@@ -343,8 +407,12 @@ class PayEquityGuardianEngine:
         return [
             EquityScenario(
                 name="Current Offer",
-                offer_target=round(target, 2), currency=cur, unit=unit,
-                equity_impact=_impact(f"Baseline: compression {compression.risk_level}, inversion {inversion.risk_level}."),
+                offer_target=round(target, 2),
+                currency=cur,
+                unit=unit,
+                equity_impact=_impact(
+                    f"Baseline: compression {compression.risk_level}, inversion {inversion.risk_level}."
+                ),
                 budget_impact="Baseline budget.",
                 promotion_impact="Baseline level alignment.",
                 retention_impact="Baseline retention posture.",
@@ -352,8 +420,12 @@ class PayEquityGuardianEngine:
             ),
             EquityScenario(
                 name="Equity-Optimized Offer",
-                offer_target=round(target * 0.95, 2), currency=cur, unit=unit,
-                equity_impact=_impact("Lower target reduces compression/inversion exposure vs. peers."),
+                offer_target=round(target * 0.95, 2),
+                currency=cur,
+                unit=unit,
+                equity_impact=_impact(
+                    "Lower target reduces compression/inversion exposure vs. peers."
+                ),
                 budget_impact="~5% lower cash outlay.",
                 promotion_impact="Improves parity with existing peers at the level.",
                 retention_impact="Slightly higher risk of the candidate declining.",
@@ -361,19 +433,26 @@ class PayEquityGuardianEngine:
             ),
             EquityScenario(
                 name="Competitive-Win Offer",
-                offer_target=round(target * 1.05, 2), currency=cur, unit=unit,
-                equity_impact=_impact("Higher target increases compression/inversion exposure vs. peers."),
+                offer_target=round(target * 1.05, 2),
+                currency=cur,
+                unit=unit,
+                equity_impact=_impact(
+                    "Higher target increases compression/inversion exposure vs. peers."
+                ),
                 budget_impact="~5% higher cash outlay.",
                 promotion_impact="May pull the level band upward; document for parity.",
                 retention_impact="Stronger close and short-term retention.",
-                tradeoffs=["Higher close probability", "Greater equity exposure — route for review"],
+                tradeoffs=[
+                    "Higher close probability",
+                    "Greater equity exposure — route for review",
+                ],
             ),
         ]
 
     # -- helpers ------------------------------------------------------------
 
     @staticmethod
-    def _extract(comp_report: Any, key: str) -> Dict[str, Any]:
+    def _extract(comp_report: Any, key: str) -> dict[str, Any]:
         """Pull a normalized signal dict the compensation engine already gathered."""
         # The compensation report exposes future outlook + charts, but the raw
         # intelligence/timeline live on the candidate insight bundle. We read the
@@ -384,7 +463,7 @@ class PayEquityGuardianEngine:
             return {"career_growth_score": 0.0, "_levels": bv}
         return {}
 
-    def _narrative(self, payload: PayEquityInput, evidence: Dict[str, Any]) -> PayEquityNarrative:
+    def _narrative(self, payload: PayEquityInput, evidence: dict[str, Any]) -> PayEquityNarrative:
         """Run the agent; fall back to the deterministic composer on any failure."""
         try:
             result = self.ai_runner.run(pay_equity_agent, payload)
@@ -395,7 +474,7 @@ class PayEquityGuardianEngine:
         return PayEquityNarrative(**compose_pay_equity_narrative(evidence))
 
     @staticmethod
-    def _sources(comp_dict: Dict[str, Any], data_available: bool) -> List[str]:
+    def _sources(comp_dict: dict[str, Any], data_available: bool) -> list[str]:
         """Return the evidence sources actually consulted."""
         sources = ["Compensation Governance Agent"]
         sources.extend(comp_dict.get("evidence_sources", []))

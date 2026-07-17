@@ -7,8 +7,6 @@ in easily". The runner executes a set of tools against a shared context.
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 from src.ai.tools.base import BaseTool, ToolContext, ToolResult
 
 
@@ -16,7 +14,7 @@ class ToolRegistry:
     """In-process registry mapping tool name -> tool instance."""
 
     def __init__(self) -> None:
-        self._tools: Dict[str, BaseTool] = {}
+        self._tools: dict[str, BaseTool] = {}
 
     def register(self, tool: BaseTool) -> BaseTool:
         """Register ``tool`` under its metadata name (last registration wins)."""
@@ -37,11 +35,11 @@ class ToolRegistry:
         """Return ``True`` iff ``name`` is registered."""
         return name in self._tools
 
-    def names(self) -> List[str]:
+    def names(self) -> list[str]:
         """Return all registered tool names (sorted)."""
         return sorted(self._tools.keys())
 
-    def describe(self) -> Dict[str, str]:
+    def describe(self) -> dict[str, str]:
         """Return ``{name: description}`` for every registered tool."""
         return {name: tool.metadata.description for name, tool in self._tools.items()}
 
@@ -49,7 +47,7 @@ class ToolRegistry:
 class ToolRunner:
     """Executes tools from a registry against a :class:`ToolContext`."""
 
-    def __init__(self, registry: "ToolRegistry") -> None:
+    def __init__(self, registry: ToolRegistry) -> None:
         self.registry = registry
 
     def run(self, name: str, tool_input: dict, context: ToolContext) -> ToolResult:
@@ -60,15 +58,15 @@ class ToolRunner:
 
     def run_many(
         self,
-        plan: List[tuple],
+        plan: list[tuple],
         context: ToolContext,
-    ) -> List[ToolResult]:
+    ) -> list[ToolResult]:
         """Run an ordered ``[(name, input), ...]`` plan and collect results.
 
         Execution never raises: a failing tool yields a failed :class:`ToolResult`
         so the copilot can still reason over whatever succeeded.
         """
-        results: List[ToolResult] = []
+        results: list[ToolResult] = []
         for name, tool_input in plan:
             results.append(self.run(name, tool_input or {}, context))
         return results

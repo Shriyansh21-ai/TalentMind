@@ -6,8 +6,6 @@ numeric score of its own.
 
 from __future__ import annotations
 
-from typing import List
-
 from pydantic import Field, field_validator
 
 from src.ai.schemas.base import BaseAIResponse
@@ -25,7 +23,7 @@ class CopilotResponse(BaseAIResponse):
 
     answer: str
     reasoning_summary: str = ""
-    evidence_sources: List[str] = Field(default_factory=list)
+    evidence_sources: list[str] = Field(default_factory=list)
     confidence_note: str = ""
 
     @field_validator("answer")

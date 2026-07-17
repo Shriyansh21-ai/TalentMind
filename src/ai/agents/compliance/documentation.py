@@ -9,16 +9,16 @@ demand but not confirmed filed) (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from src.ai.agents.compliance.schemas import DocumentationReview, DocumentStatus
 from src.ai.agents.compliance.templates import REQUIRED_DOCUMENTS
 
 
-def validate_documentation(context: Dict[str, Any], provider: Any) -> DocumentationReview:
+def validate_documentation(context: dict[str, Any], provider: Any) -> DocumentationReview:
     """Validate required-document presence (Module 4)."""
     sources = set(context.get("evidence_sources", []))
-    provider_docs: Dict[str, bool] = {}
+    provider_docs: dict[str, bool] = {}
     if provider is not None and getattr(provider, "is_available", lambda: False)():
         provider_docs = provider.get_documents(context.get("candidate_id", "")) or {}
 

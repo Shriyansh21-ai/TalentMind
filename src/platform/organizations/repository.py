@@ -22,15 +22,9 @@ class OrganizationRepository:
     """Aggregate repository for organizations and their sub-structures."""
 
     def __init__(self) -> None:
-        self.organizations: InMemoryRepository[Organization] = InMemoryRepository(
-            "organization"
-        )
-        self.business_units: InMemoryRepository[BusinessUnit] = InMemoryRepository(
-            "business_unit"
-        )
-        self.departments: InMemoryRepository[Department] = InMemoryRepository(
-            "department"
-        )
+        self.organizations: InMemoryRepository[Organization] = InMemoryRepository("organization")
+        self.business_units: InMemoryRepository[BusinessUnit] = InMemoryRepository("business_unit")
+        self.departments: InMemoryRepository[Department] = InMemoryRepository("department")
         self.offices: InMemoryRepository[Office] = InMemoryRepository("office")
 
     def by_slug(self, slug: str) -> Organization | None:

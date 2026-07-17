@@ -36,14 +36,46 @@ class KPIDef:
     cohort_derivable: bool  # True if computable from the analyzed cohort's intelligence
 
 
-KPI_DEFS: List[KPIDef] = [
-    KPIDef("hiring_health", "Hiring Health Index", "Overall hiring health from the cohort's recommendation + risk mix.", True),
-    KPIDef("interview_readiness", "Interview Readiness", "Share of the cohort with a structured interview signal.", True),
-    KPIDef("strategic_readiness", "Strategic Hiring Readiness", "Share of strong-hire / high-capability candidates.", True),
-    KPIDef("governance_health", "Governance Health", "Maturity of governance controls across the cohort.", False),
-    KPIDef("transparency_health", "Transparency Health", "Availability of audit/provenance trails.", False),
-    KPIDef("compliance_readiness", "Compliance Readiness", "Share of hires passing compliance controls.", False),
-    KPIDef("audit_readiness", "Audit Readiness", "Share of decisions fully reconstructable.", False),
+KPI_DEFS: list[KPIDef] = [
+    KPIDef(
+        "hiring_health",
+        "Hiring Health Index",
+        "Overall hiring health from the cohort's recommendation + risk mix.",
+        True,
+    ),
+    KPIDef(
+        "interview_readiness",
+        "Interview Readiness",
+        "Share of the cohort with a structured interview signal.",
+        True,
+    ),
+    KPIDef(
+        "strategic_readiness",
+        "Strategic Hiring Readiness",
+        "Share of strong-hire / high-capability candidates.",
+        True,
+    ),
+    KPIDef(
+        "governance_health",
+        "Governance Health",
+        "Maturity of governance controls across the cohort.",
+        False,
+    ),
+    KPIDef(
+        "transparency_health",
+        "Transparency Health",
+        "Availability of audit/provenance trails.",
+        False,
+    ),
+    KPIDef(
+        "compliance_readiness",
+        "Compliance Readiness",
+        "Share of hires passing compliance controls.",
+        False,
+    ),
+    KPIDef(
+        "audit_readiness", "Audit Readiness", "Share of decisions fully reconstructable.", False
+    ),
 ]
 
 
@@ -59,18 +91,60 @@ class OptimizationDef:
     trigger: str  # condition token the engine understands
 
 
-OPTIMIZATION_CATALOG: List[OptimizationDef] = [
-    OptimizationDef("connect_warehouse", "Analytics", "Connect an HR data warehouse / people-analytics source to unlock trends, delays and team analytics.", "High", "Medium", "no_provider"),
-    OptimizationDef("high_risk_share", "Process", "Strengthen risk-validation in interviews — a material share of the cohort is high-risk.", "High", "Low", "high_risk_share"),
-    OptimizationDef("low_interview_ready", "Interview", "Standardize interview planning — many candidates lack a structured interview signal.", "Medium", "Low", "low_interview_ready"),
-    OptimizationDef("governance_gaps", "Governance", "Connect approval/document systems to verify governance completeness.", "High", "Medium", "governance_unavailable"),
-    OptimizationDef("transparency_gaps", "Transparency", "Enable the audit archive so decisions are fully reconstructable.", "Medium", "Medium", "audit_unavailable"),
-    OptimizationDef("weak_recommendations", "Quality", "Review sourcing quality — the cohort skews toward weak/hold recommendations.", "Medium", "Medium", "weak_recommendation_share"),
+OPTIMIZATION_CATALOG: list[OptimizationDef] = [
+    OptimizationDef(
+        "connect_warehouse",
+        "Analytics",
+        "Connect an HR data warehouse / people-analytics source to unlock trends, delays and team analytics.",
+        "High",
+        "Medium",
+        "no_provider",
+    ),
+    OptimizationDef(
+        "high_risk_share",
+        "Process",
+        "Strengthen risk-validation in interviews — a material share of the cohort is high-risk.",
+        "High",
+        "Low",
+        "high_risk_share",
+    ),
+    OptimizationDef(
+        "low_interview_ready",
+        "Interview",
+        "Standardize interview planning — many candidates lack a structured interview signal.",
+        "Medium",
+        "Low",
+        "low_interview_ready",
+    ),
+    OptimizationDef(
+        "governance_gaps",
+        "Governance",
+        "Connect approval/document systems to verify governance completeness.",
+        "High",
+        "Medium",
+        "governance_unavailable",
+    ),
+    OptimizationDef(
+        "transparency_gaps",
+        "Transparency",
+        "Enable the audit archive so decisions are fully reconstructable.",
+        "Medium",
+        "Medium",
+        "audit_unavailable",
+    ),
+    OptimizationDef(
+        "weak_recommendations",
+        "Quality",
+        "Review sourcing quality — the cohort skews toward weak/hold recommendations.",
+        "Medium",
+        "Medium",
+        "weak_recommendation_share",
+    ),
 ]
 
 # Module 13 — extension-point registry. Systems the provider interface is DESIGNED
 # for; none is implemented.
-WORKFORCE_PROVIDERS: List[str] = [
+WORKFORCE_PROVIDERS: list[str] = [
     "HR Data Warehouse",
     "People Analytics",
     "Enterprise BI",

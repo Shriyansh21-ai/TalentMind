@@ -11,19 +11,19 @@ candidate's stated expectation, the applied premiums and the hiring stance
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compensation.schemas import CompensationRange, MarketPosition
 
 
-def _num(source: Dict[str, Any], key: str, default: float = 0.0) -> float:
+def _num(source: dict[str, Any], key: str, default: float = 0.0) -> float:
     try:
         return float(source.get(key, default))
     except (TypeError, ValueError):
         return default
 
 
-def assess_market_position(evidence: Dict[str, Any], band: CompensationRange) -> MarketPosition:
+def assess_market_position(evidence: dict[str, Any], band: CompensationRange) -> MarketPosition:
     """Estimate the market position of the recommended range (Module 4).
 
     Args:
@@ -44,11 +44,11 @@ def assess_market_position(evidence: Dict[str, Any], band: CompensationRange) ->
         (evidence.get("recommendation") or {}).get("recommendation", "")
     )
 
-    assumptions: List[str] = [
+    assumptions: list[str] = [
         "No external salary survey or market benchmark is connected; position is "
         "inferred from internal signals only.",
     ]
-    basis: List[str] = []
+    basis: list[str] = []
 
     # Position relative to the candidate's own expectation (the only real anchor).
     if expected_mid:
@@ -66,14 +66,20 @@ def assess_market_position(evidence: Dict[str, Any], band: CompensationRange) ->
         else:
             position = "Strategic Premium"
     else:
-        assumptions.append("Candidate stated no expectation; position derived from seniority baseline.")
+        assumptions.append(
+            "Candidate stated no expectation; position derived from seniority baseline."
+        )
         position = "Market Competitive"
 
     # A "Strong Hire" stance with strong signals lifts a Premium to Strategic.
-    strong_signals = _num(intelligence, "technical_score") >= 75 or _num(intelligence, "leadership_score") >= 70
+    strong_signals = (
+        _num(intelligence, "technical_score") >= 75 or _num(intelligence, "leadership_score") >= 70
+    )
     if "strong" in stance.lower() and strong_signals and position == "Premium":
         position = "Strategic Premium"
-        basis.append(f"Elevated to Strategic Premium by the '{stance}' stance and strong capability signals.")
+        basis.append(
+            f"Elevated to Strategic Premium by the '{stance}' stance and strong capability signals."
+        )
 
     return MarketPosition(
         position=position,

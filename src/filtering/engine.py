@@ -11,10 +11,10 @@ Pure and Streamlit-free.
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Optional, Sequence
+from collections.abc import Iterable, Sequence
 
-from src.insights.models import CandidateInsights
 from src.filtering.models import FilterCriteria
+from src.insights.models import CandidateInsights
 from src.pipeline.models import CandidatePipelineStatus
 
 
@@ -35,7 +35,7 @@ def _has_all_skills(insights: CandidateInsights, required: Sequence[str]) -> boo
 def _matches_stage(
     candidate_id: str,
     allowed_stages: Iterable[str],
-    pipeline_states: Optional[Dict[str, CandidatePipelineStatus]],
+    pipeline_states: dict[str, CandidatePipelineStatus] | None,
 ) -> bool:
     """Return ``True`` iff the candidate's pipeline stage is permitted.
 
@@ -53,7 +53,7 @@ def _matches_stage(
 def matches(
     insights: CandidateInsights,
     criteria: FilterCriteria,
-    pipeline_states: Optional[Dict[str, CandidatePipelineStatus]] = None,
+    pipeline_states: dict[str, CandidatePipelineStatus] | None = None,
 ) -> bool:
     """Return ``True`` iff ``insights`` satisfies every set constraint.
 
@@ -80,13 +80,9 @@ def matches(
     if not _has_all_skills(insights, criteria.required_skills):
         return False
 
-    if criteria.company and (
-        criteria.company.lower() not in insights.company.lower()
-    ):
+    if criteria.company and (criteria.company.lower() not in insights.company.lower()):
         return False
-    if criteria.location and (
-        criteria.location.lower() not in insights.location.lower()
-    ):
+    if criteria.location and (criteria.location.lower() not in insights.location.lower()):
         return False
 
     if criteria.allowed_risk_levels and (
@@ -99,9 +95,7 @@ def matches(
     ):
         return False
 
-    if not _matches_stage(
-        insights.candidate_id, criteria.allowed_stages, pipeline_states
-    ):
+    if not _matches_stage(insights.candidate_id, criteria.allowed_stages, pipeline_states):
         return False
 
     if criteria.min_timeline_score is not None and (
@@ -135,9 +129,9 @@ def matches(
 def apply_filters(
     insights_list: Sequence[CandidateInsights],
     criteria: FilterCriteria,
-    pipeline_states: Optional[Dict[str, CandidatePipelineStatus]] = None,
-    allowed_ids: Optional[Iterable[str]] = None,
-) -> List[CandidateInsights]:
+    pipeline_states: dict[str, CandidatePipelineStatus] | None = None,
+    allowed_ids: Iterable[str] | None = None,
+) -> list[CandidateInsights]:
     """Filter an insight cohort by ``criteria``, optionally within a FAISS subset.
 
     Args:
@@ -152,7 +146,7 @@ def apply_filters(
         The matching insight bundles, in input order.
     """
     id_gate = set(allowed_ids) if allowed_ids is not None else None
-    result: List[CandidateInsights] = []
+    result: list[CandidateInsights] = []
     for insights in insights_list:
         if id_gate is not None and insights.candidate_id not in id_gate:
             continue

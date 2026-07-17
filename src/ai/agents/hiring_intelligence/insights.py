@@ -8,12 +8,12 @@ fabrication (Module 15).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from src.ai.agents.hiring_intelligence.schemas import KPI, Bottleneck, Optimization
 
 # Ordered sections of the executive workforce report (Module 10).
-REPORT_SECTIONS: List[Tuple[str, str]] = [
+REPORT_SECTIONS: list[tuple[str, str]] = [
     ("executive_summary", "Executive Summary"),
     ("key_insights", "Key Insights"),
     ("enterprise_kpis", "Enterprise KPIs"),
@@ -25,28 +25,32 @@ REPORT_SECTIONS: List[Tuple[str, str]] = [
 ]
 
 
-def section_titles() -> List[str]:
+def section_titles() -> list[str]:
     """Return the ordered workforce-report section titles."""
     return [title for _key, title in REPORT_SECTIONS]
 
 
 def build_key_insights(
-    cohort: List[Dict[str, Any]],
-    kpis: List[KPI],
-    bottlenecks: List[Bottleneck],
-    optimizations: List[Optimization],
+    cohort: list[dict[str, Any]],
+    kpis: list[KPI],
+    bottlenecks: list[Bottleneck],
+    optimizations: list[Optimization],
     data_available: bool,
-) -> List[str]:
+) -> list[str]:
     """Synthesize the headline strategic insights (Module 10)."""
-    insights: List[str] = []
+    insights: list[str] = []
 
     health = next((k for k in kpis if k.name == "Hiring Health Index"), None)
     if health and health.value is not None:
-        insights.append(f"Hiring Health Index is {health.label} ({health.value:.0f}/100) across {len(cohort)} analyzed candidates.")
+        insights.append(
+            f"Hiring Health Index is {health.label} ({health.value:.0f}/100) across {len(cohort)} analyzed candidates."
+        )
 
     observed_bottlenecks = [b for b in bottlenecks if b.register == "Estimated"]
     if observed_bottlenecks:
-        insights.append("Estimated bottleneck(s): " + "; ".join(b.stage for b in observed_bottlenecks) + ".")
+        insights.append(
+            "Estimated bottleneck(s): " + "; ".join(b.stage for b in observed_bottlenecks) + "."
+        )
 
     top_opt = next((o for o in optimizations if o.priority in ("Critical", "High")), None)
     if top_opt:

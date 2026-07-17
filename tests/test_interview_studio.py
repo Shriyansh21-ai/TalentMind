@@ -13,38 +13,32 @@ from __future__ import annotations
 import json
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-from src.ai.providers.composers import has_composer
-
+from src.ai.agents.interview_studio import question_generator as questions_mod
+from src.ai.agents.interview_studio import strategy as strategy_mod
+from src.ai.agents.interview_studio import validators
 from src.ai.agents.interview_studio.agent import (
     InterviewStudioInput,
     build_interview_evidence,
-    interview_studio_agent,
 )
-from src.ai.agents.interview_studio.report import InterviewStudioEngine
 from src.ai.agents.interview_studio.composer import compose_interview_narrative
+from src.ai.agents.interview_studio.report import InterviewStudioEngine
 from src.ai.agents.interview_studio.schemas import (
     InterviewStudioNarrative,
     InterviewStudioReport,
 )
-from src.ai.agents.interview_studio import charts as charts_mod
-from src.ai.agents.interview_studio import validators
-from src.ai.agents.interview_studio import question_generator as questions_mod
-from src.ai.agents.interview_studio import strategy as strategy_mod
 from src.ai.agents.interview_studio.templates import (
-    ROLE_PROFILES,
     detect_role,
     get_depth,
     get_role,
 )
-
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 JD = """Senior Machine Learning Engineer
 What you'll do
@@ -104,7 +98,11 @@ def test_narrative_top_level_has_no_score_fields():
 
 def test_composer_uses_committee_recommendation_when_present():
     evidence = {
-        "candidate_overview": {"title": "Senior ML Engineer", "company": "Acme", "years_of_experience": 9},
+        "candidate_overview": {
+            "title": "Senior ML Engineer",
+            "company": "Acme",
+            "years_of_experience": 9,
+        },
         "role_name": "ML Engineer",
         "depth": "deep",
         "committee": {
@@ -128,8 +126,12 @@ def test_composer_never_empty_summary_and_validates():
 
 
 def test_composer_flags_high_risk_readiness():
-    out = compose_interview_narrative({"risk": {"risk_level": "High", "red_flags": ["Employment gap"]},
-                                       "interview": {"technical_topics": ["x"]}})
+    out = compose_interview_narrative(
+        {
+            "risk": {"risk_level": "High", "red_flags": ["Employment gap"]},
+            "interview": {"technical_topics": ["x"]},
+        }
+    )
     assert out["readiness_label"] == "Ready — Validate Risks"
     assert "Employment gap" in out["watch_areas"]
 
@@ -137,7 +139,16 @@ def test_composer_flags_high_risk_readiness():
 def test_build_evidence_packs_all_sources():
     payload = InterviewStudioInput(candidate_id="C1", intelligence={"technical_score": 80})
     evidence = build_interview_evidence(payload)
-    for key in ("committee", "resume", "jd", "intelligence", "timeline", "risk", "recommendation", "interview"):
+    for key in (
+        "committee",
+        "resume",
+        "jd",
+        "intelligence",
+        "timeline",
+        "risk",
+        "recommendation",
+        "interview",
+    ):
         assert key in evidence
 
 
@@ -180,7 +191,12 @@ def test_engine_produces_unified_package():
     assert report.role_specific_questions
     assert report.rubrics
     assert report.decision_matrix.bands
-    assert [b.label for b in report.decision_matrix.bands] == ["Strong Hire", "Hire", "Hold", "Reject"]
+    assert [b.label for b in report.decision_matrix.bands] == [
+        "Strong Hire",
+        "Hire",
+        "Hold",
+        "Reject",
+    ]
 
 
 def test_engine_detects_ml_role_from_title():
@@ -221,7 +237,9 @@ def test_engine_degrades_without_jd():
 
 def test_engine_without_committee():
     engine = InterviewStudioEngine(ai_runner=_runner())
-    report = engine.build(candidate=make_candidate(), jd=JD, run_committee=False, generated_on="2026-07-15")
+    report = engine.build(
+        candidate=make_candidate(), jd=JD, run_committee=False, generated_on="2026-07-15"
+    )
     assert report.narrative.interview_summary
     assert report.decision_matrix.bands
 
@@ -245,9 +263,12 @@ def test_senior_gets_deep_loop_with_system_design():
 
 def test_junior_gets_lighter_loop():
     engine = InterviewStudioEngine(ai_runner=_runner())
-    junior = make_candidate(candidate_id="CAND_JR", years=2.0, title="Software Engineer",
-                            skills=["Python", "Django"])
-    report = engine.build(candidate=junior, jd="Backend Engineer. Python.", generated_on="2026-07-15")
+    junior = make_candidate(
+        candidate_id="CAND_JR", years=2.0, title="Software Engineer", skills=["Python", "Django"]
+    )
+    report = engine.build(
+        candidate=junior, jd="Backend Engineer. Python.", generated_on="2026-07-15"
+    )
     # Junior standard loop should be shorter than a senior deep loop.
     assert report.strategy.length_minutes <= 240
 
@@ -283,7 +304,12 @@ def test_risk_validation_chain_complete():
 
 def test_risk_validation_from_committee_concerns():
     evidence = {
-        "committee": {"decision": {"hiring_risks": ["Unproven at scale"], "remaining_unknowns": ["Team-lead scope"]}},
+        "committee": {
+            "decision": {
+                "hiring_risks": ["Unproven at scale"],
+                "remaining_unknowns": ["Team-lead scope"],
+            }
+        },
     }
     validations = questions_mod.risk_validations(evidence)
     risks = [v.risk for v in validations]
@@ -300,8 +326,16 @@ def test_risk_validation_from_committee_concerns():
 def test_rubrics_cover_all_core_dimensions():
     report = _report()
     names = {d.name for d in report.rubrics}
-    for expected in ("Technical Depth", "Communication", "Leadership", "Ownership",
-                     "Collaboration", "Decision Making", "Problem Solving", "Architecture"):
+    for expected in (
+        "Technical Depth",
+        "Communication",
+        "Leadership",
+        "Ownership",
+        "Collaboration",
+        "Decision Making",
+        "Problem Solving",
+        "Architecture",
+    ):
         assert expected in names
     for dim in report.rubrics:
         assert set(dim.levels) == {"Strong", "Solid", "Mixed", "Weak"}
@@ -346,8 +380,15 @@ def test_provenance_separates_registers():
 
 def test_chart_data_built_for_every_visual():
     report = _report()
-    for key in ("timeline", "coverage_radar", "risk_heatmap", "question_distribution",
-                "difficulty_distribution", "decision_readiness", "rubric_weights"):
+    for key in (
+        "timeline",
+        "coverage_radar",
+        "risk_heatmap",
+        "question_distribution",
+        "difficulty_distribution",
+        "decision_readiness",
+        "rubric_weights",
+    ):
         assert key in report.charts
 
 
@@ -365,9 +406,9 @@ def test_chart_data_is_pure_and_bounded():
 
 
 def test_copilot_routes_interview_studio_questions():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -382,16 +423,16 @@ def test_copilot_routes_interview_studio_questions():
 
 
 def test_copilot_interview_studio_intent_selects_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.INTERVIEW_STUDIO) == ["interview_studio"]
 
 
 def test_copilot_existing_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -408,9 +449,9 @@ def test_copilot_existing_intents_unchanged():
 
 
 def test_copilot_delegates_to_interview_studio_end_to_end():
-    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository(
         [make_candidate(candidate_id="CAND_0000001", title="Senior ML Engineer")]
@@ -435,7 +476,7 @@ def test_tool_routes_role_and_depth():
 
 
 def test_tool_registered_in_builtin():
-    from src.ai.tools.registry import registry as tool_registry
     import src.ai.tools.builtin  # noqa: F401  (populates the registry)
+    from src.ai.tools.registry import registry as tool_registry
 
     assert tool_registry.has("interview_studio")

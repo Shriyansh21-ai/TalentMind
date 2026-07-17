@@ -34,15 +34,18 @@ class SemanticVersion(PlatformModel):
     build: str = ""
 
     @classmethod
-    def parse(cls, value: str) -> "SemanticVersion":
+    def parse(cls, value: str) -> SemanticVersion:
         """Parse a ``MAJOR.MINOR.PATCH[-pre][+build]`` string."""
         match = _SEMVER.match(value.strip())
         if not match:
             raise ReleaseError(f"invalid semantic version '{value}'")
         g = match.groupdict()
         return cls(
-            major=int(g["major"]), minor=int(g["minor"]), patch=int(g["patch"]),
-            prerelease=g["prerelease"] or "", build=g["build"] or "",
+            major=int(g["major"]),
+            minor=int(g["minor"]),
+            patch=int(g["patch"]),
+            prerelease=g["prerelease"] or "",
+            build=g["build"] or "",
         )
 
     def __str__(self) -> str:
@@ -58,7 +61,7 @@ class SemanticVersion(PlatformModel):
         """Return the (major, minor, patch) core triple."""
         return (self.major, self.minor, self.patch)
 
-    def is_newer_than(self, other: "SemanticVersion") -> bool:
+    def is_newer_than(self, other: SemanticVersion) -> bool:
         """Return whether this version's core is newer than ``other``'s.
 
         A release (no prerelease) outranks a prerelease of the same core.
@@ -73,13 +76,13 @@ class SemanticVersion(PlatformModel):
             return False
         return self.prerelease > other.prerelease
 
-    def bump_major(self) -> "SemanticVersion":
+    def bump_major(self) -> SemanticVersion:
         return SemanticVersion(major=self.major + 1, minor=0, patch=0)
 
-    def bump_minor(self) -> "SemanticVersion":
+    def bump_minor(self) -> SemanticVersion:
         return SemanticVersion(major=self.major, minor=self.minor + 1, patch=0)
 
-    def bump_patch(self) -> "SemanticVersion":
+    def bump_patch(self) -> SemanticVersion:
         return SemanticVersion(major=self.major, minor=self.minor, patch=self.patch + 1)
 
 
@@ -177,10 +180,16 @@ class ReleaseManager:
         SemanticVersion.parse(version)  # validates
         now = self._clock.now()
         manifest = ReleaseManifest(
-            id=generate_id("rel"), version=version, channel=channel,
-            build=build or BuildMetadata(), artifacts=artifacts or [],
-            changes=changes or [], notes=self.generate_release_notes(version, changes or []),
-            released_at=now, created_at=now, updated_at=now,
+            id=generate_id("rel"),
+            version=version,
+            channel=channel,
+            build=build or BuildMetadata(),
+            artifacts=artifacts or [],
+            changes=changes or [],
+            notes=self.generate_release_notes(version, changes or []),
+            released_at=now,
+            created_at=now,
+            updated_at=now,
         )
         self._releases.append(manifest)
         return manifest
@@ -257,8 +266,10 @@ class ReleaseManager:
     ) -> Migration:
         """Register a migration between versions."""
         migration = Migration(
-            identifier=identifier, from_version=from_version,
-            to_version=to_version, description=description,
+            identifier=identifier,
+            from_version=from_version,
+            to_version=to_version,
+            description=description,
         )
         self._migrations.append(migration)
         return migration
@@ -276,13 +287,19 @@ class ReleaseManager:
         return [m for m in self._migrations if not m.applied]
 
     def deprecate(
-        self, feature: str, since_version: str, *, remove_in_version: str = "",
+        self,
+        feature: str,
+        since_version: str,
+        *,
+        remove_in_version: str = "",
         replacement: str = "",
     ) -> Deprecation:
         """Register a deprecation."""
         deprecation = Deprecation(
-            feature=feature, since_version=since_version,
-            remove_in_version=remove_in_version, replacement=replacement,
+            feature=feature,
+            since_version=since_version,
+            remove_in_version=remove_in_version,
+            replacement=replacement,
         )
         self._deprecations.append(deprecation)
         return deprecation

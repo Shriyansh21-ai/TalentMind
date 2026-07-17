@@ -24,12 +24,11 @@ Dashboards) can consume or extend it without a redesign.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import Field, field_validator
 
 from src.ai.schemas.base import BaseAIResponse
-
 
 # ---------------------------------------------------------------------------
 # Nested estimate model (numbers live here, never at the report's top level)
@@ -48,9 +47,9 @@ class Estimate(BaseAIResponse):
     level: str = "Moderate"
     rationale: str = ""
     confidence: float = 0.0
-    basis: List[str] = Field(default_factory=list)
+    basis: list[str] = Field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the estimate."""
         return {
             "label": self.label,
@@ -82,8 +81,8 @@ class ExecutiveNarrative(BaseAIResponse):
     risk_overview: str = ""
     interview_readiness: str = ""
     executive_confidence: str = ""
-    top_reasons: List[str] = Field(default_factory=list)
-    top_concerns: List[str] = Field(default_factory=list)
+    top_reasons: list[str] = Field(default_factory=list)
+    top_concerns: list[str] = Field(default_factory=list)
     confidence_note: str = ""
 
     @field_validator("executive_summary")
@@ -114,7 +113,7 @@ class BusinessIntelligence:
     knowledge_risk: Estimate
     team_impact: Estimate
 
-    def items(self) -> List[tuple]:
+    def items(self) -> list[tuple]:
         """Return ``(display_name, Estimate)`` pairs in presentation order."""
         return [
             ("Business Impact", self.business_impact),
@@ -127,7 +126,7 @@ class BusinessIntelligence:
             ("Team Impact", self.team_impact),
         ]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of every estimate."""
         return {
             "business_impact": self.business_impact.to_dict(),
@@ -145,17 +144,17 @@ class BusinessIntelligence:
 class InterviewStrategy:
     """Executive interview roadmap + rubric (Module 7). Sourced from the plan."""
 
-    roadmap: List[str] = field(default_factory=list)
-    technical_interview: List[str] = field(default_factory=list)
-    system_design: List[str] = field(default_factory=list)
-    behavioral_interview: List[str] = field(default_factory=list)
-    leadership_interview: List[str] = field(default_factory=list)
-    coding_interview: List[str] = field(default_factory=list)
-    evaluation_rubric: List[str] = field(default_factory=list)
-    decision_checkpoints: List[str] = field(default_factory=list)
+    roadmap: list[str] = field(default_factory=list)
+    technical_interview: list[str] = field(default_factory=list)
+    system_design: list[str] = field(default_factory=list)
+    behavioral_interview: list[str] = field(default_factory=list)
+    leadership_interview: list[str] = field(default_factory=list)
+    coding_interview: list[str] = field(default_factory=list)
+    evaluation_rubric: list[str] = field(default_factory=list)
+    decision_checkpoints: list[str] = field(default_factory=list)
     post_interview_recommendation: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the interview strategy."""
         return asdict(self)
 
@@ -166,13 +165,13 @@ class ExecutiveActionPlan:
 
     primary_action: str
     rationale: str = ""
-    alternatives: List[str] = field(default_factory=list)
-    onboarding_plan: List[str] = field(default_factory=list)
-    plan_30_day: List[str] = field(default_factory=list)
-    plan_60_day: List[str] = field(default_factory=list)
-    plan_90_day: List[str] = field(default_factory=list)
+    alternatives: list[str] = field(default_factory=list)
+    onboarding_plan: list[str] = field(default_factory=list)
+    plan_30_day: list[str] = field(default_factory=list)
+    plan_60_day: list[str] = field(default_factory=list)
+    plan_90_day: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the action plan."""
         return asdict(self)
 
@@ -189,7 +188,7 @@ class ProvenanceEntry:
     statement: str
     source: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the provenance entry."""
         return asdict(self)
 
@@ -210,23 +209,23 @@ class ExecutiveHiringReport:
     template: str
     audience: str
     generated_on: str
-    candidate_overview: Dict[str, Any]
+    candidate_overview: dict[str, Any]
     narrative: ExecutiveNarrative
     resume_summary: str
     jd_summary: str
-    role_intelligence: Dict[str, Any]
-    candidate_intelligence: Dict[str, Any]
-    committee: Dict[str, Any]
-    risk_dashboard: Dict[str, Any]
+    role_intelligence: dict[str, Any]
+    candidate_intelligence: dict[str, Any]
+    committee: dict[str, Any]
+    risk_dashboard: dict[str, Any]
     interview_strategy: InterviewStrategy
     action_plan: ExecutiveActionPlan
     business_intelligence: BusinessIntelligence
-    charts: Dict[str, Any]
-    provenance: List[ProvenanceEntry] = field(default_factory=list)
-    evidence_sources: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    charts: dict[str, Any]
+    provenance: list[ProvenanceEntry] = field(default_factory=list)
+    evidence_sources: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the whole report."""
         return {
             "report_id": self.report_id,

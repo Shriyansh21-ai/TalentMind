@@ -31,7 +31,7 @@ class DepthProfile:
     summary: str
 
 
-DEPTH_PROFILES: Dict[str, DepthProfile] = {
+DEPTH_PROFILES: dict[str, DepthProfile] = {
     "screen": DepthProfile(
         key="screen",
         name="Recruiter Screen",
@@ -81,21 +81,27 @@ class RoleProfile:
 
     key: str
     name: str
-    aliases: List[str] = field(default_factory=list)
-    competencies: List[str] = field(default_factory=list)
-    technical_focus: List[str] = field(default_factory=list)
-    system_design_focus: List[str] = field(default_factory=list)
-    coding_focus: List[str] = field(default_factory=list)
+    aliases: list[str] = field(default_factory=list)
+    competencies: list[str] = field(default_factory=list)
+    technical_focus: list[str] = field(default_factory=list)
+    system_design_focus: list[str] = field(default_factory=list)
+    coding_focus: list[str] = field(default_factory=list)
     emphasize_system_design: bool = True
     emphasize_leadership: bool = False
 
 
-ROLE_PROFILES: Dict[str, RoleProfile] = {
+ROLE_PROFILES: dict[str, RoleProfile] = {
     "backend": RoleProfile(
         key="backend",
         name="Backend Engineer",
         aliases=["backend", "back-end", "back end", "server", "api engineer", "platform engineer"],
-        competencies=["API design", "Data modelling", "Concurrency", "Reliability", "Observability"],
+        competencies=[
+            "API design",
+            "Data modelling",
+            "Concurrency",
+            "Reliability",
+            "Observability",
+        ],
         technical_focus=[
             "Designing clean, versioned service APIs",
             "Relational vs. non-relational data modelling trade-offs",
@@ -116,7 +122,13 @@ ROLE_PROFILES: Dict[str, RoleProfile] = {
         key="frontend",
         name="Frontend Engineer",
         aliases=["frontend", "front-end", "front end", "ui engineer", "react", "web engineer"],
-        competencies=["Component architecture", "State management", "Performance", "Accessibility", "UX collaboration"],
+        competencies=[
+            "Component architecture",
+            "State management",
+            "Performance",
+            "Accessibility",
+            "UX collaboration",
+        ],
         technical_focus=[
             "Component architecture and reusable design systems",
             "State management at scale (stores, caching, hydration)",
@@ -137,8 +149,21 @@ ROLE_PROFILES: Dict[str, RoleProfile] = {
     "ml_engineer": RoleProfile(
         key="ml_engineer",
         name="ML Engineer",
-        aliases=["ml engineer", "machine learning engineer", "mle", "ml eng", "applied scientist", "ai engineer"],
-        competencies=["Modelling", "ML systems", "Data pipelines", "Evaluation", "Productionization"],
+        aliases=[
+            "ml engineer",
+            "machine learning engineer",
+            "mle",
+            "ml eng",
+            "applied scientist",
+            "ai engineer",
+        ],
+        competencies=[
+            "Modelling",
+            "ML systems",
+            "Data pipelines",
+            "Evaluation",
+            "Productionization",
+        ],
         technical_focus=[
             "Model selection and the bias/variance trade-off",
             "Feature engineering and data-pipeline design",
@@ -159,7 +184,13 @@ ROLE_PROFILES: Dict[str, RoleProfile] = {
         key="data_scientist",
         name="Data Scientist",
         aliases=["data scientist", "data science", "ds ", "research scientist", "statistician"],
-        competencies=["Statistics", "Experiment design", "Analysis", "Communication", "Business impact"],
+        competencies=[
+            "Statistics",
+            "Experiment design",
+            "Analysis",
+            "Communication",
+            "Business impact",
+        ],
         technical_focus=[
             "Experiment / A-B test design and pitfalls",
             "Statistical inference and significance reasoning",
@@ -179,7 +210,13 @@ ROLE_PROFILES: Dict[str, RoleProfile] = {
     "devops": RoleProfile(
         key="devops",
         name="DevOps / SRE",
-        aliases=["devops", "sre", "site reliability", "platform reliability", "infrastructure engineer"],
+        aliases=[
+            "devops",
+            "sre",
+            "site reliability",
+            "platform reliability",
+            "infrastructure engineer",
+        ],
         competencies=["CI/CD", "Reliability", "Automation", "Observability", "Incident response"],
         technical_focus=[
             "CI/CD pipeline design and safe deployment strategies",
@@ -200,8 +237,21 @@ ROLE_PROFILES: Dict[str, RoleProfile] = {
     "cloud_engineer": RoleProfile(
         key="cloud_engineer",
         name="Cloud Engineer",
-        aliases=["cloud engineer", "cloud architect", "aws", "azure", "gcp", "cloud infrastructure"],
-        competencies=["Cloud architecture", "Networking", "Cost optimization", "Security", "Scalability"],
+        aliases=[
+            "cloud engineer",
+            "cloud architect",
+            "aws",
+            "azure",
+            "gcp",
+            "cloud infrastructure",
+        ],
+        competencies=[
+            "Cloud architecture",
+            "Networking",
+            "Cost optimization",
+            "Security",
+            "Scalability",
+        ],
         technical_focus=[
             "Cloud-native architecture and managed-service selection",
             "Networking, VPC design and connectivity",
@@ -222,7 +272,13 @@ ROLE_PROFILES: Dict[str, RoleProfile] = {
         key="security",
         name="Security Engineer",
         aliases=["security engineer", "security", "appsec", "infosec", "cybersecurity", "pentest"],
-        competencies=["Threat modelling", "Secure design", "Vulnerability analysis", "Incident response", "Compliance"],
+        competencies=[
+            "Threat modelling",
+            "Secure design",
+            "Vulnerability analysis",
+            "Incident response",
+            "Compliance",
+        ],
         technical_focus=[
             "Threat modelling a realistic system",
             "Common vulnerability classes and mitigations (OWASP)",
@@ -242,7 +298,13 @@ ROLE_PROFILES: Dict[str, RoleProfile] = {
         key="product_manager",
         name="Product Manager",
         aliases=["product manager", "pm ", "product owner", "group product", "senior pm"],
-        competencies=["Product sense", "Prioritization", "Stakeholder management", "Metrics", "Execution"],
+        competencies=[
+            "Product sense",
+            "Prioritization",
+            "Stakeholder management",
+            "Metrics",
+            "Execution",
+        ],
         technical_focus=[
             "Product sense: defining the problem and the user",
             "Prioritization frameworks and trade-off reasoning",
@@ -263,8 +325,21 @@ ROLE_PROFILES: Dict[str, RoleProfile] = {
     "engineering_manager": RoleProfile(
         key="engineering_manager",
         name="Engineering Manager",
-        aliases=["engineering manager", "em ", "eng manager", "director of engineering", "head of engineering", "manager"],
-        competencies=["People leadership", "Technical direction", "Delivery", "Stakeholder management", "Hiring & growth"],
+        aliases=[
+            "engineering manager",
+            "em ",
+            "eng manager",
+            "director of engineering",
+            "head of engineering",
+            "manager",
+        ],
+        competencies=[
+            "People leadership",
+            "Technical direction",
+            "Delivery",
+            "Stakeholder management",
+            "Hiring & growth",
+        ],
         technical_focus=[
             "Setting and communicating technical direction",
             "Balancing delivery, quality and team health",
@@ -335,11 +410,11 @@ def detect_role(*hints: str) -> RoleProfile:
     return best_role
 
 
-def list_roles() -> List[RoleProfile]:
+def list_roles() -> list[RoleProfile]:
     """Return every registered role profile (stable order)."""
     return list(ROLE_PROFILES.values())
 
 
-def list_depths() -> List[DepthProfile]:
+def list_depths() -> list[DepthProfile]:
     """Return every registered depth profile (stable order)."""
     return list(DEPTH_PROFILES.values())

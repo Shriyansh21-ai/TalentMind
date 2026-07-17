@@ -10,7 +10,7 @@ injection seam of the platform.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any
 
 from src.ai.config.settings import AISettings
 
@@ -34,7 +34,7 @@ class AgentContext:
     agent_name: str
     payload: Any
     settings: AISettings
-    memory: Optional[Any] = None
+    memory: Any | None = None
     subject_id: str = "global"
     scope: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)

@@ -14,16 +14,16 @@ never triggers intelligence computation for the entire database.
 from __future__ import annotations
 
 from collections import Counter
-from typing import Dict, List, Sequence, Tuple
+from collections.abc import Sequence
 
-from src.models.candidates import Candidate
 from src.insights.models import CandidateInsights
+from src.models.candidates import Candidate
 from src.pipeline.models import CandidatePipelineStatus, PipelineStage
 
-CountPairs = List[Tuple[str, int]]
+CountPairs = list[tuple[str, int]]
 
 # Canonical funnel order for the hiring-funnel chart (active stages only).
-_FUNNEL_STAGES: List[PipelineStage] = [
+_FUNNEL_STAGES: list[PipelineStage] = [
     PipelineStage.APPLIED,
     PipelineStage.SHORTLISTED,
     PipelineStage.RECRUITER_REVIEW,
@@ -40,7 +40,7 @@ _FUNNEL_STAGES: List[PipelineStage] = [
 # ---------------------------------------------------------------------------
 
 
-def experience_distribution(candidates: Sequence[Candidate]) -> List[float]:
+def experience_distribution(candidates: Sequence[Candidate]) -> list[float]:
     """Return the years-of-experience for every candidate (histogram input)."""
     return [c.profile.years_of_experience for c in candidates]
 
@@ -55,19 +55,13 @@ def top_skills(candidates: Sequence[Candidate], limit: int = 15) -> CountPairs:
     return counter.most_common(limit)
 
 
-def location_distribution(
-    candidates: Sequence[Candidate], limit: int = 12
-) -> CountPairs:
+def location_distribution(candidates: Sequence[Candidate], limit: int = 12) -> CountPairs:
     """Return the ``limit`` most common candidate locations."""
-    counter: Counter = Counter(
-        c.profile.location for c in candidates if c.profile.location
-    )
+    counter: Counter = Counter(c.profile.location for c in candidates if c.profile.location)
     return counter.most_common(limit)
 
 
-def company_distribution(
-    candidates: Sequence[Candidate], limit: int = 12
-) -> CountPairs:
+def company_distribution(candidates: Sequence[Candidate], limit: int = 12) -> CountPairs:
     """Return the ``limit`` most common current employers."""
     counter: Counter = Counter(
         c.profile.current_company for c in candidates if c.profile.current_company
@@ -80,12 +74,12 @@ def company_distribution(
 # ---------------------------------------------------------------------------
 
 
-def score_distribution(insights: Sequence[CandidateInsights]) -> List[float]:
+def score_distribution(insights: Sequence[CandidateInsights]) -> list[float]:
     """Return overall intelligence scores for the cohort (histogram input)."""
     return [i.intelligence.overall_score for i in insights]
 
 
-def risk_distribution(insights: Sequence[CandidateInsights]) -> Dict[str, int]:
+def risk_distribution(insights: Sequence[CandidateInsights]) -> dict[str, int]:
     """Return ``{risk_level: count}`` ordered Low / Medium / High."""
     counts = {"Low": 0, "Medium": 0, "High": 0}
     for item in insights:
@@ -96,7 +90,7 @@ def risk_distribution(insights: Sequence[CandidateInsights]) -> Dict[str, int]:
 
 def recommendation_distribution(
     insights: Sequence[CandidateInsights],
-) -> Dict[str, int]:
+) -> dict[str, int]:
     """Return ``{recommendation_label: count}`` from the intelligence engine."""
     counter: Counter = Counter(i.intelligence.recommendation for i in insights)
     return dict(counter)
@@ -109,13 +103,11 @@ def recommendation_distribution(
 
 def stage_distribution(
     states: Sequence[CandidatePipelineStatus],
-) -> Dict[str, int]:
+) -> dict[str, int]:
     """Return ``{stage_value: count}`` across every pipeline stage (0s included)."""
-    counts: Dict[str, int] = {stage.value: 0 for stage in PipelineStage}
+    counts: dict[str, int] = {stage.value: 0 for stage in PipelineStage}
     for status in states:
-        counts[status.current_stage.value] = (
-            counts.get(status.current_stage.value, 0) + 1
-        )
+        counts[status.current_stage.value] = counts.get(status.current_stage.value, 0) + 1
     return counts
 
 
@@ -129,7 +121,7 @@ def funnel_counts(states: Sequence[CandidatePipelineStatus]) -> CountPairs:
     stage_counts = stage_distribution(states)
     order_index = {stage: idx for idx, stage in enumerate(_FUNNEL_STAGES)}
 
-    reached: List[Tuple[str, int]] = []
+    reached: list[tuple[str, int]] = []
     for idx, stage in enumerate(_FUNNEL_STAGES):
         total = 0
         for status in states:
@@ -147,7 +139,7 @@ def funnel_counts(states: Sequence[CandidatePipelineStatus]) -> CountPairs:
 
 
 def _max_reached_index(
-    status: CandidatePipelineStatus, order_index: Dict[PipelineStage, int]
+    status: CandidatePipelineStatus, order_index: dict[PipelineStage, int]
 ) -> int | None:
     """Return the furthest active-funnel index this candidate ever reached."""
     best: int | None = None

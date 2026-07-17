@@ -12,7 +12,7 @@ import pytest
 
 from src.ai.orchestration.adapters import FunctionAgent
 from src.ai.orchestration.communication.bus import MessageBus
-from src.ai.orchestration.communication.messages import MessageType, SharedMessage
+from src.ai.orchestration.communication.messages import MessageType
 from src.ai.orchestration.context.context import SharedContext
 from src.ai.orchestration.delegation.delegation import DelegationManager
 from src.ai.orchestration.events.emitter import EventEmitter, TelemetryEventBridge
@@ -54,7 +54,6 @@ from src.ai.orchestration.workflow.definition import (
     WorkflowStep,
 )
 from src.ai.orchestration.workflow.engine import CancellationToken, WorkflowEngine
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -252,9 +251,7 @@ def test_delegation_dedupes_identical_work():
     task = Task(id="t", goal="g", capability="analysis")
     first = mgr.delegate(task, ctx)
     ctx.record_output(task.id, first.data)
-    second = mgr.delegate(
-        Task(id="t2", goal="g", capability="analysis"), ctx
-    )
+    second = mgr.delegate(Task(id="t2", goal="g", capability="analysis"), ctx)
     assert second.agent == "(deduplicated)"
 
 
@@ -529,9 +526,7 @@ def test_simulation_failed_agent_degrades_run():
     sim.register(SimulatedAgent("collection"))
     sim.register(SimulatedAgent("analysis", fail=True))
     sim.register(SimulatedAgent("synthesis"))
-    report = sim.dry_run(
-        Goal(description="analyze the subject in full"), autoprovision=False
-    )
+    report = sim.dry_run(Goal(description="analyze the subject in full"), autoprovision=False)
     assert report.result.status == WorkflowStatus.PARTIAL
 
 
@@ -545,7 +540,9 @@ def test_future_agent_plugs_in_without_orchestration_change():
                 keywords=[("novel", 5)],
                 definition=WorkflowDefinition(
                     name="novel_flow",
-                    steps=[WorkflowStep(id="only", capability="brand_new_capability", goal="do it")],
+                    steps=[
+                        WorkflowStep(id="only", capability="brand_new_capability", goal="do it")
+                    ],
                 ),
             )
         ]

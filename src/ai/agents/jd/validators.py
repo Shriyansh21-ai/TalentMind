@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Dict, List
 
 from src.ai.agents.jd.extractors import JDDocument
 from src.ai.agents.jd.metrics import JDMetrics
@@ -27,14 +26,19 @@ class RiskFinding:
     evidence: str
     severity: str = "low"  # low | medium | high
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> dict[str, str]:
         """Return a JSON-serializable dict of the finding."""
-        return {"type": self.type, "issue": self.issue, "evidence": self.evidence, "severity": self.severity}
+        return {
+            "type": self.type,
+            "issue": self.issue,
+            "evidence": self.evidence,
+            "severity": self.severity,
+        }
 
 
-def detect_risks(doc: JDDocument, metrics: JDMetrics) -> List[RiskFinding]:
+def detect_risks(doc: JDDocument, metrics: JDMetrics) -> list[RiskFinding]:
     """Return the list of evidence-backed JD hiring-risk findings."""
-    findings: List[RiskFinding] = []
+    findings: list[RiskFinding] = []
     blob = doc.all_text()
     title_low = doc.title.lower()
     years = doc.years_experience or 0
@@ -151,9 +155,9 @@ def detect_risks(doc: JDDocument, metrics: JDMetrics) -> List[RiskFinding]:
     return findings
 
 
-def positive_signals(doc: JDDocument, metrics: JDMetrics) -> List[str]:
+def positive_signals(doc: JDDocument, metrics: JDMetrics) -> list[str]:
     """Return evidence-backed positive signals (balances the risk report)."""
-    signals: List[str] = []
+    signals: list[str] = []
     if doc.compensation:
         signals.append("Compensation is disclosed.")
     if doc.responsibilities and doc.requirements:
@@ -167,7 +171,7 @@ def positive_signals(doc: JDDocument, metrics: JDMetrics) -> List[str]:
     return signals
 
 
-def risk_level(findings: List[RiskFinding]) -> str:
+def risk_level(findings: list[RiskFinding]) -> str:
     """Roll findings up into an overall Low/Medium/High JD-risk level."""
     if any(f.severity == "high" for f in findings):
         return "High"

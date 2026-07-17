@@ -6,19 +6,17 @@ existing engine outputs. Centralizing these helpers removes the badge and
 action-count logic that was previously copy-pasted across ``app.py``.
 """
 
-from typing import Dict
-
 import streamlit as st
 
-from src.models.candidates import Candidate
-from src.intelligence.candidate.engine import build_candidate_intelligence
-from src.intelligence.candidate.models import CandidateIntelligence
-from src.intelligence.timeline.analyzer import build_career_timeline
-from src.intelligence.timeline.models import CareerTimelineAnalysis
-from src.intelligence.risk.analyzer import build_risk_report
-from src.intelligence.risk.models import RiskReport
 from src.insights.builder import build_insights
 from src.insights.models import CandidateInsights
+from src.intelligence.candidate.engine import build_candidate_intelligence
+from src.intelligence.candidate.models import CandidateIntelligence
+from src.intelligence.risk.analyzer import build_risk_report
+from src.intelligence.risk.models import RiskReport
+from src.intelligence.timeline.analyzer import build_career_timeline
+from src.intelligence.timeline.models import CareerTimelineAnalysis
+from src.models.candidates import Candidate
 
 # Match-badge thresholds — unchanged from the original app.py inline logic.
 STRONG_MATCH_THRESHOLD: int = 170
@@ -38,7 +36,7 @@ def calculate_badge(score: float) -> str:
     return "🔴 Weak Match"
 
 
-def count_actions(actions: Dict[str, str]) -> Dict[str, int]:
+def count_actions(actions: dict[str, str]) -> dict[str, int]:
     """Tally recruiter pipeline actions into per-status counts.
 
     Counting logic is identical to the original dashboard block.
@@ -82,9 +80,7 @@ def get_risk_report(candidate: Candidate) -> RiskReport:
 
 
 @st.cache_data(hash_funcs={Candidate: lambda c: c.candidate_id})
-def get_insights(
-    candidate: Candidate, jd: str, match_score: float = 0.0
-) -> CandidateInsights:
+def get_insights(candidate: Candidate, jd: str, match_score: float = 0.0) -> CandidateInsights:
     """Cached wrapper around :func:`build_insights` (keyed by candidate + jd).
 
     This is the single entry point the entire Enterprise Workspace uses to obtain

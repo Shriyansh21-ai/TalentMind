@@ -12,16 +12,15 @@ at most once per candidate per session.
 
 from __future__ import annotations
 
-from src.models.candidates import Candidate
+from src.hiring.recommendation import generate_hiring_recommendation
 from src.insights.models import CandidateInsights
-
+from src.intelligence.candidate.engine import build_candidate_intelligence
+from src.intelligence.risk.analyzer import build_risk_report
+from src.intelligence.timeline.analyzer import build_career_timeline
+from src.llm.recruiter_summary import generate_summary
+from src.models.candidates import Candidate
 from src.scoring.explainability import explain_candidate
 from src.scoring.skill_gap import get_skill_gap
-from src.llm.recruiter_summary import generate_summary
-from src.hiring.recommendation import generate_hiring_recommendation
-from src.intelligence.candidate.engine import build_candidate_intelligence
-from src.intelligence.timeline.analyzer import build_career_timeline
-from src.intelligence.risk.analyzer import build_risk_report
 
 
 def build_insights(

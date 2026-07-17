@@ -8,8 +8,6 @@ cheap, auditable and unit-testable.
 
 from __future__ import annotations
 
-from typing import List
-
 from src.insights.models import CandidateInsights
 from src.interview.models import InterviewPlan
 
@@ -24,7 +22,7 @@ MODERATE_LEADERSHIP = 45.0
 _MAX_TOPICS = 6
 
 
-def _top_skills(insights: CandidateInsights, limit: int = 5) -> List[str]:
+def _top_skills(insights: CandidateInsights, limit: int = 5) -> list[str]:
     """Return the candidate's highest-signal skills (by endorsements, then name).
 
     Falls back to declaration order when endorsements are unavailable.
@@ -37,9 +35,9 @@ def _top_skills(insights: CandidateInsights, limit: int = 5) -> List[str]:
     return [s.name for s in skills[:limit]]
 
 
-def _technical_topics(insights: CandidateInsights) -> List[str]:
+def _technical_topics(insights: CandidateInsights) -> list[str]:
     """Blend proven skills with JD gaps to probe both depth and coverage."""
-    topics: List[str] = []
+    topics: list[str] = []
     for skill in _top_skills(insights, limit=4):
         topics.append(f"Depth in {skill}")
     for skill in insights.missing_skills[:2]:
@@ -49,7 +47,7 @@ def _technical_topics(insights: CandidateInsights) -> List[str]:
     return topics[:_MAX_TOPICS]
 
 
-def _system_design_topics(insights: CandidateInsights) -> List[str]:
+def _system_design_topics(insights: CandidateInsights) -> list[str]:
     """Scale system-design scope to the candidate's seniority."""
     years = insights.years_of_experience
     if years >= SENIOR_YEARS:
@@ -71,7 +69,7 @@ def _system_design_topics(insights: CandidateInsights) -> List[str]:
     ]
 
 
-def _behavioral_questions(insights: CandidateInsights) -> List[str]:
+def _behavioral_questions(insights: CandidateInsights) -> list[str]:
     """Standard behavioral set, tailored by the candidate's weaknesses."""
     questions = [
         "Tell me about a project you are most proud of and your specific role.",
@@ -83,7 +81,7 @@ def _behavioral_questions(insights: CandidateInsights) -> List[str]:
     return questions[:_MAX_TOPICS]
 
 
-def _leadership_questions(insights: CandidateInsights) -> List[str]:
+def _leadership_questions(insights: CandidateInsights) -> list[str]:
     """Depth of leadership probing scales with the leadership score."""
     score = insights.intelligence.leadership_score
     if score >= STRONG_LEADERSHIP:
@@ -104,7 +102,7 @@ def _leadership_questions(insights: CandidateInsights) -> List[str]:
     ]
 
 
-def _deep_dive_topics(insights: CandidateInsights) -> List[str]:
+def _deep_dive_topics(insights: CandidateInsights) -> list[str]:
     """The candidate's strongest signals — where to go deep."""
     topics = [f"Deep dive: {strength}" for strength in insights.intelligence.strengths[:3]]
     top = _top_skills(insights, limit=2)
@@ -115,7 +113,7 @@ def _deep_dive_topics(insights: CandidateInsights) -> List[str]:
     return topics[:_MAX_TOPICS]
 
 
-def _coding_focus(insights: CandidateInsights) -> List[str]:
+def _coding_focus(insights: CandidateInsights) -> list[str]:
     """Calibrate the coding round to demonstrated technical strength."""
     tech = insights.intelligence.technical_score
     if tech >= STRONG_TECH:
@@ -130,7 +128,7 @@ def _coding_focus(insights: CandidateInsights) -> List[str]:
     ]
 
 
-def _communication_focus(insights: CandidateInsights) -> List[str]:
+def _communication_focus(insights: CandidateInsights) -> list[str]:
     """Communication assessment, escalated when risk analysis flags it."""
     focus = [
         "Clarity when explaining technical trade-offs",
@@ -151,7 +149,7 @@ def _validation_and_risk(insights: CandidateInsights):
     if not validation:
         validation = ["Confirm scope and personal contribution on key projects."]
 
-    followups: List[str] = []
+    followups: list[str] = []
     for flag in risk.red_flags[:3]:
         followups.append(f"Address red flag: {flag}")
     for factor in risk.risk_factors[:2]:

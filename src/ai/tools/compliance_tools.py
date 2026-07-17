@@ -11,8 +11,10 @@ and "what documentation is missing?". It reuses the whole intelligence chain
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
+# Importing the engine auto-registers the agent (AI platform + orchestration).
+from src.ai.agents.compliance.compliance_report import HiringComplianceEngine
 from src.ai.core.runner import AgentRunner
 from src.ai.tools.base import (
     BaseTool,
@@ -22,10 +24,7 @@ from src.ai.tools.base import (
     ToolValidationError,
 )
 
-# Importing the engine auto-registers the agent (AI platform + orchestration).
-from src.ai.agents.compliance.compliance_report import HiringComplianceEngine
-
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 
 def _get_runner() -> AgentRunner:
@@ -53,12 +52,12 @@ class HiringComplianceTool(BaseTool):
         engine="Hiring Compliance",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         """Require a candidate id."""
         if not tool_input.get("candidate_id"):
             raise ToolValidationError("hiring_compliance requires 'candidate_id'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Resolve the candidate, build the compliance report, and summarize it."""
         candidate_id = str(tool_input["candidate_id"])
         candidate = context.repository.get(candidate_id)
@@ -80,7 +79,9 @@ class HiringComplianceTool(BaseTool):
             "missing_documentation": report.documentation.missing(),
             "audit_status": report.audit.status,
             "governance_risk": report.governance_risk.level,
-            "policy_checks": [{"policy": p.policy_name, "status": p.status} for p in report.policy_checks],
+            "policy_checks": [
+                {"policy": p.policy_name, "status": p.status} for p in report.policy_checks
+            ],
             "exceptions": [{"kind": e.kind, "severity": e.severity} for e in report.exceptions],
             "legal_review_recommended": report.review.legal_review_recommended,
             "compliance_review_recommended": report.review.compliance_review_recommended,
@@ -99,8 +100,16 @@ class HiringComplianceTool(BaseTool):
                 f"Hiring compliance for {candidate_id}: workflow {report.workflow.status} "
                 f"({report.workflow.completed}/{report.workflow.total}), governance risk "
                 f"{report.governance_risk.level}, audit {report.audit.status}. "
-                + (f"Outstanding approvals: {', '.join(report.approvals.outstanding())}. " if report.approvals.outstanding() else "")
-                + (f"Recommend {', '.join(report.review.reviewers)} review. " if report.review.reviewers else "")
+                + (
+                    f"Outstanding approvals: {', '.join(report.approvals.outstanding())}. "
+                    if report.approvals.outstanding()
+                    else ""
+                )
+                + (
+                    f"Recommend {', '.join(report.review.reviewers)} review. "
+                    if report.review.reviewers
+                    else ""
+                )
                 + "Governance assessment only; not legal advice."
             ),
             evidence_sources=["Hiring Compliance"] + report.evidence_sources,

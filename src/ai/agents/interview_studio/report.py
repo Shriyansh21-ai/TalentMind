@@ -16,9 +16,7 @@ so the engine is fully testable and swappable — SOLID / DI by construction.
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
-
-from src.ai.core.runner import AgentRunner
+from typing import Any
 
 from src.ai.agents.interview_studio import charts as charts_mod
 from src.ai.agents.interview_studio import decision_matrix as decision_mod
@@ -40,9 +38,9 @@ from src.ai.agents.interview_studio.schemas import (
     InterviewStudioReport,
 )
 from src.ai.agents.interview_studio.templates import RoleProfile, detect_role, get_role
-
 from src.ai.committee.committee import HiringCommitteeEngine, gather_evidence
 from src.ai.committee.schemas import CommitteeMode
+from src.ai.core.runner import AgentRunner
 
 
 class InterviewStudioEngine:
@@ -53,9 +51,9 @@ class InterviewStudioEngine:
     def __init__(
         self,
         *,
-        ai_runner: Optional[AgentRunner] = None,
-        committee_engine: Optional[HiringCommitteeEngine] = None,
-        insights_fn: Optional[Any] = None,
+        ai_runner: AgentRunner | None = None,
+        committee_engine: HiringCommitteeEngine | None = None,
+        insights_fn: Any | None = None,
     ) -> None:
         """Wire the engine's collaborators (all optional; sane defaults used)."""
         self.ai_runner = ai_runner or AgentRunner()
@@ -68,7 +66,7 @@ class InterviewStudioEngine:
         self,
         candidate: Any = None,
         *,
-        candidate_id: Optional[str] = None,
+        candidate_id: str | None = None,
         repository: Any = None,
         jd: str = "",
         role: str = "",
@@ -93,7 +91,7 @@ class InterviewStudioEngine:
         )
 
         # 2) Committee decision (reuses the same cached outputs).
-        committee_dict: Dict[str, Any] = {}
+        committee_dict: dict[str, Any] = {}
         if run_committee:
             engine = self.committee_engine or HiringCommitteeEngine(
                 insights_fn=self.insights_fn, ai_runner=self.ai_runner
@@ -120,7 +118,8 @@ class InterviewStudioEngine:
             candidate_id=bundle.candidate_id,
             role=role_profile.key,
             role_name=role_profile.name,
-            depth=depth or strategy_mod.choose_depth(
+            depth=depth
+            or strategy_mod.choose_depth(
                 {"candidate_overview": overview, "intelligence": intelligence}, role_profile
             ),
             candidate_overview=overview,
@@ -196,7 +195,7 @@ class InterviewStudioEngine:
     # -- normalization helpers ---------------------------------------------
 
     @staticmethod
-    def _overview(bundle: Any) -> Dict[str, Any]:
+    def _overview(bundle: Any) -> dict[str, Any]:
         return {
             "candidate_id": bundle.candidate_id,
             "title": bundle.title,
@@ -206,7 +205,7 @@ class InterviewStudioEngine:
         }
 
     @staticmethod
-    def _model_dict(model: Any) -> Dict[str, Any]:
+    def _model_dict(model: Any) -> dict[str, Any]:
         """Return a plain dict for a pydantic model / dataclass / dict / None."""
         if model is None:
             return {}
@@ -219,7 +218,7 @@ class InterviewStudioEngine:
         except TypeError:
             return dict(model) if isinstance(model, dict) else {}
 
-    def _resume(self, resume_analysis: Any) -> Dict[str, Any]:
+    def _resume(self, resume_analysis: Any) -> dict[str, Any]:
         if resume_analysis is None:
             return {}
         quality = self._model_dict(getattr(resume_analysis, "resume_quality", None))
@@ -230,7 +229,7 @@ class InterviewStudioEngine:
             "weaknesses": list(getattr(resume_analysis, "weaknesses", []) or []),
         }
 
-    def _jd(self, jd_analysis: Any) -> Dict[str, Any]:
+    def _jd(self, jd_analysis: Any) -> dict[str, Any]:
         if jd_analysis is None:
             return {}
         role_intel = self._model_dict(getattr(jd_analysis, "role_intelligence", None))
@@ -241,12 +240,14 @@ class InterviewStudioEngine:
         }
 
     @staticmethod
-    def _resolve_role(role: str, overview: Dict[str, Any], jd_analysis: Any, jd_norm: Dict[str, Any]) -> RoleProfile:
+    def _resolve_role(
+        role: str, overview: dict[str, Any], jd_analysis: Any, jd_norm: dict[str, Any]
+    ) -> RoleProfile:
         """Resolve the role path from an explicit key or infer it from title + JD."""
         if role:
             return get_role(role)
         # Infer from the candidate's title, the JD's inferred seniority/level and summary.
-        hints: List[str] = [str(overview.get("title", ""))]
+        hints: list[str] = [str(overview.get("title", ""))]
         role_intel = jd_norm.get("role_intelligence") or {}
         hints.append(str(role_intel.get("role_title", "")))
         hints.append(str(role_intel.get("seniority", "")))
@@ -257,7 +258,9 @@ class InterviewStudioEngine:
 
     # -- narrative ----------------------------------------------------------
 
-    def _narrative(self, payload: InterviewStudioInput, evidence: Dict[str, Any]) -> InterviewStudioNarrative:
+    def _narrative(
+        self, payload: InterviewStudioInput, evidence: dict[str, Any]
+    ) -> InterviewStudioNarrative:
         """Run the agent; fall back to the deterministic composer on any failure."""
         try:
             result = self.ai_runner.run(interview_studio_agent, payload)

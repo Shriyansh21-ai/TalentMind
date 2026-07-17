@@ -16,8 +16,9 @@ Contract (all providers implement):
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any
 
 from src.ai.config.settings import AISettings
 from src.ai.core.response import AgentResponse
@@ -64,17 +65,17 @@ class BaseLLMProvider(ABC):
     # -- required capabilities ---------------------------------------------
 
     @abstractmethod
-    def generate(self, messages: List[LLMMessage], **kwargs: Any) -> AgentResponse:
+    def generate(self, messages: list[LLMMessage], **kwargs: Any) -> AgentResponse:
         """Generate free-form text for ``messages``."""
 
     @abstractmethod
     def generate_json(
         self,
-        messages: List[LLMMessage],
+        messages: list[LLMMessage],
         *,
-        schema: Dict[str, Any],
+        schema: dict[str, Any],
         schema_name: str,
-        evidence: Optional[Dict[str, Any]] = None,
+        evidence: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> AgentResponse:
         """Generate a JSON object (returned as a JSON string in ``AgentResponse.text``).
@@ -96,7 +97,7 @@ class BaseLLMProvider(ABC):
 
     # -- optional streaming (safe default) ---------------------------------
 
-    def stream(self, messages: List[LLMMessage], **kwargs: Any) -> Iterator[str]:
+    def stream(self, messages: list[LLMMessage], **kwargs: Any) -> Iterator[str]:
         """Yield the response in chunks.
 
         Default implementation yields the full non-streaming result once, so every

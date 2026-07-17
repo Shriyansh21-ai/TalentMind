@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import faiss  # noqa: F401
+from datetime import UTC
 
+import faiss  # noqa: F401
 import pytest
 
 from src.platform.common import (
@@ -75,7 +76,7 @@ def test_require_feature_raises_when_disabled():
 
 
 def test_licensing_entitlements():
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     cfg = ConfigurationService(clock=FrozenClock())
     cfg.ensure(T, O)
@@ -84,7 +85,7 @@ def test_licensing_entitlements():
         License(
             plan="business",
             entitlements=["audit_export"],
-            valid_from=datetime(2020, 1, 1, tzinfo=timezone.utc),
+            valid_from=datetime(2020, 1, 1, tzinfo=UTC),
         ),
     )
     assert cfg.is_licensed_for(T, "audit_export")

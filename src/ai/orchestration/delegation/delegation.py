@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import time
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
 
 from src.ai.orchestration.context.context import SharedContext
 from src.ai.orchestration.models import AgentOutput, Task
@@ -38,9 +37,7 @@ class RoutingStrategy(ABC):
     """Selects an ordered candidate list of agents for a task."""
 
     @abstractmethod
-    def rank(
-        self, task: Task, candidates: List[OrchestrationAgent]
-    ) -> List[OrchestrationAgent]:
+    def rank(self, task: Task, candidates: list[OrchestrationAgent]) -> list[OrchestrationAgent]:
         """Return ``candidates`` ordered best-first for ``task``."""
 
 
@@ -50,11 +47,9 @@ class CapabilityRoutingStrategy(RoutingStrategy):
     name for determinism."""
 
     def __init__(self) -> None:
-        self._load: Dict[str, int] = {}
+        self._load: dict[str, int] = {}
 
-    def rank(
-        self, task: Task, candidates: List[OrchestrationAgent]
-    ) -> List[OrchestrationAgent]:
+    def rank(self, task: Task, candidates: list[OrchestrationAgent]) -> list[OrchestrationAgent]:
         """Order candidates best-first (specialisation + health + load)."""
         from src.ai.orchestration.registry.agent_registry import HealthStatus
 
@@ -79,8 +74,8 @@ class DelegationManager:
         self,
         registry: OrchestrationRegistry,
         *,
-        strategy: Optional[RoutingStrategy] = None,
-        safety: Optional[OrchestrationSafetyGuard] = None,
+        strategy: RoutingStrategy | None = None,
+        safety: OrchestrationSafetyGuard | None = None,
     ) -> None:
         """Wire the manager to a registry, routing strategy and safety guard."""
         self.registry = registry
@@ -89,15 +84,13 @@ class DelegationManager:
 
     # -- selection ----------------------------------------------------------
 
-    def candidates_for(self, task: Task) -> List[OrchestrationAgent]:
+    def candidates_for(self, task: Task) -> list[OrchestrationAgent]:
         """Return the ranked, usable candidate agents for ``task``."""
         found = self.registry.discover(task.capability, healthy_only=True)
-        usable = [
-            a for a in found if a.can_handle(task) and self.safety.is_agent_usable(a)
-        ]
+        usable = [a for a in found if a.can_handle(task) and self.safety.is_agent_usable(a)]
         return self.strategy.rank(task, usable)
 
-    def choose(self, task: Task) -> Optional[OrchestrationAgent]:
+    def choose(self, task: Task) -> OrchestrationAgent | None:
         """Return the single best agent for ``task`` (or ``None`` if none)."""
         candidates = self.candidates_for(task)
         return candidates[0] if candidates else None
@@ -138,12 +131,10 @@ class DelegationManager:
                 task_id=task.id,
                 agent="(none)",
                 ok=False,
-                error=(
-                    f"No healthy agent advertises capability {task.capability!r}."
-                ),
+                error=(f"No healthy agent advertises capability {task.capability!r}."),
             )
 
-        last_error: Optional[str] = None
+        last_error: str | None = None
         # Try each candidate; retry the *same* candidate up to max_retries first.
         for agent in candidates:
             for attempt in range(max_retries + 1):
@@ -162,9 +153,7 @@ class DelegationManager:
             error=last_error or "All candidate agents failed.",
         )
 
-    def _invoke(
-        self, agent: OrchestrationAgent, task: Task, context: SharedContext
-    ) -> AgentOutput:
+    def _invoke(self, agent: OrchestrationAgent, task: Task, context: SharedContext) -> AgentOutput:
         """Invoke one agent defensively, timing it and normalising exceptions."""
         start = time.perf_counter()
         try:

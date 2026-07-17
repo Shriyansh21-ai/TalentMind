@@ -13,46 +13,165 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List
 
 from src.ai.agents.resume.extractors import ResumeDocument
 
 # -- vocabularies (small, transparent, editable) ----------------------------
 
 STRONG_ACTION_VERBS = {
-    "led", "built", "designed", "architected", "developed", "launched", "shipped",
-    "improved", "increased", "reduced", "optimized", "scaled", "delivered",
-    "created", "implemented", "drove", "owned", "mentored", "spearheaded",
-    "automated", "migrated", "founded", "established", "accelerated", "streamlined",
+    "led",
+    "built",
+    "designed",
+    "architected",
+    "developed",
+    "launched",
+    "shipped",
+    "improved",
+    "increased",
+    "reduced",
+    "optimized",
+    "scaled",
+    "delivered",
+    "created",
+    "implemented",
+    "drove",
+    "owned",
+    "mentored",
+    "spearheaded",
+    "automated",
+    "migrated",
+    "founded",
+    "established",
+    "accelerated",
+    "streamlined",
 }
 
 WEAK_VERBS = {"responsible", "worked", "helped", "assisted", "involved", "participated", "handled"}
 
 BUZZWORDS = {
-    "synergy", "go-getter", "hardworking", "team player", "results-driven",
-    "detail-oriented", "passionate", "guru", "ninja", "rockstar", "self-starter",
-    "dynamic", "proactive", "thought leader", "wizard", "hard worker",
+    "synergy",
+    "go-getter",
+    "hardworking",
+    "team player",
+    "results-driven",
+    "detail-oriented",
+    "passionate",
+    "guru",
+    "ninja",
+    "rockstar",
+    "self-starter",
+    "dynamic",
+    "proactive",
+    "thought leader",
+    "wizard",
+    "hard worker",
 }
 
 MODERN_TECH = {
-    "python", "go", "golang", "rust", "typescript", "react", "kubernetes", "docker",
-    "terraform", "aws", "gcp", "azure", "kafka", "spark", "airflow", "snowflake",
-    "pytorch", "tensorflow", "llm", "rag", "langchain", "transformers", "graphql",
-    "fastapi", "grpc", "kotlin", "swift", "next.js", "vector", "faiss",
+    "python",
+    "go",
+    "golang",
+    "rust",
+    "typescript",
+    "react",
+    "kubernetes",
+    "docker",
+    "terraform",
+    "aws",
+    "gcp",
+    "azure",
+    "kafka",
+    "spark",
+    "airflow",
+    "snowflake",
+    "pytorch",
+    "tensorflow",
+    "llm",
+    "rag",
+    "langchain",
+    "transformers",
+    "graphql",
+    "fastapi",
+    "grpc",
+    "kotlin",
+    "swift",
+    "next.js",
+    "vector",
+    "faiss",
 }
 
 DATED_TECH = {
-    "jquery", "perl", "cobol", "vb6", "flash", "silverlight", "asp classic",
-    "coldfusion", "svn", "soap", "actionscript", "backbone", "angularjs",
+    "jquery",
+    "perl",
+    "cobol",
+    "vb6",
+    "flash",
+    "silverlight",
+    "asp classic",
+    "coldfusion",
+    "svn",
+    "soap",
+    "actionscript",
+    "backbone",
+    "angularjs",
 }
 
 CLOUD_TECH = {"aws", "gcp", "azure", "cloud", "kubernetes", "terraform", "lambda", "ec2", "s3"}
-AI_TECH = {"machine learning", "deep learning", "ml", "ai", "nlp", "llm", "rag", "pytorch", "tensorflow", "transformers", "computer vision"}
-PRODUCTION_CUES = {"production", "scale", "scalable", "reliability", "uptime", "latency", "throughput", "sla", "high availability"}
-OSS_CUES = {"open source", "open-source", "maintainer", "contributor", "github", "npm package", "pypi"}
+AI_TECH = {
+    "machine learning",
+    "deep learning",
+    "ml",
+    "ai",
+    "nlp",
+    "llm",
+    "rag",
+    "pytorch",
+    "tensorflow",
+    "transformers",
+    "computer vision",
+}
+PRODUCTION_CUES = {
+    "production",
+    "scale",
+    "scalable",
+    "reliability",
+    "uptime",
+    "latency",
+    "throughput",
+    "sla",
+    "high availability",
+}
+OSS_CUES = {
+    "open source",
+    "open-source",
+    "maintainer",
+    "contributor",
+    "github",
+    "npm package",
+    "pypi",
+}
 
-LEADERSHIP_CUES = {"led", "mentored", "managed", "owned", "spearheaded", "founded", "headed", "directed", "coordinated"}
-RECOGNITION_CUES = {"award", "recognition", "patent", "keynote", "speaker", "published", "winner", "finalist"}
+LEADERSHIP_CUES = {
+    "led",
+    "mentored",
+    "managed",
+    "owned",
+    "spearheaded",
+    "founded",
+    "headed",
+    "directed",
+    "coordinated",
+}
+RECOGNITION_CUES = {
+    "award",
+    "recognition",
+    "patent",
+    "keynote",
+    "speaker",
+    "published",
+    "winner",
+    "finalist",
+}
 
 _QUANT_RE = re.compile(r"(\d+(\.\d+)?\s*%|\$\s?\d[\d,]*|\b\d{2,}\b|\b\d+x\b)")
 _WORD_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9+#.\-]*")
@@ -67,12 +186,12 @@ class ResumeMetrics:
     weak_verb_bullets: int = 0
     quantified_bullets: int = 0
     avg_bullet_words: float = 0.0
-    buzzword_hits: List[str] = field(default_factory=list)
-    redundant_phrases: List[str] = field(default_factory=list)
+    buzzword_hits: list[str] = field(default_factory=list)
+    redundant_phrases: list[str] = field(default_factory=list)
     # technical
-    technologies: List[str] = field(default_factory=list)
-    modern_tech: List[str] = field(default_factory=list)
-    dated_tech: List[str] = field(default_factory=list)
+    technologies: list[str] = field(default_factory=list)
+    modern_tech: list[str] = field(default_factory=list)
+    dated_tech: list[str] = field(default_factory=list)
     cloud_exposure: bool = False
     ai_exposure: bool = False
     production_exposure: bool = False
@@ -80,17 +199,17 @@ class ResumeMetrics:
     skill_count: int = 0
     tech_dumping: bool = False
     # achievements
-    quantified_statements: List[str] = field(default_factory=list)
-    leadership_statements: List[str] = field(default_factory=list)
-    recognition_statements: List[str] = field(default_factory=list)
+    quantified_statements: list[str] = field(default_factory=list)
+    leadership_statements: list[str] = field(default_factory=list)
+    recognition_statements: list[str] = field(default_factory=list)
     # ats
-    matched_keywords: List[str] = field(default_factory=list)
-    missing_keywords: List[str] = field(default_factory=list)
-    overused_keywords: List[str] = field(default_factory=list)
+    matched_keywords: list[str] = field(default_factory=list)
+    missing_keywords: list[str] = field(default_factory=list)
+    overused_keywords: list[str] = field(default_factory=list)
     # dimensions (0-100) — resume quality ONLY
-    dimensions: Dict[str, float] = field(default_factory=dict)
+    dimensions: dict[str, float] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, object]:
+    def to_dict(self) -> dict[str, object]:
         """Return a JSON-serializable dict of the metrics."""
         return {
             "bullet_count": self.bullet_count,
@@ -137,7 +256,7 @@ def compute_metrics(doc: ResumeDocument, *, jd: str = "") -> ResumeMetrics:
     m.bullet_count = len(bullets)
 
     word_total = 0
-    verb_counter: Dict[str, int] = {}
+    verb_counter: dict[str, int] = {}
     for bullet in bullets:
         low = bullet.lower()
         words = _WORD_RE.findall(low)
@@ -184,7 +303,7 @@ def compute_metrics(doc: ResumeDocument, *, jd: str = "") -> ResumeMetrics:
         present = set(skills_low) | set(_WORD_RE.findall(blob))
         m.matched_keywords = sorted([t for t in jd_terms if t in present])[:25]
         m.missing_keywords = sorted([t for t in jd_terms if t not in present])[:25]
-    counts: Dict[str, int] = {}
+    counts: dict[str, int] = {}
     for word in _WORD_RE.findall(blob):
         if len(word) > 3:
             counts[word] = counts.get(word, 0) + 1
@@ -196,22 +315,44 @@ def compute_metrics(doc: ResumeDocument, *, jd: str = "") -> ResumeMetrics:
     return m
 
 
-def _keywords(text: str) -> List[str]:
+def _keywords(text: str) -> list[str]:
     """Extract candidate ATS keywords from JD/resume text (deduped, meaningful)."""
     stop = {
-        "and", "the", "for", "with", "you", "are", "our", "will", "have", "this",
-        "that", "your", "who", "role", "team", "work", "years", "experience",
-        "strong", "must", "plus", "job", "candidate", "ability", "including",
+        "and",
+        "the",
+        "for",
+        "with",
+        "you",
+        "are",
+        "our",
+        "will",
+        "have",
+        "this",
+        "that",
+        "your",
+        "who",
+        "role",
+        "team",
+        "work",
+        "years",
+        "experience",
+        "strong",
+        "must",
+        "plus",
+        "job",
+        "candidate",
+        "ability",
+        "including",
     }
     words = [w for w in _WORD_RE.findall(text.lower()) if len(w) > 3 and w not in stop]
-    seen: List[str] = []
+    seen: list[str] = []
     for w in words:
         if w not in seen:
             seen.append(w)
     return seen[:40]
 
 
-def _dimensions(doc: ResumeDocument, m: ResumeMetrics) -> Dict[str, float]:
+def _dimensions(doc: ResumeDocument, m: ResumeMetrics) -> dict[str, float]:
     """Compute the resume-quality dimensions (0-100). Resume quality ONLY."""
     total_sections = 10.0
     present = len(doc.sections_present)
@@ -220,15 +361,15 @@ def _dimensions(doc: ResumeDocument, m: ResumeMetrics) -> Dict[str, float]:
     verb_ratio = (m.action_verb_bullets / m.bullet_count) if m.bullet_count else 0.0
     length_fit = 1.0 if 8 <= m.avg_bullet_words <= 28 else 0.5
     writing = _clamp(
-        40 + verb_ratio * 45 + length_fit * 15 - len(m.buzzword_hits) * 6 - min(m.weak_verb_bullets, 6) * 2
+        40
+        + verb_ratio * 45
+        + length_fit * 15
+        - len(m.buzzword_hits) * 6
+        - min(m.weak_verb_bullets, 6) * 2
     )
 
-    tech_signals = sum(
-        [m.cloud_exposure, m.ai_exposure, m.production_exposure, m.open_source]
-    )
-    technical_depth = _clamp(
-        35 + len(m.modern_tech) * 5 + tech_signals * 8 - len(m.dated_tech) * 4
-    )
+    tech_signals = sum([m.cloud_exposure, m.ai_exposure, m.production_exposure, m.open_source])
+    technical_depth = _clamp(35 + len(m.modern_tech) * 5 + tech_signals * 8 - len(m.dated_tech) * 4)
 
     substantive_projects = [p for p in doc.projects if len(p.text.split()) >= 6]
     project_quality = _clamp(
@@ -236,19 +377,24 @@ def _dimensions(doc: ResumeDocument, m: ResumeMetrics) -> Dict[str, float]:
     )
 
     achievements = _clamp(
-        25 + len(m.quantified_statements) * 12 + len(m.recognition_statements) * 10
+        25
+        + len(m.quantified_statements) * 12
+        + len(m.recognition_statements) * 10
         + min(len(m.leadership_statements), 4) * 5
     )
 
     ats = _clamp(
-        45 + present * 4
+        45
+        + present * 4
         + (len(m.matched_keywords) * 3 if m.matched_keywords else 0)
         - len(m.overused_keywords) * 3
         - (10 if m.tech_dumping else 0)
     )
 
     professionalism = _clamp(
-        70 - len(m.buzzword_hits) * 8 - (10 if m.tech_dumping else 0)
+        70
+        - len(m.buzzword_hits) * 8
+        - (10 if m.tech_dumping else 0)
         + (10 if doc.links.get("linkedin") else 0)
     )
 
@@ -279,7 +425,21 @@ def _dimensions(doc: ResumeDocument, m: ResumeMetrics) -> Dict[str, float]:
     }
 
 
-_SENIORITY = ["intern", "junior", "associate", "engineer", "senior", "staff", "lead", "principal", "manager", "director", "vp", "head", "chief"]
+_SENIORITY = [
+    "intern",
+    "junior",
+    "associate",
+    "engineer",
+    "senior",
+    "staff",
+    "lead",
+    "principal",
+    "manager",
+    "director",
+    "vp",
+    "head",
+    "chief",
+]
 
 
 def _seniority_rank(title: str) -> int:

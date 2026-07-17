@@ -7,16 +7,16 @@ agent whose evidence source is absent is recorded as Unavailable (not invented).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.audit.schemas import DecisionTraceStep
 from src.ai.agents.audit.templates import AGENT_CATALOG, FINAL_DECISION_NODE
 
 
-def build_decision_trace(context: Dict[str, Any]) -> List[DecisionTraceStep]:
+def build_decision_trace(context: dict[str, Any]) -> list[DecisionTraceStep]:
     """Reconstruct the chronological decision trace (Module 1)."""
     sources = set(context.get("evidence_sources", []))
-    steps: List[DecisionTraceStep] = []
+    steps: list[DecisionTraceStep] = []
 
     for entry in AGENT_CATALOG:
         observed = entry.source in sources

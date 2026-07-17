@@ -16,8 +16,8 @@ The runner never touches the process-wide registry; it builds its own isolated
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional
 
 from src.ai.orchestration.adapters import FunctionAgent
 from src.ai.orchestration.context.context import SharedContext
@@ -34,7 +34,7 @@ from src.ai.orchestration.registry.agent_registry import (
 )
 from src.ai.orchestration.workflow.engine import WorkflowEngine
 
-CannedFn = Callable[[Task, SharedContext], Dict]
+CannedFn = Callable[[Task, SharedContext], dict]
 
 
 class SimulatedAgent(FunctionAgent):
@@ -44,8 +44,8 @@ class SimulatedAgent(FunctionAgent):
         self,
         capability: str,
         *,
-        name: Optional[str] = None,
-        responder: Optional[CannedFn] = None,
+        name: str | None = None,
+        responder: CannedFn | None = None,
         fail: bool = False,
     ) -> None:
         """Create a simulated agent for ``capability``.
@@ -76,11 +76,15 @@ class SimulatedAgent(FunctionAgent):
                 ok=False,
                 error=f"Simulated failure for capability {task.capability!r}.",
             )
-        data = self._responder(task, context) if self._responder else {
-            "simulated": True,
-            "capability": task.capability,
-            "goal": task.goal,
-        }
+        data = (
+            self._responder(task, context)
+            if self._responder
+            else {
+                "simulated": True,
+                "capability": task.capability,
+                "goal": task.goal,
+            }
+        )
         return AgentOutput(
             task_id=task.id,
             agent=self.descriptor.name,
@@ -106,16 +110,16 @@ class SimulationReport:
 
     goal: Goal
     graph: TaskGraph
-    execution_order: List[str]
-    layers: List[List[str]]
-    result: Optional[OrchestrationResult] = None
-    missing_capabilities: List[str] = field(default_factory=list)
+    execution_order: list[str]
+    layers: list[list[str]]
+    result: OrchestrationResult | None = None
+    missing_capabilities: list[str] = field(default_factory=list)
 
 
 class SimulationRunner:
     """Runs goals/workflows against simulated agents (offline, deterministic)."""
 
-    def __init__(self, planner: Optional[TaskPlanner] = None) -> None:
+    def __init__(self, planner: TaskPlanner | None = None) -> None:
         """Bind the runner to a planner (defaults to the example templates)."""
         self.planner = planner or CapabilityTaskPlanner(default_plan_templates())
         self.registry = OrchestrationRegistry()
@@ -125,22 +129,20 @@ class SimulationRunner:
         self.registry.register(agent)
         return agent
 
-    def autoprovision(self, graph: TaskGraph) -> List[str]:
+    def autoprovision(self, graph: TaskGraph) -> list[str]:
         """Ensure every capability in ``graph`` has a simulated agent.
 
         Returns the list of capabilities it had to create a stand-in for (useful
         to assert a plan only needs capabilities you expected).
         """
-        provisioned: List[str] = []
+        provisioned: list[str] = []
         for task in graph:
             if not self.registry.discover(task.capability, healthy_only=False):
                 self.register(SimulatedAgent(task.capability))
                 provisioned.append(task.capability)
         return provisioned
 
-    def dry_run(
-        self, goal: Goal, *, autoprovision: bool = True
-    ) -> SimulationReport:
+    def dry_run(self, goal: Goal, *, autoprovision: bool = True) -> SimulationReport:
         """Plan ``goal`` and execute it against simulated agents.
 
         Args:
@@ -152,13 +154,17 @@ class SimulationRunner:
         layers = [[t.id for t in layer] for layer in graph.execution_layers()]
         order = [t.id for layer in graph.execution_layers() for t in layer]
 
-        missing = self.autoprovision(graph) if autoprovision else [
-            t.capability
-            for t in graph
-            if not self.registry.discover(t.capability, healthy_only=False)
-        ]
+        missing = (
+            self.autoprovision(graph)
+            if autoprovision
+            else [
+                t.capability
+                for t in graph
+                if not self.registry.discover(t.capability, healthy_only=False)
+            ]
+        )
 
-        result: Optional[OrchestrationResult] = None
+        result: OrchestrationResult | None = None
         if not missing or autoprovision:
             engine = WorkflowEngine(registry=self.registry)
             orchestrator = AgentOrchestrator(

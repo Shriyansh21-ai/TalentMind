@@ -8,7 +8,7 @@ hook so the platform stays offline by default.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
@@ -120,10 +120,9 @@ class MonitoringService:
         alert.touch(alert.resolved_at)
         return self.alerts.update(alert)
 
-    def active_alerts(
-        self, tenant_id: str, *, domain: MonitorDomain | None = None
-    ) -> list[Alert]:
+    def active_alerts(self, tenant_id: str, *, domain: MonitorDomain | None = None) -> list[Alert]:
         """Return unresolved alerts, optionally filtered by domain."""
+
         def _pred(a: Alert) -> bool:
             if a.resolved:
                 return False

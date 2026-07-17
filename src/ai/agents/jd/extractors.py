@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Canonical JD sections we look for (Module 1).
 CANONICAL_SECTIONS = [
@@ -36,9 +36,35 @@ CANONICAL_SECTIONS = [
 
 # Header cues → canonical section. Matched case-insensitively against short lines.
 _SECTION_CUES = {
-    "responsibilities": ("responsibilities", "what you'll do", "what you will do", "the role", "duties", "day to day", "day-to-day"),
-    "requirements": ("requirements", "qualifications", "what we're looking for", "what we are looking for", "must have", "must-have", "you have", "required skills", "you'll need"),
-    "preferred_skills": ("preferred", "nice to have", "nice-to-have", "bonus", "good to have", "plus", "desirable"),
+    "responsibilities": (
+        "responsibilities",
+        "what you'll do",
+        "what you will do",
+        "the role",
+        "duties",
+        "day to day",
+        "day-to-day",
+    ),
+    "requirements": (
+        "requirements",
+        "qualifications",
+        "what we're looking for",
+        "what we are looking for",
+        "must have",
+        "must-have",
+        "you have",
+        "required skills",
+        "you'll need",
+    ),
+    "preferred_skills": (
+        "preferred",
+        "nice to have",
+        "nice-to-have",
+        "bonus",
+        "good to have",
+        "plus",
+        "desirable",
+    ),
     "benefits": ("benefits", "perks", "what we offer", "we offer"),
     "compensation": ("compensation", "salary", "pay", "ctc", "package"),
     "company_info": ("about us", "about the company", "who we are", "our company", "about "),
@@ -50,11 +76,33 @@ _SECTION_CUES = {
     "remote_policy": ("remote", "hybrid", "on-site", "onsite", "work from home", "wfh"),
 }
 
-_EMPLOYMENT_TYPES = ("full-time", "full time", "part-time", "part time", "contract", "internship", "temporary", "freelance")
-_REMOTE_TERMS = ("remote", "hybrid", "on-site", "onsite", "work from home", "wfh", "in-office", "in office")
+_EMPLOYMENT_TYPES = (
+    "full-time",
+    "full time",
+    "part-time",
+    "part time",
+    "contract",
+    "internship",
+    "temporary",
+    "freelance",
+)
+_REMOTE_TERMS = (
+    "remote",
+    "hybrid",
+    "on-site",
+    "onsite",
+    "work from home",
+    "wfh",
+    "in-office",
+    "in office",
+)
 _YEARS_RE = re.compile(r"(\d+)\s*\+?\s*(?:-\s*\d+\s*)?(?:years|yrs|yr)")
-_DEGREE_RE = re.compile(r"\b(bachelor|master|phd|b\.?tech|m\.?tech|b\.?s\.?|m\.?s\.?|mba|degree)\b", re.IGNORECASE)
-_MONEY_RE = re.compile(r"(\$\s?\d[\d,]*|\d+\s*(?:k|lpa|lakh|lac)\b|₹\s?\d|\beur\b|\busd\b|\binr\b)", re.IGNORECASE)
+_DEGREE_RE = re.compile(
+    r"\b(bachelor|master|phd|b\.?tech|m\.?tech|b\.?s\.?|m\.?s\.?|mba|degree)\b", re.IGNORECASE
+)
+_MONEY_RE = re.compile(
+    r"(\$\s?\d[\d,]*|\d+\s*(?:k|lpa|lakh|lac)\b|₹\s?\d|\beur\b|\busd\b|\binr\b)", re.IGNORECASE
+)
 
 
 @dataclass
@@ -71,24 +119,24 @@ class JDDocument:
     employment_type: str = ""
     location: str = ""
     remote_policy: str = ""
-    years_experience: Optional[int] = None
+    years_experience: int | None = None
     education: str = ""
-    responsibilities: List[str] = field(default_factory=list)
-    requirements: List[str] = field(default_factory=list)
-    preferred: List[str] = field(default_factory=list)
-    benefits: List[str] = field(default_factory=list)
+    responsibilities: list[str] = field(default_factory=list)
+    requirements: list[str] = field(default_factory=list)
+    preferred: list[str] = field(default_factory=list)
+    benefits: list[str] = field(default_factory=list)
     compensation: str = ""
     company_info: str = ""
-    sections_present: List[str] = field(default_factory=list)
-    sections_empty: List[str] = field(default_factory=list)
-    bullets: List[str] = field(default_factory=list)
+    sections_present: list[str] = field(default_factory=list)
+    sections_empty: list[str] = field(default_factory=list)
+    bullets: list[str] = field(default_factory=list)
     raw_text: str = ""
 
     def all_text(self) -> str:
         """Return a single lowercase blob of the whole JD."""
         return self.raw_text.lower()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the document."""
         return {
             "jd_id": self.jd_id,
@@ -116,7 +164,7 @@ def _clean(line: str) -> str:
     return line.strip(" \t-*•·°◦–—>").strip()
 
 
-def _match_section(line: str) -> Optional[str]:
+def _match_section(line: str) -> str | None:
     """Return the canonical section a short header line denotes, or ``None``."""
     low = line.lower().strip().rstrip(":")
     if len(low) > 60:  # headers are short; long lines are content
@@ -140,9 +188,9 @@ def parse(jd_text: str, *, jd_id: str = "", title: str = "") -> JDDocument:
                 doc.title = _clean(ln)[:120]
                 break
 
-    current: Optional[str] = None
-    buckets: Dict[str, List[str]] = {s: [] for s in CANONICAL_SECTIONS}
-    body: List[str] = []
+    current: str | None = None
+    buckets: dict[str, list[str]] = {s: [] for s in CANONICAL_SECTIONS}
+    body: list[str] = []
 
     for raw_line in lines:
         line = raw_line.strip()

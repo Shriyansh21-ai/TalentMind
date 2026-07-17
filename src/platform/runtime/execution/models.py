@@ -11,8 +11,8 @@ results and reports are pydantic so they are JSON-safe for the dashboard.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import Enum, IntEnum
-from typing import Callable
 
 from pydantic import Field
 
@@ -103,9 +103,7 @@ class ExecutionReport(PlatformModel):
     def failed(self) -> int:
         """Return the number of failed/timed-out tasks."""
         return sum(
-            1
-            for r in self.results
-            if r.status in (ExecutionStatus.FAILED, ExecutionStatus.TIMEOUT)
+            1 for r in self.results if r.status in (ExecutionStatus.FAILED, ExecutionStatus.TIMEOUT)
         )
 
     @property

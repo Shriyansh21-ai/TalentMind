@@ -8,7 +8,7 @@ unavailable history (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any
 
 from src.ai.agents.audit.schemas import HistoricalReconstruction
 
@@ -22,13 +22,14 @@ def reconstruct_history(candidate_id: str, provider: Any) -> HistoricalReconstru
             records=[],
         )
 
-    records: Optional[List[dict]] = provider.get_history(candidate_id)
+    records: list[dict] | None = provider.get_history(candidate_id)
     records = list(records or [])
     return HistoricalReconstruction(
         available=True,
         status_message=(
             f"{len(records)} historical record(s) reconstructed from the connected archive."
-            if records else "Archive connected, but no historical records found for this candidate."
+            if records
+            else "Archive connected, but no historical records found for this candidate."
         ),
         records=records,
     )

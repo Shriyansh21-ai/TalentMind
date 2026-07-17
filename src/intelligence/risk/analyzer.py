@@ -13,11 +13,10 @@ Public entry point: :func:`build_risk_report`.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Tuple
 
-from src.models.candidates import Candidate, CareerHistory
 from src.intelligence.common import career_utils as cu
 from src.intelligence.risk.models import RiskReport
+from src.models.candidates import Candidate, CareerHistory
 
 # Sub-risk weights (must sum to 1.0) for the aggregate score.
 _WEIGHTS = {
@@ -44,9 +43,9 @@ class _SubRisk:
     """Internal result of one sub-risk heuristic."""
 
     level: str
-    factors: List[str]
-    red_flags: List[str]
-    questions: List[str]
+    factors: list[str]
+    red_flags: list[str]
+    questions: list[str]
 
 
 def build_risk_report(candidate: Candidate) -> RiskReport:
@@ -78,9 +77,9 @@ def build_risk_report(candidate: Candidate) -> RiskReport:
     )
     risk_level = _risk_level(risk_score)
 
-    factors: List[str] = []
-    red_flags: List[str] = []
-    questions: List[str] = []
+    factors: list[str] = []
+    red_flags: list[str] = []
+    questions: list[str] = []
     for sub in sub_risks.values():
         factors.extend(sub.factors)
         red_flags.extend(sub.red_flags)
@@ -112,7 +111,7 @@ def build_risk_report(candidate: Candidate) -> RiskReport:
 # ---------------------------------------------------------------------------
 
 
-def _employment_gap_risk(career: List[CareerHistory]) -> _SubRisk:
+def _employment_gap_risk(career: list[CareerHistory]) -> _SubRisk:
     """Flag employment gaps and generate gap-specific validation questions."""
     gaps = cu.employment_gaps(career, min_gap_months=_SIGNIFICANT_GAP_MONTHS)
     if not gaps:
@@ -120,38 +119,31 @@ def _employment_gap_risk(career: List[CareerHistory]) -> _SubRisk:
 
     largest = max(gap for _, _, gap in gaps)
     factors = [f"{len(gaps)} employment gap(s) of {_SIGNIFICANT_GAP_MONTHS}+ months."]
-    red_flags = [
-        f"{gap}-month gap between {prev} and {nxt}." for prev, nxt, gap in gaps
-    ]
+    red_flags = [f"{gap}-month gap between {prev} and {nxt}." for prev, nxt, gap in gaps]
     questions = [
-        f"Ask candidate why there is a {gap}-month employment gap "
-        f"between {prev} and {nxt}."
+        f"Ask candidate why there is a {gap}-month employment gap between {prev} and {nxt}."
         for prev, nxt, gap in gaps
     ]
     level = "High" if largest >= 12 else "Medium"
     return _SubRisk(level, factors, red_flags, questions)
 
 
-def _job_hopping_risk(career: List[CareerHistory]) -> _SubRisk:
+def _job_hopping_risk(career: list[CareerHistory]) -> _SubRisk:
     """Flag short average tenure and many companies in a short window."""
     if len(career) < 2:
         return _SubRisk("Low", [], [], [])
 
     average_duration = cu.average_job_duration_months(career)
-    short_stints = sum(
-        1 for job in career if 0 < job.duration_months < _SHORT_TENURE_MONTHS
-    )
+    short_stints = sum(1 for job in career if 0 < job.duration_months < _SHORT_TENURE_MONTHS)
 
-    factors: List[str] = []
-    red_flags: List[str] = []
-    questions: List[str] = []
+    factors: list[str] = []
+    red_flags: list[str] = []
+    questions: list[str] = []
     level = "Low"
 
     if average_duration < 12 and len(career) >= 3:
         level = "High"
-        red_flags.append(
-            f"Frequent job changes — average tenure {average_duration:.0f} months."
-        )
+        red_flags.append(f"Frequent job changes — average tenure {average_duration:.0f} months.")
         questions.append(
             "Ask candidate about the drivers behind frequent job changes and "
             "what would make them stay long term."
@@ -159,9 +151,7 @@ def _job_hopping_risk(career: List[CareerHistory]) -> _SubRisk:
     elif average_duration < _SHORT_TENURE_MONTHS and len(career) >= 3:
         level = "Medium"
         factors.append(f"Below-average tenure ({average_duration:.0f} months).")
-        questions.append(
-            "Validate tenure expectations and reasons for recent moves."
-        )
+        questions.append("Validate tenure expectations and reasons for recent moves.")
 
     if short_stints >= 2:
         factors.append(f"{short_stints} roles shorter than {_SHORT_TENURE_MONTHS} months.")
@@ -174,34 +164,29 @@ def _skill_stagnation_risk(candidate: Candidate) -> _SubRisk:
     skills = candidate.skills or []
     skill_names = {s.name.lower() for s in skills}
 
-    outdated = sorted(
-        {tech for tech in cu.OUTDATED_TECHNOLOGIES if tech in skill_names}
-    )
+    outdated = sorted({tech for tech in cu.OUTDATED_TECHNOLOGIES if tech in skill_names})
     advanced = sum(1 for s in skills if s.proficiency.lower() == "advanced")
 
-    factors: List[str] = []
-    red_flags: List[str] = []
-    questions: List[str] = []
+    factors: list[str] = []
+    red_flags: list[str] = []
+    questions: list[str] = []
     level = "Low"
 
     if len(skill_names) < 4:
         level = "High"
         red_flags.append(f"Very narrow skill set ({len(skill_names)} skills listed).")
-        questions.append(
-            "Validate the breadth of the candidate's current technical stack."
-        )
+        questions.append("Validate the breadth of the candidate's current technical stack.")
     elif len(skill_names) < 7:
         level = "Medium"
         factors.append("Moderately narrow skill set.")
 
     if outdated:
         level = "High" if level != "High" else level
-        red_flags.append(
-            "Skill set leans on legacy technologies: " + ", ".join(outdated) + "."
-        )
+        red_flags.append("Skill set leans on legacy technologies: " + ", ".join(outdated) + ".")
         questions.append(
             "Ask how the candidate has kept current with modern tooling beyond "
-            + ", ".join(outdated) + "."
+            + ", ".join(outdated)
+            + "."
         )
 
     if advanced == 0 and skills:
@@ -212,23 +197,21 @@ def _skill_stagnation_risk(candidate: Candidate) -> _SubRisk:
     return _SubRisk(level, factors, red_flags, questions)
 
 
-def _technical_depth_risk(career: List[CareerHistory]) -> _SubRisk:
+def _technical_depth_risk(career: list[CareerHistory]) -> _SubRisk:
     """Flag shallow role descriptions and absent measurable achievements."""
     if not career:
         return _SubRisk("Medium", ["No role descriptions to assess depth."], [], [])
 
     weak_descriptions = sum(
-        1
-        for job in career
-        if len(job.description or "") < _WEAK_DESCRIPTION_CHARS
+        1 for job in career if len(job.description or "") < _WEAK_DESCRIPTION_CHARS
     )
     with_achievements = sum(
         1 for job in career if cu.has_measurable_achievements(job.description or "")
     )
 
-    factors: List[str] = []
-    red_flags: List[str] = []
-    questions: List[str] = []
+    factors: list[str] = []
+    red_flags: list[str] = []
+    questions: list[str] = []
     level = "Low"
 
     if with_achievements == 0:
@@ -252,7 +235,7 @@ def _technical_depth_risk(career: List[CareerHistory]) -> _SubRisk:
     return _SubRisk(level, factors, red_flags, questions)
 
 
-def _leadership_risk(career: List[CareerHistory]) -> _SubRisk:
+def _leadership_risk(career: list[CareerHistory]) -> _SubRisk:
     """Flag absence of any leadership evidence."""
     if cu.has_leadership_evidence(career):
         return _SubRisk("Low", [], [], [])
@@ -261,10 +244,7 @@ def _leadership_risk(career: List[CareerHistory]) -> _SubRisk:
         "Medium",
         ["No explicit leadership or ownership evidence in titles/descriptions."],
         [],
-        [
-            "Explore examples of technical leadership, mentoring, or project "
-            "ownership."
-        ],
+        ["Explore examples of technical leadership, mentoring, or project ownership."],
     )
 
 
@@ -272,16 +252,14 @@ def _communication_risk(candidate: Candidate) -> _SubRisk:
     """Flag weak written communication (very short summary/descriptions)."""
     summary = candidate.profile.summary or ""
 
-    factors: List[str] = []
-    questions: List[str] = []
+    factors: list[str] = []
+    questions: list[str] = []
     level = "Low"
 
     if len(summary) < _WEAK_SUMMARY_CHARS:
         level = "Medium"
         factors.append("Professional summary is brief / low-detail.")
-        questions.append(
-            "Assess written and verbal communication depth during screening."
-        )
+        questions.append("Assess written and verbal communication depth during screening.")
 
     return _SubRisk(level, factors, [], questions)
 
@@ -293,10 +271,10 @@ def _communication_risk(candidate: Candidate) -> _SubRisk:
 
 def _positive_signals(
     candidate: Candidate,
-    career: List[CareerHistory],
-) -> List[str]:
+    career: list[CareerHistory],
+) -> list[str]:
     """Collect reassuring, risk-mitigating signals."""
-    signals: List[str] = []
+    signals: list[str] = []
 
     if any(job.duration_months >= 48 for job in career):
         signals.append("Demonstrated long-tenure commitment at an employer.")
@@ -313,23 +291,21 @@ def _positive_signals(
     return signals
 
 
-def _verified_profile_signals(candidate: Candidate) -> List[str]:
+def _verified_profile_signals(candidate: Candidate) -> list[str]:
     """Trust signals sourced from RedRob verification flags (read-only)."""
-    signals: List[str] = []
+    signals: list[str] = []
     redrob = getattr(candidate, "redrob_signals", None)
     if redrob is None:
         return signals
 
-    if getattr(redrob, "verified_email", False) and getattr(
-        redrob, "verified_phone", False
-    ):
+    if getattr(redrob, "verified_email", False) and getattr(redrob, "verified_phone", False):
         signals.append("Identity verified (email and phone).")
     if getattr(redrob, "github_activity_score", 0) >= 70:
         signals.append("Strong public GitHub activity.")
     return signals
 
 
-def _career_consistency(career: List[CareerHistory]) -> float:
+def _career_consistency(career: list[CareerHistory]) -> float:
     """0-100 consistency of the career narrative (domain + tenure)."""
     if not career:
         return 0.0

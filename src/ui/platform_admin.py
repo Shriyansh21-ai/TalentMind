@@ -145,9 +145,7 @@ def _render_overview(platform, orgs) -> None:
                 "organization": org.display_name,
                 "status": org.status.value,
                 "tenant": org.id,
-                "audit_chain": "✅ intact"
-                if platform.audit.verify_chain(org.id)
-                else "❌ broken",
+                "audit_chain": "✅ intact" if platform.audit.verify_chain(org.id) else "❌ broken",
             }
         )
     st.dataframe(rows, use_container_width=True, hide_index=True)

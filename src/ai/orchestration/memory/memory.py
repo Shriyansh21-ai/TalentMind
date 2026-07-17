@@ -22,7 +22,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from threading import RLock
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class WorkflowMemory(ABC):
@@ -37,7 +37,7 @@ class WorkflowMemory(ABC):
         """Return the stored value for ``(workflow_id, key)``."""
 
     @abstractmethod
-    def dump(self, workflow_id: str) -> Dict[str, Any]:
+    def dump(self, workflow_id: str) -> dict[str, Any]:
         """Return all facts remembered for ``workflow_id``."""
 
 
@@ -61,7 +61,7 @@ class TaskMemory(ABC):
         """Append a working note for ``task_id``."""
 
     @abstractmethod
-    def notes(self, task_id: str) -> List[Any]:
+    def notes(self, task_id: str) -> list[Any]:
         """Return the ordered notes for ``task_id``."""
 
 
@@ -69,11 +69,11 @@ class ExecutionMemory(ABC):
     """Append-only execution trace (a durable audit of what happened)."""
 
     @abstractmethod
-    def append(self, workflow_id: str, entry: Dict[str, Any]) -> None:
+    def append(self, workflow_id: str, entry: dict[str, Any]) -> None:
         """Append one trace ``entry`` for ``workflow_id``."""
 
     @abstractmethod
-    def trace(self, workflow_id: str) -> List[Dict[str, Any]]:
+    def trace(self, workflow_id: str) -> list[dict[str, Any]]:
         """Return the ordered trace for ``workflow_id``."""
 
 
@@ -89,13 +89,11 @@ class LongTermMemory(ABC):
         """Persist a memory (optionally with a precomputed embedding)."""
 
     @abstractmethod
-    def search(self, namespace: str, query: str, *, top_k: int = 5) -> List[Any]:
+    def search(self, namespace: str, query: str, *, top_k: int = 5) -> list[Any]:
         """Semantic recall — NOT implemented this milestone."""
 
 
-class OrchestrationMemory(
-    WorkflowMemory, SharedAgentMemory, TaskMemory, ExecutionMemory, ABC
-):
+class OrchestrationMemory(WorkflowMemory, SharedAgentMemory, TaskMemory, ExecutionMemory, ABC):
     """Aggregate facade combining the four active memory scopes.
 
     The engine depends on this single interface; the four ABCs above document
@@ -108,10 +106,10 @@ class InMemoryOrchestrationMemory(OrchestrationMemory):
     """Thread-safe, in-process reference implementation of all active scopes."""
 
     def __init__(self) -> None:
-        self._workflow: Dict[str, Dict[str, Any]] = defaultdict(dict)
-        self._shared: Dict[str, Dict[str, Any]] = defaultdict(dict)
-        self._tasks: Dict[str, List[Any]] = defaultdict(list)
-        self._trace: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        self._workflow: dict[str, dict[str, Any]] = defaultdict(dict)
+        self._shared: dict[str, dict[str, Any]] = defaultdict(dict)
+        self._tasks: dict[str, list[Any]] = defaultdict(list)
+        self._trace: dict[str, list[dict[str, Any]]] = defaultdict(list)
         self._lock = RLock()
 
     # WorkflowMemory --------------------------------------------------------
@@ -126,7 +124,7 @@ class InMemoryOrchestrationMemory(OrchestrationMemory):
         with self._lock:
             return self._workflow[workflow_id].get(key, default)
 
-    def dump(self, workflow_id: str) -> Dict[str, Any]:
+    def dump(self, workflow_id: str) -> dict[str, Any]:
         """Return a copy of all facts remembered for ``workflow_id``."""
         with self._lock:
             return dict(self._workflow[workflow_id])
@@ -150,19 +148,19 @@ class InMemoryOrchestrationMemory(OrchestrationMemory):
         with self._lock:
             self._tasks[task_id].append(value)
 
-    def notes(self, task_id: str) -> List[Any]:
+    def notes(self, task_id: str) -> list[Any]:
         """Return the ordered notes for ``task_id``."""
         with self._lock:
             return list(self._tasks[task_id])
 
     # ExecutionMemory -------------------------------------------------------
 
-    def append(self, workflow_id: str, entry: Dict[str, Any]) -> None:
+    def append(self, workflow_id: str, entry: dict[str, Any]) -> None:
         """Append one trace ``entry`` for ``workflow_id``."""
         with self._lock:
             self._trace[workflow_id].append(entry)
 
-    def trace(self, workflow_id: str) -> List[Dict[str, Any]]:
+    def trace(self, workflow_id: str) -> list[dict[str, Any]]:
         """Return the ordered trace for ``workflow_id``."""
         with self._lock:
             return list(self._trace[workflow_id])

@@ -8,8 +8,6 @@ reasoning *about* the scores computed by the existing engines.
 
 from __future__ import annotations
 
-from typing import List
-
 from pydantic import Field, field_validator
 
 from src.ai.schemas.base import BaseAIResponse
@@ -47,10 +45,10 @@ class HiringAnalysis(BaseAIResponse):
     leadership_reasoning: str
     risk_reasoning: str
     jd_alignment: str
-    hidden_strengths: List[str] = Field(default_factory=list)
-    hidden_concerns: List[str] = Field(default_factory=list)
-    transferable_skills: List[str] = Field(default_factory=list)
-    interview_strategy: List[str] = Field(default_factory=list)
+    hidden_strengths: list[str] = Field(default_factory=list)
+    hidden_concerns: list[str] = Field(default_factory=list)
+    transferable_skills: list[str] = Field(default_factory=list)
+    interview_strategy: list[str] = Field(default_factory=list)
     business_impact: str
     confidence_reasoning: str
     executive_decision: str

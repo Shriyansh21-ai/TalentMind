@@ -32,12 +32,11 @@ Meeting Transcript) can consume or extend it without a redesign.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import Field, field_validator
 
 from src.ai.schemas.base import BaseAIResponse
-
 
 # ---------------------------------------------------------------------------
 # AI Platform output (BaseAIResponse — score-free top level)
@@ -60,8 +59,8 @@ class InterviewStudioNarrative(BaseAIResponse):
     coverage_note: str = ""
     risk_validation_note: str = ""
     readiness_label: str = "Ready to Interview"
-    key_probes: List[str] = Field(default_factory=list)
-    watch_areas: List[str] = Field(default_factory=list)
+    key_probes: list[str] = Field(default_factory=list)
+    watch_areas: list[str] = Field(default_factory=list)
     confidence_note: str = ""
 
     @field_validator("interview_summary")
@@ -91,12 +90,12 @@ class InterviewStrategy:
     length_minutes: int = 240
     stage_count: int = 5
     difficulty: str = "Calibrated"
-    objectives: List[str] = field(default_factory=list)
-    priorities: List[str] = field(default_factory=list)
-    decision_checkpoints: List[str] = field(default_factory=list)
+    objectives: list[str] = field(default_factory=list)
+    priorities: list[str] = field(default_factory=list)
+    decision_checkpoints: list[str] = field(default_factory=list)
     summary: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the strategy."""
         return asdict(self)
 
@@ -112,14 +111,16 @@ class InterviewQuestion:
 
     text: str
     competency: str = ""
-    category: str = "technical"  # technical | system_design | coding | behavioral | leadership | role
-    difficulty: str = "Core"     # Warm-up | Core | Deep | Stretch
+    category: str = (
+        "technical"  # technical | system_design | coding | behavioral | leadership | role
+    )
+    difficulty: str = "Core"  # Warm-up | Core | Deep | Stretch
     expected_answer: str = ""
-    evaluation_criteria: List[str] = field(default_factory=list)
-    signals: List[str] = field(default_factory=list)
+    evaluation_criteria: list[str] = field(default_factory=list)
+    signals: list[str] = field(default_factory=list)
     source: str = "TalentMind synthesis"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the question."""
         return asdict(self)
 
@@ -140,7 +141,7 @@ class RiskValidation:
     pass_criteria: str = ""
     source: str = "Resume Risk Detection"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the risk validation."""
         return asdict(self)
 
@@ -153,10 +154,10 @@ class InterviewStage:
     objective: str = ""
     duration_minutes: int = 45
     interviewer: str = ""
-    focus: List[str] = field(default_factory=list)
+    focus: list[str] = field(default_factory=list)
     checkpoint: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the stage."""
         return asdict(self)
 
@@ -172,11 +173,11 @@ class RubricDimension:
     name: str
     description: str = ""
     weight: str = "Standard"  # qualitative weight label (never a number at top level)
-    levels: Dict[str, str] = field(default_factory=dict)
-    evidence_to_look_for: List[str] = field(default_factory=list)
+    levels: dict[str, str] = field(default_factory=dict)
+    evidence_to_look_for: list[str] = field(default_factory=list)
     source: str = "Interview Intelligence"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the rubric dimension."""
         return asdict(self)
 
@@ -186,12 +187,12 @@ class DecisionBand:
     """One band of the decision matrix (Module 8)."""
 
     label: str  # Strong Hire | Hire | Hold | Reject
-    signals: List[str] = field(default_factory=list)
-    evidence: List[str] = field(default_factory=list)
+    signals: list[str] = field(default_factory=list)
+    evidence: list[str] = field(default_factory=list)
     confidence_label: str = "Moderate"
     escalation: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the decision band."""
         return asdict(self)
 
@@ -205,11 +206,11 @@ class DecisionMatrix:
     an explicit note on how it aligns with the AI Hiring Committee.
     """
 
-    bands: List[DecisionBand] = field(default_factory=list)
-    escalation_criteria: List[str] = field(default_factory=list)
+    bands: list[DecisionBand] = field(default_factory=list)
+    escalation_criteria: list[str] = field(default_factory=list)
     committee_alignment: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the decision matrix."""
         return {
             "bands": [b.to_dict() for b in self.bands],
@@ -226,12 +227,12 @@ class FeedbackForms:
     the studio never invents interview results, it only supplies the structure.
     """
 
-    interviewer_form: List[str] = field(default_factory=list)
-    hiring_manager_form: List[str] = field(default_factory=list)
-    panel_form: List[str] = field(default_factory=list)
-    candidate_summary_template: List[str] = field(default_factory=list)
+    interviewer_form: list[str] = field(default_factory=list)
+    hiring_manager_form: list[str] = field(default_factory=list)
+    panel_form: list[str] = field(default_factory=list)
+    candidate_summary_template: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the feedback forms."""
         return asdict(self)
 
@@ -244,14 +245,14 @@ class LiveInterviewAssistant:
     is stable so Module 14 can extend it without a redesign.
     """
 
-    interviewer_notes_template: List[str] = field(default_factory=list)
-    question_checklist: List[str] = field(default_factory=list)
-    evaluation_checklist: List[str] = field(default_factory=list)
-    risk_reminders: List[str] = field(default_factory=list)
-    followup_suggestions: List[str] = field(default_factory=list)
-    timer_hooks: List[Dict[str, Any]] = field(default_factory=list)
+    interviewer_notes_template: list[str] = field(default_factory=list)
+    question_checklist: list[str] = field(default_factory=list)
+    evaluation_checklist: list[str] = field(default_factory=list)
+    risk_reminders: list[str] = field(default_factory=list)
+    followup_suggestions: list[str] = field(default_factory=list)
+    timer_hooks: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the live assistant."""
         return asdict(self)
 
@@ -268,7 +269,7 @@ class ProvenanceEntry:
     statement: str
     source: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the provenance entry."""
         return asdict(self)
 
@@ -291,24 +292,24 @@ class InterviewStudioReport:
     role_name: str
     depth: str
     generated_on: str
-    candidate_overview: Dict[str, Any]
+    candidate_overview: dict[str, Any]
     narrative: InterviewStudioNarrative
     strategy: InterviewStrategy
-    roadmap: List[InterviewStage]
-    technical_questions: List[InterviewQuestion]
-    behavioral_questions: List[InterviewQuestion]
-    role_specific_questions: List[InterviewQuestion]
-    risk_validations: List[RiskValidation]
-    rubrics: List[RubricDimension]
+    roadmap: list[InterviewStage]
+    technical_questions: list[InterviewQuestion]
+    behavioral_questions: list[InterviewQuestion]
+    role_specific_questions: list[InterviewQuestion]
+    risk_validations: list[RiskValidation]
+    rubrics: list[RubricDimension]
     decision_matrix: DecisionMatrix
     feedback_forms: FeedbackForms
     live_assistant: LiveInterviewAssistant
-    charts: Dict[str, Any] = field(default_factory=dict)
-    provenance: List[ProvenanceEntry] = field(default_factory=list)
-    evidence_sources: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    charts: dict[str, Any] = field(default_factory=dict)
+    provenance: list[ProvenanceEntry] = field(default_factory=list)
+    evidence_sources: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
-    def all_questions(self) -> List[InterviewQuestion]:
+    def all_questions(self) -> list[InterviewQuestion]:
         """Return every generated question across all sections."""
         return [
             *self.technical_questions,
@@ -316,7 +317,7 @@ class InterviewStudioReport:
             *self.role_specific_questions,
         ]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the whole package."""
         return {
             "plan_id": self.plan_id,

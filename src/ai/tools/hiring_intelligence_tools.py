@@ -12,8 +12,10 @@ enterprise statistics (Module 15).
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
+# Importing the engine auto-registers the agent (AI platform + orchestration).
+from src.ai.agents.hiring_intelligence.analytics_engine import HiringIntelligenceEngine
 from src.ai.core.runner import AgentRunner
 from src.ai.tools.base import (
     BaseTool,
@@ -23,10 +25,7 @@ from src.ai.tools.base import (
     ToolValidationError,
 )
 
-# Importing the engine auto-registers the agent (AI platform + orchestration).
-from src.ai.agents.hiring_intelligence.analytics_engine import HiringIntelligenceEngine
-
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 # Bounded cohort for a copilot request (keeps the org-level analytics responsive).
 _COPILOT_COHORT = 15
@@ -57,11 +56,11 @@ class HiringIntelligenceTool(BaseTool):
         engine="Hiring Intelligence",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         """No candidate id required — this is an organization-level tool."""
         return None
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Analyze a bounded cohort and summarize the workforce intelligence."""
         repository = context.repository
         if repository is None:
@@ -84,16 +83,23 @@ class HiringIntelligenceTool(BaseTool):
             "data_available": report.data_available,
             "hiring_health": health.label if health else "n/a",
             "hiring_health_value": health.value if health else None,
-            "kpis": [{"name": k.name, "label": k.label, "value": k.value, "register": k.register} for k in report.kpis],
+            "kpis": [
+                {"name": k.name, "label": k.label, "value": k.value, "register": k.register}
+                for k in report.kpis
+            ],
             "distributions": {d.name: d.counts for d in report.distributions},
-            "estimated_bottlenecks": [{"stage": b.stage, "severity": b.severity} for b in est_bottlenecks],
+            "estimated_bottlenecks": [
+                {"stage": b.stage, "severity": b.severity} for b in est_bottlenecks
+            ],
             "unavailable_trends": [t.name for t in report.trends if t.register == "Unavailable"],
             "team_metrics": [
                 {"dimension": t.dimension, "group": t.group, "hiring_health": t.hiring_health}
-                for t in report.team_metrics if t.register == "Observed"
+                for t in report.team_metrics
+                if t.register == "Observed"
             ],
             "optimizations": [
-                {"area": o.area, "recommendation": o.recommendation, "priority": o.priority} for o in report.optimizations
+                {"area": o.area, "recommendation": o.recommendation, "priority": o.priority}
+                for o in report.optimizations
             ],
             "forecast": [{"name": f.name, "growth": f.growth_label} for f in report.forecast],
             "executive_summary": narrative.executive_summary,
@@ -111,7 +117,11 @@ class HiringIntelligenceTool(BaseTool):
                 + (f" ({health.value:.0f}/100)" if health and health.value is not None else "")
                 + f". {len(top_opts)} priority optimization(s); "
                 + (f"{len(est_bottlenecks)} estimated bottleneck(s). " if est_bottlenecks else "")
-                + ("Trends/capacity unavailable — no analytics source connected. " if not report.data_available else "")
+                + (
+                    "Trends/capacity unavailable — no analytics source connected. "
+                    if not report.data_available
+                    else ""
+                )
                 + "Organizational intelligence only; no fabricated statistics."
             ),
             evidence_sources=["Hiring Intelligence"] + report.evidence_sources,

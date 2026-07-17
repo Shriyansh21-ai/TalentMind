@@ -9,7 +9,8 @@ breaking pagination contracts.
 from __future__ import annotations
 
 import base64
-from typing import Generic, Sequence, TypeVar
+from collections.abc import Sequence
+from typing import Generic, TypeVar
 
 from pydantic import Field
 
@@ -70,7 +71,7 @@ def paginate(items: Sequence[T], request: PageRequest) -> Page:
 
 def encode_cursor(offset: int) -> str:
     """Encode an integer offset as an opaque base64 cursor."""
-    return base64.urlsafe_b64encode(f"o:{offset}".encode("utf-8")).decode("ascii")
+    return base64.urlsafe_b64encode(f"o:{offset}".encode()).decode("ascii")
 
 
 def decode_cursor(cursor: str | None) -> int:

@@ -17,7 +17,7 @@ from datetime import datetime
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
 from src.platform.common.repository import InMemoryRepository
-from src.platform.runtime.common.errors import JobNotFoundError, RuntimeValidationError
+from src.platform.runtime.common.errors import RuntimeValidationError
 from src.platform.runtime.common.models import Severity
 from src.platform.runtime.events.events import RuntimeEventPublisher
 from src.platform.runtime.jobs.models import (
@@ -60,9 +60,7 @@ class JobManager:
 
     # -- definitions --------------------------------------------------------
 
-    def define(
-        self, definition: JobDefinition, handler: JobHandler | None = None
-    ) -> JobDefinition:
+    def define(self, definition: JobDefinition, handler: JobHandler | None = None) -> JobDefinition:
         """Register a job definition (and optional handler)."""
         return self.registry.register(definition, handler)
 
@@ -86,9 +84,7 @@ class JobManager:
         # Validate every dependency exists within the same tenant scope.
         for dep_id in deps:
             if self.repo.get(dep_id, tenant_id=tenant_id) is None:
-                raise RuntimeValidationError(
-                    f"dependency job '{dep_id}' not found for tenant"
-                )
+                raise RuntimeValidationError(f"dependency job '{dep_id}' not found for tenant")
         now = self._clock.now()
         job = Job(
             id=generate_id("job"),
@@ -115,8 +111,11 @@ class JobManager:
 
         self.events.job("submitted", job_id=job.id, tenant_id=tenant_id)
         self.telemetry.log(
-            _COMPONENT, "job.submitted", tenant_id=tenant_id,
-            message=job.name, fields={"job_id": job.id, "status": job.status.value},
+            _COMPONENT,
+            "job.submitted",
+            tenant_id=tenant_id,
+            message=job.name,
+            fields={"job_id": job.id, "status": job.status.value},
         )
         return job
 
@@ -136,9 +135,7 @@ class JobManager:
             promoted.append(job)
         return promoted
 
-    def claim(
-        self, worker_id: str, *, tenant_id: str | None = None
-    ) -> Job | None:
+    def claim(self, worker_id: str, *, tenant_id: str | None = None) -> Job | None:
         """Claim the next queued job for a worker (tenant-restricted if given)."""
         job_id = self.queue.dequeue(tenant_id=tenant_id)
         if job_id is None:
@@ -151,9 +148,7 @@ class JobManager:
         self.events.job("started", job_id=job.id, tenant_id=job.tenant_id)
         return job
 
-    def complete(
-        self, job_id: str, *, result: dict[str, object] | None = None
-    ) -> Job:
+    def complete(self, job_id: str, *, result: dict[str, object] | None = None) -> Job:
         """Mark a running job succeeded and unblock its dependents."""
         job = self.repo.require(job_id)
         job.result = result or {}
@@ -181,8 +176,12 @@ class JobManager:
         self._transition(job, JobStatus.FAILED, error or "failed")
         self.events.failure("job_failed", job_id=job.id, tenant_id=job.tenant_id)
         self.telemetry.log(
-            _COMPONENT, "job.failed", severity=Severity.ERROR,
-            tenant_id=job.tenant_id, message=error, fields={"job_id": job.id},
+            _COMPONENT,
+            "job.failed",
+            severity=Severity.ERROR,
+            tenant_id=job.tenant_id,
+            message=error,
+            fields={"job_id": job.id},
         )
         self._fail_blocked_dependents(job)
         return job
@@ -205,9 +204,7 @@ class JobManager:
         """Return one job (tenant-isolated)."""
         return self.repo.require(job_id, tenant_id=tenant_id)
 
-    def list(
-        self, tenant_id: str, *, status: JobStatus | None = None
-    ) -> list[Job]:
+    def list(self, tenant_id: str, *, status: JobStatus | None = None) -> list[Job]:
         """Return a tenant's jobs, optionally filtered by status."""
         where = None
         if status is not None:
@@ -236,8 +233,13 @@ class JobManager:
         job.status = status
         now = self._clock.now()
         job.history.append(
-            JobHistoryEntry(id=generate_id("jhist"), status=status, detail=detail,
-                            created_at=now, updated_at=now)
+            JobHistoryEntry(
+                id=generate_id("jhist"),
+                status=status,
+                detail=detail,
+                created_at=now,
+                updated_at=now,
+            )
         )
         job.touch(now)
         self.repo.update(job)
@@ -251,9 +253,7 @@ class JobManager:
         return result
 
     def _has_pending_dependencies(self, job: Job) -> bool:
-        return any(
-            dep.status != JobStatus.SUCCEEDED for dep in self._dependencies(job)
-        )
+        return any(dep.status != JobStatus.SUCCEEDED for dep in self._dependencies(job))
 
     def _unblock_dependents(self, tenant_id: str) -> None:
         for job in self.list(tenant_id, status=JobStatus.BLOCKED):
@@ -264,9 +264,5 @@ class JobManager:
         for job in self.list(failed_job.tenant_id, status=JobStatus.BLOCKED):
             if failed_job.id in job.depends_on:
                 job.finished_at = self._clock.now()
-                self._transition(
-                    job, JobStatus.FAILED, f"dependency {failed_job.id} failed"
-                )
-                self.events.failure(
-                    "dependency_failed", job_id=job.id, tenant_id=job.tenant_id
-                )
+                self._transition(job, JobStatus.FAILED, f"dependency {failed_job.id} failed")
+                self.events.failure("dependency_failed", job_id=job.id, tenant_id=job.tenant_id)

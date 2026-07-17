@@ -10,8 +10,11 @@ report". It reuses the Compensation Governance Agent + existing intelligence
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
+# Importing the engine auto-registers the agent (AI platform + orchestration).
+from src.ai.agents.pay_equity.equity_engine import PayEquityGuardianEngine
+from src.ai.agents.pay_equity.templates import PAY_POLICIES
 from src.ai.core.runner import AgentRunner
 from src.ai.tools.base import (
     BaseTool,
@@ -21,11 +24,7 @@ from src.ai.tools.base import (
     ToolValidationError,
 )
 
-# Importing the engine auto-registers the agent (AI platform + orchestration).
-from src.ai.agents.pay_equity.equity_engine import PayEquityGuardianEngine
-from src.ai.agents.pay_equity.templates import PAY_POLICIES
-
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 
 def _get_runner() -> AgentRunner:
@@ -62,12 +61,12 @@ class PayEquityTool(BaseTool):
         engine="Pay Equity Guardian",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         """Require a candidate id."""
         if not tool_input.get("candidate_id"):
             raise ToolValidationError("pay_equity_guardian requires 'candidate_id'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Resolve the candidate, build the pay-equity report, and summarize it."""
         candidate_id = str(tool_input["candidate_id"])
         candidate = context.repository.get(candidate_id)

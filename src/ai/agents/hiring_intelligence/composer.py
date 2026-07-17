@@ -9,10 +9,10 @@ no-fabrication guarantee.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def compose_workforce_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_workforce_narrative(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose a :class:`WorkforceNarrative` from evidence."""
     analytics = evidence.get("analytics") or evidence
     cohort_size = analytics.get("cohort_size", 0)
@@ -30,7 +30,11 @@ def compose_workforce_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
     summary = (
         f"Workforce hiring intelligence across an analyzed cohort of {cohort_size} candidate(s). "
         f"Hiring Health Index: {health_label}"
-        + (f" ({health.get('value'):.0f}/100)." if isinstance(health.get("value"), (int, float)) else ".")
+        + (
+            f" ({health.get('value'):.0f}/100)."
+            if isinstance(health.get("value"), (int, float))
+            else "."
+        )
         + " This is strategic organizational intelligence — not candidate ranking — and it reports "
         "unavailable metrics honestly rather than fabricating them."
     )
@@ -46,7 +50,8 @@ def compose_workforce_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
     trend_note = (
         f"{len(unavailable_trends)} of {len(trends)} trends are UNAVAILABLE — time-series analytics require a "
         "connected data source."
-        if unavailable_trends else "Trends computed from the connected analytics source."
+        if unavailable_trends
+        else "Trends computed from the connected analytics source."
     )
 
     observed_kpis = [k for k in kpis if k.get("register") == "Observed"]
@@ -58,13 +63,15 @@ def compose_workforce_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
     forecast_note = (
         "Scenario forecasts scale the analyzed-cohort baseline (Conservative/Growth/Aggressive) — directional, "
         "not predictions, with explicit assumptions."
-        if forecast else "No forecast produced."
+        if forecast
+        else "No forecast produced."
     )
 
     top_opts = [o for o in optimizations if o.get("priority") in ("Critical", "High")]
     optimization_note = (
         "Priority optimizations: " + "; ".join(o["recommendation"] for o in top_opts[:3]) + "."
-        if top_opts else "No high-priority optimizations surfaced."
+        if top_opts
+        else "No high-priority optimizations surfaced."
     )
 
     data_note = (
@@ -74,9 +81,11 @@ def compose_workforce_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
         "UNAVAILABLE and marked as such (Module 15)."
     )
 
-    strategic: List[str] = [o["recommendation"] for o in top_opts[:4]]
+    strategic: list[str] = [o["recommendation"] for o in top_opts[:4]]
     if not data_available:
-        strategic.append("Connect an HR data warehouse / people-analytics source to unlock full workforce intelligence.")
+        strategic.append(
+            "Connect an HR data warehouse / people-analytics source to unlock full workforce intelligence."
+        )
 
     assumptions = [
         "Analytics run over a bounded analyzed cohort, not the full organization.",
@@ -97,13 +106,15 @@ def compose_workforce_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
         "kpi_note": kpi_note,
         "capacity_note": (
             "Capacity workloads are UNAVAILABLE without requisition/headcount data."
-            if not data_available else "Capacity computed from the connected source."
+            if not data_available
+            else "Capacity computed from the connected source."
         ),
         "forecast_note": forecast_note,
         "optimization_note": optimization_note,
         "data_availability_note": data_note,
         "key_insights": key_insights or ["Insufficient cohort data to surface insights."],
         "assumptions": assumptions,
-        "strategic_recommendations": list(dict.fromkeys(strategic)) or ["Maintain current hiring practices; no material gaps surfaced."],
+        "strategic_recommendations": list(dict.fromkeys(strategic))
+        or ["Maintain current hiring practices; no material gaps surfaced."],
         "confidence_note": confidence_note,
     }

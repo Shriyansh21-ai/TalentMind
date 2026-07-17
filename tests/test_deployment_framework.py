@@ -16,19 +16,21 @@ from src.platform.deployment.common.errors import (
     DeploymentValidationError,
     ReleaseError,
 )
-from src.platform.deployment.common.models import DeploymentStatus, Environment
+from src.platform.deployment.common.models import (
+    DeploymentStatus,
+    DeploymentTargetType,
+    Environment,
+)
 from src.platform.deployment.configuration import ConfigurationPlatform
 from src.platform.deployment.environment import EnvironmentDetector
 from src.platform.deployment.manager import DeploymentManager
 from src.platform.deployment.models import DeploymentProfile, DeploymentTarget
-from src.platform.deployment.common.models import DeploymentTargetType
 from src.platform.deployment.release import (
     ChangeEntry,
     ChangeType,
     ReleaseManager,
     SemanticVersion,
 )
-
 
 # -- environment detection --------------------------------------------------
 
@@ -39,7 +41,10 @@ def test_environment_defaults_to_development():
 
 def test_environment_aliases_and_direct():
     assert EnvironmentDetector({"TALENTMIND_ENV": "prod"}).detect() == Environment.PRODUCTION
-    assert EnvironmentDetector({"TALENTMIND_ENV": "offline"}).detect() == Environment.OFFLINE_ENTERPRISE
+    assert (
+        EnvironmentDetector({"TALENTMIND_ENV": "offline"}).detect()
+        == Environment.OFFLINE_ENTERPRISE
+    )
     assert EnvironmentDetector({"TALENTMIND_ENV": "staging"}).detect() == Environment.STAGING
     assert EnvironmentDetector({"TALENTMIND_ENV": "bogus"}).detect() == Environment.DEVELOPMENT
 
@@ -61,7 +66,8 @@ def test_builtin_profiles_cover_all_environments():
 def test_validate_flags_offline_with_region():
     mgr = DeploymentManager(clock=FrozenClock())
     bad = DeploymentProfile(
-        name="bad-offline", environment=Environment.OFFLINE_ENTERPRISE,
+        name="bad-offline",
+        environment=Environment.OFFLINE_ENTERPRISE,
         target=DeploymentTarget(target_type=DeploymentTargetType.KUBERNETES, region="us-east-1"),
         offline=True,
     )
@@ -108,8 +114,16 @@ def test_config_load_merges_over_base():
 
 def test_config_validation_catches_bad_values():
     cfg = ConfigurationPlatform()
-    result = cfg.validate({"app_name": "x", "log_level": "NOPE", "workers": 0,
-                           "cache_ttl_seconds": 1, "telemetry_enabled": True, "offline": False})
+    result = cfg.validate(
+        {
+            "app_name": "x",
+            "log_level": "NOPE",
+            "workers": 0,
+            "cache_ttl_seconds": 1,
+            "telemetry_enabled": True,
+            "offline": False,
+        }
+    )
     assert not result.ok
     assert any("log_level" in i for i in result.issues)
     assert any("workers" in i for i in result.issues)
@@ -171,10 +185,13 @@ def test_semver_parse_and_compare():
 
 def test_release_notes_grouped_by_type():
     mgr = ReleaseManager(clock=FrozenClock())
-    manifest = mgr.register_release("1.0.0", changes=[
-        ChangeEntry(change_type=ChangeType.FEATURE, summary="Deployment platform"),
-        ChangeEntry(change_type=ChangeType.FIX, summary="Fixed a bug"),
-    ])
+    manifest = mgr.register_release(
+        "1.0.0",
+        changes=[
+            ChangeEntry(change_type=ChangeType.FEATURE, summary="Deployment platform"),
+            ChangeEntry(change_type=ChangeType.FIX, summary="Fixed a bug"),
+        ],
+    )
     assert "✨ Features" in manifest.notes
     assert "🐛 Fixes" in manifest.notes
     assert mgr.latest() == "1.0.0"
@@ -182,9 +199,17 @@ def test_release_notes_grouped_by_type():
 
 def test_suggest_bump_rules():
     mgr = ReleaseManager(clock=FrozenClock())
-    assert mgr.suggest_bump("1.2.3", [ChangeEntry(change_type=ChangeType.BREAKING, summary="x")]) == "2.0.0"
-    assert mgr.suggest_bump("1.2.3", [ChangeEntry(change_type=ChangeType.FEATURE, summary="x")]) == "1.3.0"
-    assert mgr.suggest_bump("1.2.3", [ChangeEntry(change_type=ChangeType.FIX, summary="x")]) == "1.2.4"
+    assert (
+        mgr.suggest_bump("1.2.3", [ChangeEntry(change_type=ChangeType.BREAKING, summary="x")])
+        == "2.0.0"
+    )
+    assert (
+        mgr.suggest_bump("1.2.3", [ChangeEntry(change_type=ChangeType.FEATURE, summary="x")])
+        == "1.3.0"
+    )
+    assert (
+        mgr.suggest_bump("1.2.3", [ChangeEntry(change_type=ChangeType.FIX, summary="x")]) == "1.2.4"
+    )
 
 
 def test_compatibility_migrations_deprecations():

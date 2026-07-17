@@ -1,6 +1,3 @@
-from src.models.candidates import Candidate
-
-
 def calculate_behavior_score(candidate):
 
     signals = candidate.redrob_signals

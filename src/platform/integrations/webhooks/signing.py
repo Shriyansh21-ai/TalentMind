@@ -25,7 +25,7 @@ DEFAULT_TOLERANCE_SECONDS = 300
 
 def _canonical(timestamp: int, payload: str) -> bytes:
     """Return the canonical bytes signed: ``"<timestamp>.<payload>"``."""
-    return f"{timestamp}.{payload}".encode("utf-8")
+    return f"{timestamp}.{payload}".encode()
 
 
 class WebhookSigner:
@@ -50,9 +50,7 @@ class WebhookSigner:
         return f"t={ts},v1={digest}"
 
     def _parse(self, signature: str) -> tuple[int, str]:
-        parts = dict(
-            piece.split("=", 1) for piece in signature.split(",") if "=" in piece
-        )
+        parts = dict(piece.split("=", 1) for piece in signature.split(",") if "=" in piece)
         if "t" not in parts or "v1" not in parts:
             raise WebhookVerificationError("malformed signature header")
         try:

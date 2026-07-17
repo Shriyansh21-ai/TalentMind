@@ -11,7 +11,7 @@ components; database health is an interface placeholder until a driver is bound.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.runtime.common.models import HealthState
@@ -104,15 +104,11 @@ def cache_check(name: str, cache_manager) -> HealthCheck:
 
     def _check() -> ComponentHealth:
         stats = cache_manager.stats()
-        return ComponentHealth(
-            name=name, state=HealthState.HEALTHY, details=stats
-        )
+        return ComponentHealth(name=name, state=HealthState.HEALTHY, details=stats)
 
     return _check
 
 
 def database_check(name: str = "database") -> HealthCheck:
     """Return the database health *interface* placeholder (UNKNOWN offline)."""
-    return static_check(
-        name, HealthState.UNKNOWN, "database health interface — no driver bound"
-    )
+    return static_check(name, HealthState.UNKNOWN, "database health interface — no driver bound")

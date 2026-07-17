@@ -14,7 +14,8 @@ they do so through the existing public seams (tool registry, agent runner).
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 from src.ai.orchestration.context.context import SharedContext
 from src.ai.orchestration.models import AgentOutput, Task
@@ -59,9 +60,9 @@ class ToolAgent(OrchestrationAgent):
         self,
         tool: Any,
         *,
-        capabilities: List[str],
+        capabilities: list[str],
         context_factory: Callable[[SharedContext], Any],
-        name: Optional[str] = None,
+        name: str | None = None,
     ) -> None:
         """Wrap ``tool`` (a ``BaseTool``); ``context_factory`` builds its ToolContext."""
         self.tool = tool
@@ -105,10 +106,10 @@ class RunnerAgent(OrchestrationAgent):
         self,
         base_agent: Any,
         *,
-        capabilities: List[str],
+        capabilities: list[str],
         payload_builder: Callable[[Task, SharedContext], Any],
         runner: Any = None,
-        name: Optional[str] = None,
+        name: str | None = None,
     ) -> None:
         """Wrap ``base_agent``; ``payload_builder`` produces its typed payload."""
         self.base_agent = base_agent

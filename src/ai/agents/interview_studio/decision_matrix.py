@@ -9,12 +9,12 @@ to the committee's authoritative recommendation for alignment (Modules 8 / 16).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.interview_studio.schemas import DecisionBand, DecisionMatrix
 
 
-def _confidence_label(evidence: Dict[str, Any]) -> str:
+def _confidence_label(evidence: dict[str, Any]) -> str:
     """Return a qualitative confidence label from the strongest source."""
     committee = evidence.get("committee") or {}
     overall = (committee.get("confidence") or {}).get("overall")
@@ -29,7 +29,7 @@ def _confidence_label(evidence: Dict[str, Any]) -> str:
     return "Low"
 
 
-def _committee_alignment(evidence: Dict[str, Any]) -> str:
+def _committee_alignment(evidence: dict[str, Any]) -> str:
     """State how the matrix aligns with the committee (or the recommendation)."""
     committee = evidence.get("committee") or {}
     consensus = committee.get("consensus") or {}
@@ -51,7 +51,7 @@ def _committee_alignment(evidence: Dict[str, Any]) -> str:
     return "No committee decision was available; the interview outcome is the primary signal."
 
 
-def build_decision_matrix(evidence: Dict[str, Any]) -> DecisionMatrix:
+def build_decision_matrix(evidence: dict[str, Any]) -> DecisionMatrix:
     """Assemble the :class:`DecisionMatrix` for a candidate (deterministic)."""
     conf = _confidence_label(evidence)
 

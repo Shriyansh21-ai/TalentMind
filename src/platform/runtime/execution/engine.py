@@ -11,7 +11,7 @@ concurrency so tests stay reproducible.
 
 from __future__ import annotations
 
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
 
 from src.platform.api.ratelimit import RateLimiter
 from src.platform.common.clock import Clock, SystemClock
@@ -74,9 +74,7 @@ class TaskExecutionEngine:
                 if getattr(exc, "code", "") == "task_timeout"
                 else ExecutionStatus.FAILED
             )
-            return TaskResult(
-                name=task.name, status=status, error=str(exc), duration_ms=duration
-            )
+            return TaskResult(name=task.name, status=status, error=str(exc), duration_ms=duration)
 
     # -- strategies ---------------------------------------------------------
 

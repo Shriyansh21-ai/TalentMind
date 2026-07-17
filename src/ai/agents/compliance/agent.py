@@ -20,17 +20,16 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
+from src.ai.agents.compliance.composer import compose_compliance_narrative
+from src.ai.agents.compliance.schemas import ComplianceNarrative
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.prompts.loader import PromptLoader
 from src.ai.providers.base import LLMMessage
 from src.ai.providers.composers import register_composer
-
-from src.ai.agents.compliance.composer import compose_compliance_narrative
-from src.ai.agents.compliance.schemas import ComplianceNarrative
 
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 _prompt_loader = PromptLoader(_PROMPTS_DIR)
@@ -47,19 +46,19 @@ class ComplianceInput:
 
     candidate_id: str = ""
     data_available: bool = False
-    candidate_overview: Dict[str, Any] = field(default_factory=dict)
-    evidence_sources: List[str] = field(default_factory=list)
-    workflow: Dict[str, Any] = field(default_factory=dict)
-    approvals: Dict[str, Any] = field(default_factory=dict)
-    policy_checks: List[Dict[str, Any]] = field(default_factory=list)
-    documentation: Dict[str, Any] = field(default_factory=dict)
-    audit: Dict[str, Any] = field(default_factory=dict)
-    governance_risk: Dict[str, Any] = field(default_factory=dict)
-    exceptions: List[Dict[str, Any]] = field(default_factory=list)
-    review: Dict[str, Any] = field(default_factory=dict)
+    candidate_overview: dict[str, Any] = field(default_factory=dict)
+    evidence_sources: list[str] = field(default_factory=list)
+    workflow: dict[str, Any] = field(default_factory=dict)
+    approvals: dict[str, Any] = field(default_factory=dict)
+    policy_checks: list[dict[str, Any]] = field(default_factory=list)
+    documentation: dict[str, Any] = field(default_factory=dict)
+    audit: dict[str, Any] = field(default_factory=dict)
+    governance_risk: dict[str, Any] = field(default_factory=dict)
+    exceptions: list[dict[str, Any]] = field(default_factory=list)
+    review: dict[str, Any] = field(default_factory=dict)
 
 
-def build_compliance_evidence(payload: ComplianceInput) -> Dict[str, Any]:
+def build_compliance_evidence(payload: ComplianceInput) -> dict[str, Any]:
     """Pack the pre-gathered outputs + computed compliance signals into evidence."""
     return {
         "candidate_overview": payload.candidate_overview or {},
@@ -98,24 +97,26 @@ class HiringComplianceAgent(BaseAgent):
     )
     output_schema = ComplianceNarrative
 
-    def build_messages(self, payload, loader, evidence: Dict[str, Any]) -> List[LLMMessage]:
+    def build_messages(self, payload, loader, evidence: dict[str, Any]) -> list[LLMMessage]:
         """Render prompts from the agent's own ``prompts/`` directory."""
         return super().build_messages(payload, _prompt_loader, evidence)
 
-    def build_evidence(self, payload: ComplianceInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: ComplianceInput) -> dict[str, Any]:
         """Return the aggregated compliance evidence for ``payload``."""
         return build_compliance_evidence(payload)
 
-    def prompt_values(self, payload: ComplianceInput, evidence: Dict[str, Any]) -> Dict[str, str]:
+    def prompt_values(self, payload: ComplianceInput, evidence: dict[str, Any]) -> dict[str, str]:
         """Supply candidate id + workflow/risk placeholders for the prompt."""
         return {
             "candidate_id": payload.candidate_id or "unknown",
             "workflow_status": (payload.workflow or {}).get("status", "Requires Review"),
             "governance_risk": (payload.governance_risk or {}).get("level", "Medium"),
-            "data_available": "yes" if payload.data_available else "no (external systems not connected)",
+            "data_available": "yes"
+            if payload.data_available
+            else "no (external systems not connected)",
         }
 
-    def cache_dimensions(self, payload: ComplianceInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: ComplianceInput) -> tuple[str, str]:
         """Cache by candidate id (subject) + full evidence signature (scope)."""
         scope = json.dumps(build_compliance_evidence(payload), sort_keys=True, default=str)
         return payload.candidate_id or "compliance", scope
@@ -134,7 +135,9 @@ def _orchestration_payload_builder(task, context) -> ComplianceInput:
                 "title": getattr(profile, "current_title", ""),
             }
     return ComplianceInput(
-        candidate_id=str(payload.get("candidate_id", "") or overview.get("candidate_id", "") or "compliance"),
+        candidate_id=str(
+            payload.get("candidate_id", "") or overview.get("candidate_id", "") or "compliance"
+        ),
         data_available=bool(payload.get("data_available", False)),
         candidate_overview=overview,
         evidence_sources=payload.get("evidence_sources", []),
@@ -149,7 +152,7 @@ def _orchestration_payload_builder(task, context) -> ComplianceInput:
     )
 
 
-def _register_with_orchestration(agent: "HiringComplianceAgent") -> None:
+def _register_with_orchestration(agent: HiringComplianceAgent) -> None:
     """Register the agent with the Multi-Agent Orchestration platform (best-effort)."""
     try:
         from src.ai.orchestration.adapters import RunnerAgent

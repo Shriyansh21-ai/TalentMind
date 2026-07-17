@@ -8,13 +8,13 @@ the reused compliance/governance signals; nothing is invented (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.audit.schemas import ReasoningExplanation
 from src.ai.agents.audit.templates import CATALOG_BY_SOURCE
 
 
-def build_reasoning(context: Dict[str, Any]) -> ReasoningExplanation:
+def build_reasoning(context: dict[str, Any]) -> ReasoningExplanation:
     """Build the register-by-register reasoning explanation (Module 3)."""
     sources = list(context.get("evidence_sources", []))
     governance_risk = context.get("governance_risk", {}) or {}
@@ -25,7 +25,8 @@ def build_reasoning(context: Dict[str, Any]) -> ReasoningExplanation:
 
     observed_facts = [
         f"{CATALOG_BY_SOURCE[s].origin_agent} produced {CATALOG_BY_SOURCE[s].evidence_type.lower()}."
-        for s in sources if s in CATALOG_BY_SOURCE
+        for s in sources
+        if s in CATALOG_BY_SOURCE
     ]
 
     derived_insights = [
@@ -40,7 +41,9 @@ def build_reasoning(context: Dict[str, Any]) -> ReasoningExplanation:
         "No governance risk drivers surfaced from the available evidence."
     ]
 
-    assumptions = ["This reconstruction reflects only the evidence on record; it neither adds nor rewrites history."]
+    assumptions = [
+        "This reconstruction reflects only the evidence on record; it neither adds nor rewrites history."
+    ]
     if not data_available:
         assumptions.append(
             "No governance/approval system connected — human approvals and audit history are "
@@ -48,18 +51,22 @@ def build_reasoning(context: Dict[str, Any]) -> ReasoningExplanation:
         )
 
     # Human vs AI is kept strictly separate (Module 5 principle applied here too).
-    human_decisions: List[str] = []
+    human_decisions: list[str] = []
     for a in approvals.get("approvals", []):
         if a.get("required") and a.get("state") == "Complete":
             human_decisions.append(f"{a['approver']} approved (human decision).")
     if not human_decisions:
         human_decisions.append("No human approvals are verified on record (pending review).")
 
-    ai_decisions: List[str] = []
+    ai_decisions: list[str] = []
     if "AI Hiring Committee" in sources:
-        ai_decisions.append("The AI Hiring Committee produced a consensus recommendation (AI decision).")
+        ai_decisions.append(
+            "The AI Hiring Committee produced a consensus recommendation (AI decision)."
+        )
     if "Compensation Governance Agent" in sources:
-        ai_decisions.append("Compensation Governance recommended a defensible range (AI recommendation).")
+        ai_decisions.append(
+            "Compensation Governance recommended a defensible range (AI recommendation)."
+        )
     if "Pay Equity Guardian" in sources:
         ai_decisions.append("The Pay Equity Guardian assessed internal fairness (AI assessment).")
     if "Hiring Compliance" in sources:

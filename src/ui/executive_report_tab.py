@@ -13,11 +13,11 @@ which consumes existing structured outputs and never re-ranks or fabricates.
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 import streamlit as st
 
-from src.ai.core.runner import AgentRunner
 from src.ai.agents.executive_report import charts as charts_mod
 from src.ai.agents.executive_report.builder import ExecutiveReportBuilder
 from src.ai.agents.executive_report.export import (
@@ -29,9 +29,10 @@ from src.ai.agents.executive_report.export import (
 )
 from src.ai.agents.executive_report.schemas import ExecutiveHiringReport
 from src.ai.agents.executive_report.templates import TEMPLATES, get_template
+from src.ai.core.runner import AgentRunner
 
-_runner: Optional[AgentRunner] = None
-_builder: Optional[ExecutiveReportBuilder] = None
+_runner: AgentRunner | None = None
+_builder: ExecutiveReportBuilder | None = None
 
 
 def _get_builder(insights_fn=None) -> ExecutiveReportBuilder:
@@ -100,17 +101,24 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
         st.info(narrative.executive_summary)
         c = st.columns(2)
         with c[0]:
-            st.markdown("**Business impact**"); st.write(narrative.business_impact)
-            st.markdown("**Technical impact**"); st.write(narrative.technical_impact)
-            st.markdown("**Leadership potential**"); st.write(narrative.leadership_potential)
+            st.markdown("**Business impact**")
+            st.write(narrative.business_impact)
+            st.markdown("**Technical impact**")
+            st.write(narrative.technical_impact)
+            st.markdown("**Leadership potential**")
+            st.write(narrative.leadership_potential)
         with c[1]:
-            st.markdown("**Risk overview**"); st.write(narrative.risk_overview)
-            st.markdown("**Interview readiness**"); st.write(narrative.interview_readiness)
+            st.markdown("**Risk overview**")
+            st.write(narrative.risk_overview)
+            st.markdown("**Interview readiness**")
+            st.write(narrative.interview_readiness)
         c2 = st.columns(2)
         with c2[0]:
-            st.markdown("**Top reasons**"); _bullets(narrative.top_reasons, "Not substantiated by the evidence.")
+            st.markdown("**Top reasons**")
+            _bullets(narrative.top_reasons, "Not substantiated by the evidence.")
         with c2[1]:
-            st.markdown("**Top concerns**"); _bullets(narrative.top_concerns, "None surfaced.")
+            st.markdown("**Top concerns**")
+            _bullets(narrative.top_concerns, "None surfaced.")
         st.caption("📌 " + narrative.confidence_note)
 
     with tabs[1]:
@@ -118,12 +126,15 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
         charts_mod.render_scorecard(st, report.charts)
         story = report.candidate_overview.get("career_story")
         if story:
-            st.markdown("**Career trajectory**"); st.write(story)
+            st.markdown("**Career trajectory**")
+            st.write(story)
         cols = st.columns(2)
         with cols[0]:
-            st.markdown("**Strengths**"); _bullets(ci.get("strengths", []), "None recorded.")
+            st.markdown("**Strengths**")
+            _bullets(ci.get("strengths", []), "None recorded.")
         with cols[1]:
-            st.markdown("**Development areas**"); _bullets(ci.get("weaknesses", []), "None recorded.")
+            st.markdown("**Development areas**")
+            _bullets(ci.get("weaknesses", []), "None recorded.")
 
     with tabs[2]:
         ri = report.role_intelligence
@@ -139,9 +150,11 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
             if value:
                 st.caption(f"**{label}:** {value}")
         if ri.get("mandatory"):
-            st.markdown("**Mandatory requirements**"); _bullets(ri["mandatory"], "")
+            st.markdown("**Mandatory requirements**")
+            _bullets(ri["mandatory"], "")
         if ri.get("technology_stack"):
-            st.markdown("**Technology stack**"); _bullets(ri["technology_stack"], "")
+            st.markdown("**Technology stack**")
+            _bullets(ri["technology_stack"], "")
 
     with tabs[3]:
         committee = report.committee
@@ -153,9 +166,12 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
             cc = st.columns(3)
             cc[0].metric("Committee", str(consensus.get("recommendation", "n/a")))
             cc[1].metric("Consensus", str(consensus.get("level", "n/a")))
-            cc[2].metric("Confidence", f"{committee.get('confidence', {}).get('overall', 0):.0f}/100")
+            cc[2].metric(
+                "Confidence", f"{committee.get('confidence', {}).get('overall', 0):.0f}/100"
+            )
             charts_mod.render_consensus_meter(st, report.charts)
-            st.markdown("**Committee chair summary**"); st.write(decision.get("executive_summary", ""))
+            st.markdown("**Committee chair summary**")
+            st.write(decision.get("executive_summary", ""))
             st.markdown("**Every opinion**")
             _bullets(
                 [
@@ -183,14 +199,17 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
         rc[2].metric("Consistency", f"{rd.get('career_consistency', 0):.0f}/100")
         charts_mod.render_risk_matrix(st, report.charts)
         if rd.get("red_flags"):
-            st.markdown("**Red flags**"); _bullets(rd["red_flags"], "")
+            st.markdown("**Red flags**")
+            _bullets(rd["red_flags"], "")
         if rd.get("validation_questions"):
-            st.markdown("**Mitigations — validate in interview**"); _bullets(rd["validation_questions"], "")
+            st.markdown("**Mitigations — validate in interview**")
+            _bullets(rd["validation_questions"], "")
 
     with tabs[5]:
         iv = report.interview_strategy
         charts_mod.render_interview_roadmap(st, report.charts)
-        st.markdown("**Roadmap**"); _bullets(iv.roadmap, "")
+        st.markdown("**Roadmap**")
+        _bullets(iv.roadmap, "")
         for title, items in [
             ("Technical", iv.technical_interview),
             ("System Design", iv.system_design),
@@ -201,7 +220,8 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
             ("Decision Checkpoints", iv.decision_checkpoints),
         ]:
             if items:
-                st.markdown(f"**{title}**"); _bullets(items, "")
+                st.markdown(f"**{title}**")
+                _bullets(items, "")
         if iv.post_interview_recommendation:
             st.caption("📌 " + iv.post_interview_recommendation)
 
@@ -210,18 +230,25 @@ def _render_report(report: ExecutiveHiringReport, *, template: str, key_prefix: 
         st.success(f"Recommended action: **{ap.primary_action}**")
         st.write(ap.rationale)
         if ap.alternatives:
-            st.markdown("**Alternative dispositions**"); _bullets(ap.alternatives, "")
-        st.markdown("**Expected onboarding plan**"); _bullets(ap.onboarding_plan, "")
+            st.markdown("**Alternative dispositions**")
+            _bullets(ap.alternatives, "")
+        st.markdown("**Expected onboarding plan**")
+        _bullets(ap.onboarding_plan, "")
         cols = st.columns(3)
         with cols[0]:
-            st.markdown("**First 30 days**"); _bullets(ap.plan_30_day, "")
+            st.markdown("**First 30 days**")
+            _bullets(ap.plan_30_day, "")
         with cols[1]:
-            st.markdown("**First 60 days**"); _bullets(ap.plan_60_day, "")
+            st.markdown("**First 60 days**")
+            _bullets(ap.plan_60_day, "")
         with cols[2]:
-            st.markdown("**First 90 days**"); _bullets(ap.plan_90_day, "")
+            st.markdown("**First 90 days**")
+            _bullets(ap.plan_90_day, "")
 
     with tabs[7]:
-        st.caption("Confidence is attached to every estimate. Estimates restate existing intelligence.")
+        st.caption(
+            "Confidence is attached to every estimate. Estimates restate existing intelligence."
+        )
         for name, est in report.business_intelligence.items():
             st.caption(f"**{name}** — {est.level} (confidence {est.confidence:.0f}%)")
             st.progress(max(0.0, min(1.0, est.confidence / 100.0)))
@@ -267,7 +294,7 @@ def _render_export(report: ExecutiveHiringReport, *, template: str, key_prefix: 
             st.caption(f"{packet.name} unavailable.")
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         if empty_message:
@@ -284,7 +311,9 @@ def _bullets(items: List[str], empty_message: str) -> None:
 RepositoryFactory = Callable[[], Any]
 
 
-def render_executive_report_workspace(repository_factory: RepositoryFactory, *, insights_fn=None) -> None:
+def render_executive_report_workspace(
+    repository_factory: RepositoryFactory, *, insights_fn=None
+) -> None:
     """Render the Executive Hiring Report workspace (pick candidate + template → run)."""
     st.title("📊 Executive Hiring Report")
     st.caption(
@@ -321,5 +350,9 @@ def render_executive_report_workspace(repository_factory: RepositoryFactory, *, 
         candidate = repository.get(chosen)
         if candidate is not None:
             render_executive_report(
-                candidate, jd=jd_text, template=template, insights_fn=insights_fn, key_prefix="er_ws"
+                candidate,
+                jd=jd_text,
+                template=template,
+                insights_fn=insights_fn,
+                key_prefix="er_ws",
             )

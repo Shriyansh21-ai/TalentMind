@@ -10,13 +10,13 @@ own strengths/risks, so **no two candidates get the same generic loop**
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.interview_studio.schemas import InterviewStage, InterviewStrategy
 from src.ai.agents.interview_studio.templates import RoleProfile
 
 
-def _focus_from_priorities(evidence: Dict[str, Any], limit: int = 3) -> List[str]:
+def _focus_from_priorities(evidence: dict[str, Any], limit: int = 3) -> list[str]:
     """Return the top interview priorities to weave into stage focus."""
     committee = evidence.get("committee") or {}
     priorities = list((committee.get("decision") or {}).get("interview_priorities", []) or [])
@@ -26,10 +26,10 @@ def _focus_from_priorities(evidence: Dict[str, Any], limit: int = 3) -> List[str
 
 
 def build_roadmap(
-    evidence: Dict[str, Any],
+    evidence: dict[str, Any],
     strategy: InterviewStrategy,
     role: RoleProfile,
-) -> List[InterviewStage]:
+) -> list[InterviewStage]:
     """Assemble the adaptive interview roadmap (Module 2).
 
     Args:
@@ -45,7 +45,7 @@ def build_roadmap(
     top_strengths = list(intelligence.get("strengths") or [])[:2]
     has_risks = bool((evidence.get("risk") or {}).get("red_flags"))
 
-    stages: List[InterviewStage] = []
+    stages: list[InterviewStage] = []
 
     # 1) Always: recruiter / screening stage.
     stages.append(
@@ -54,7 +54,11 @@ def build_roadmap(
             objective="Confirm motivation, logistics, comp alignment and a baseline signal.",
             duration_minutes=30 if strategy.depth != "screen" else 45,
             interviewer="Recruiter",
-            focus=["Motivation and role alignment", "Notice period / logistics", "Baseline depth check"],
+            focus=[
+                "Motivation and role alignment",
+                "Notice period / logistics",
+                "Baseline depth check",
+            ],
             checkpoint="Proceed only if motivation and baseline are credible.",
         )
     )
@@ -80,7 +84,9 @@ def build_roadmap(
             objective=f"Verify {role.name} depth on proven skills and the role's stack.",
             duration_minutes=60,
             interviewer=f"{role.name} (senior)",
-            focus=(priorities[:1] or []) + [f"Depth: {s}" for s in top_strengths] + role.technical_focus[:2],
+            focus=(priorities[:1] or [])
+            + [f"Depth: {s}" for s in top_strengths]
+            + role.technical_focus[:2],
             checkpoint="Proceed only if technical depth is confirmed.",
         )
     )
@@ -143,7 +149,9 @@ def build_roadmap(
                 objective="Directly validate the risks the engines and committee flagged.",
                 duration_minutes=30,
                 interviewer="Bar Raiser",
-                focus=[f"Validate: {f}" for f in (evidence.get("risk") or {}).get("red_flags", [])[:3]],
+                focus=[
+                    f"Validate: {f}" for f in (evidence.get("risk") or {}).get("red_flags", [])[:3]
+                ],
                 checkpoint="Each flagged risk is either resolved or escalated with evidence.",
             )
         )

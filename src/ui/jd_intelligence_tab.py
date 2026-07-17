@@ -13,15 +13,13 @@ ranking.
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 import streamlit as st
 
-from src.ai.core.runner import AgentRunner
 from src.ai.agents.jd.agent import JDAnalystInput, jd_analyst_agent
 from src.ai.agents.jd.schemas import JDAnalysis
+from src.ai.core.runner import AgentRunner
 
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 _PRIORITY_BADGE = {"high": "🔴 High", "medium": "🟠 Medium", "low": "🟡 Low"}
 _RISK_BADGE = {"high": "🔴", "medium": "🟠", "low": "🟡"}
@@ -219,7 +217,9 @@ def _render_dashboard(a: JDAnalysis) -> None:
         mi = a.market_intelligence
         st.caption(mi.summary)
         for est in mi.estimates:
-            st.markdown(f"**{est.dimension.replace('_', ' ').title()}** — {est.assessment}  ·  {est.confidence:.0f}% confidence")
+            st.markdown(
+                f"**{est.dimension.replace('_', ' ').title()}** — {est.assessment}  ·  {est.confidence:.0f}% confidence"
+            )
 
     with tabs[6]:
         st.markdown(f"**Overall JD risk: {_LEVEL_COLOR.get(level, '⚪')} {level}**")
@@ -247,7 +247,7 @@ def _render_dashboard(a: JDAnalysis) -> None:
     st.caption("📌 " + a.confidence_note)
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         if empty_message:

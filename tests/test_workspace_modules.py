@@ -8,29 +8,23 @@ candidates so no ML dependency or production data is required.
 from __future__ import annotations
 
 import faiss  # noqa: F401  (import-order safety; harmless in tests)
-
 from conftest import make_candidate
-
-from src.insights.builder import build_insights
-from src.insights.models import CandidateInsights
 
 from src.comparison.builder import MAX_COMPARISON, build_comparison
 from src.comparison.models import NUMERIC_METRICS
-
+from src.dashboard import analytics, charts
+from src.filtering.engine import apply_filters, matches
+from src.filtering.models import FilterCriteria
+from src.insights.builder import build_insights
+from src.insights.models import CandidateInsights
+from src.interview.planner import build_interview_plan
+from src.talent_pool.models import TalentPool
 from src.talent_pool.segmentation import (
     filter_by_pool,
     pool_counts,
     segment_candidate,
     segment_pool,
 )
-from src.talent_pool.models import TalentPool
-
-from src.interview.planner import build_interview_plan
-
-from src.dashboard import analytics, charts
-
-from src.filtering.engine import apply_filters, matches
-from src.filtering.models import FilterCriteria
 
 JD = "python machine learning llm aws docker rag pytorch"
 
@@ -98,8 +92,12 @@ def test_future_pipeline_for_junior():
 
 
 def test_domain_pools_backend_frontend():
-    be = segment_candidate(_insights(title="Backend Engineer", skills=["Java", "Spring", "Microservices"]))
-    fe = segment_candidate(_insights(title="Frontend Engineer", skills=["React", "TypeScript", "CSS"]))
+    be = segment_candidate(
+        _insights(title="Backend Engineer", skills=["Java", "Spring", "Microservices"])
+    )
+    fe = segment_candidate(
+        _insights(title="Frontend Engineer", skills=["React", "TypeScript", "CSS"])
+    )
     assert TalentPool.BACKEND in be.pools
     assert TalentPool.FRONTEND in fe.pools
 
@@ -232,9 +230,7 @@ def test_filter_composes_with_faiss_allowed_ids():
         _insights(candidate_id="B", years=10.0),
     ]
     # Even though both match the criteria, only FAISS-approved ids survive.
-    result = apply_filters(
-        people, FilterCriteria(min_experience=1.0), allowed_ids={"B"}
-    )
+    result = apply_filters(people, FilterCriteria(min_experience=1.0), allowed_ids={"B"})
     assert [i.candidate_id for i in result] == ["B"]
 
 
@@ -243,8 +239,12 @@ def test_filter_by_location_and_company():
         _insights(candidate_id="A", location="Bangalore", company="Acme AI"),
         _insights(candidate_id="B", location="Delhi", company="Globex"),
     ]
-    assert [i.candidate_id for i in apply_filters(people, FilterCriteria(location="bangalore"))] == ["A"]
-    assert [i.candidate_id for i in apply_filters(people, FilterCriteria(company="globex"))] == ["B"]
+    assert [
+        i.candidate_id for i in apply_filters(people, FilterCriteria(location="bangalore"))
+    ] == ["A"]
+    assert [i.candidate_id for i in apply_filters(people, FilterCriteria(company="globex"))] == [
+        "B"
+    ]
 
 
 def test_empty_criteria_passes_all():

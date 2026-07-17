@@ -24,9 +24,7 @@ from src.platform.integrations.common.provider import BaseIntegrationProvider
 _ATS_ENTITIES = ["job", "candidate", "application", "stage", "interview", "offer"]
 
 
-def _ats_capabilities(
-    *, webhooks: bool = True, write: bool = True
-) -> IntegrationCapabilities:
+def _ats_capabilities(*, webhooks: bool = True, write: bool = True) -> IntegrationCapabilities:
     """Return a standard ATS capability profile (bidirectional)."""
     return IntegrationCapabilities(
         supports_read=True,

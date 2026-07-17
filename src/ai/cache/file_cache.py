@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 from src.ai.cache.base import BaseCache
 
@@ -24,18 +24,18 @@ class FileCache(BaseCache):
         safe = "".join(c for c in key if c.isalnum() or c in (".", "_", "-"))
         return os.path.join(self.directory, f"{safe}.json")
 
-    def get(self, key: str) -> Optional[Dict[str, Any]]:
+    def get(self, key: str) -> dict[str, Any] | None:
         """Return the cached payload for ``key`` (``None`` on miss / corruption)."""
         path = self._path(key)
         if not os.path.exists(path):
             return None
         try:
-            with open(path, "r", encoding="utf-8") as handle:
+            with open(path, encoding="utf-8") as handle:
                 return json.load(handle)
         except (json.JSONDecodeError, OSError):
             return None
 
-    def set(self, key: str, value: Dict[str, Any]) -> None:
+    def set(self, key: str, value: dict[str, Any]) -> None:
         """Persist ``value`` under ``key`` via write-then-replace."""
         os.makedirs(self.directory, exist_ok=True)
         path = self._path(key)

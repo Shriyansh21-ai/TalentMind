@@ -10,11 +10,11 @@ unavailable or misbehaves.
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.ai.config.settings import AISettings
-from src.ai.core.response import AgentResponse, TokenUsage
 from src.ai.core.exceptions import ProviderUnavailableError
+from src.ai.core.response import AgentResponse, TokenUsage
 from src.ai.providers.base import BaseLLMProvider, LLMMessage
 from src.ai.providers.composers import get_composer
 
@@ -32,15 +32,13 @@ class LocalHeuristicProvider(BaseLLMProvider):
         """This provider is fully deterministic and offline."""
         return True
 
-    def generate(self, messages: List[LLMMessage], **kwargs: Any) -> AgentResponse:
+    def generate(self, messages: list[LLMMessage], **kwargs: Any) -> AgentResponse:
         """Return the concatenated user content (no model call).
 
         Free-form generation has no deterministic analogue, so this simply echoes
         the last user message — useful for smoke tests and streaming defaults.
         """
-        last_user = next(
-            (m.content for m in reversed(messages) if m.role == "user"), ""
-        )
+        last_user = next((m.content for m in reversed(messages) if m.role == "user"), "")
         return AgentResponse(
             text=last_user,
             provider=self.key,
@@ -51,11 +49,11 @@ class LocalHeuristicProvider(BaseLLMProvider):
 
     def generate_json(
         self,
-        messages: List[LLMMessage],
+        messages: list[LLMMessage],
         *,
-        schema: Dict[str, Any],
+        schema: dict[str, Any],
         schema_name: str,
-        evidence: Optional[Dict[str, Any]] = None,
+        evidence: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> AgentResponse:
         """Compose a schema-shaped JSON response deterministically from evidence."""

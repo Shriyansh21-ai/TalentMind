@@ -9,18 +9,16 @@ domain objects (insights + interview plan + JD) into a standardized
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Any, Dict, List
+from typing import Any
 
+# Importing the agent module registers the agent + its deterministic composer.
+from src.ai.agents.hiring_analyst import HiringAnalystInput, hiring_analyst_agent
 from src.ai.config.settings import AISettings
 from src.ai.core.agent_config import AgentConfig
 from src.ai.core.response import AgentResult
 from src.ai.core.runner import AgentRunner
 from src.ai.providers.factory import available_providers
 from src.ai.telemetry.logger import get_default_logger
-
-# Importing the agent module registers the agent + its deterministic composer.
-from src.ai.agents.hiring_analyst import HiringAnalystInput, hiring_analyst_agent
-
 from src.insights.models import CandidateInsights
 from src.interview.models import InterviewPlan
 
@@ -50,9 +48,7 @@ def analyze_candidate(
         A standardized :class:`AgentResult` whose ``data`` is a ``HiringAnalysis``
         (or ``status == FAILED`` with an error message).
     """
-    payload = HiringAnalystInput(
-        insights=insights, interview_plan=interview_plan, jd=jd
-    )
+    payload = HiringAnalystInput(insights=insights, interview_plan=interview_plan, jd=jd)
     config = AgentConfig(force_refresh=force_refresh)
     return get_runner().run(hiring_analyst_agent, payload, config)
 
@@ -67,13 +63,11 @@ def peek_cached_analysis(
     Lets the UI show an existing analysis instantly on tab open while keeping
     generation strictly on-demand.
     """
-    payload = HiringAnalystInput(
-        insights=insights, interview_plan=interview_plan, jd=jd
-    )
+    payload = HiringAnalystInput(insights=insights, interview_plan=interview_plan, jd=jd)
     return get_runner().peek(hiring_analyst_agent, payload)
 
 
-def get_platform_status() -> Dict[str, Any]:
+def get_platform_status() -> dict[str, Any]:
     """Return a snapshot of AI-platform configuration + provider health."""
     settings = AISettings.from_env()
     return {
@@ -85,7 +79,7 @@ def get_platform_status() -> Dict[str, Any]:
     }
 
 
-def recent_telemetry(limit: int = 25) -> List[Dict[str, Any]]:
+def recent_telemetry(limit: int = 25) -> list[dict[str, Any]]:
     """Return recent AI telemetry events as plain dicts (newest last)."""
     settings = AISettings.from_env()
     logger = get_default_logger(settings.telemetry_dir)

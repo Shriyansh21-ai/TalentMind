@@ -47,16 +47,12 @@ class LocalIdentityProvider:
     def find_by_email(self, tenant_id: str, email: str) -> User | None:
         """Return the tenant's user with ``email`` (case-insensitive)."""
         target = email.strip().lower()
-        matches = self._users.list(
-            tenant_id=tenant_id, where=lambda u: u.email == target
-        )
+        matches = self._users.list(tenant_id=tenant_id, where=lambda u: u.email == target)
         return matches[0] if matches else None
 
     def _credential_for(self, tenant_id: str, user_id: str) -> Credential | None:
         """Return the active credential for a user within a tenant."""
-        matches = self._credentials.list(
-            tenant_id=tenant_id, where=lambda c: c.user_id == user_id
-        )
+        matches = self._credentials.list(tenant_id=tenant_id, where=lambda c: c.user_id == user_id)
         return matches[0] if matches else None
 
     def authenticate(self, tenant_id: str, identifier: str, secret: str) -> User:
@@ -68,9 +64,7 @@ class LocalIdentityProvider:
                 does not leak whether an account exists.
         """
         user = self.find_by_email(tenant_id, identifier)
-        credential = (
-            self._credential_for(tenant_id, user.id) if user is not None else None
-        )
+        credential = self._credential_for(tenant_id, user.id) if user is not None else None
         # Always run a verify to keep timing uniform even when the user is absent.
         ok = False
         if user is not None and credential is not None:

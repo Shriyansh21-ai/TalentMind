@@ -11,8 +11,8 @@ later.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable
 
 from pydantic import Field
 
@@ -82,9 +82,7 @@ class Router:
     def __init__(self) -> None:
         self._routes: list[RegisteredRoute] = []
 
-    def add(
-        self, route: ApiRoute, handler: RouteHandler | None = None
-    ) -> RegisteredRoute:
+    def add(self, route: ApiRoute, handler: RouteHandler | None = None) -> RegisteredRoute:
         """Register ``route`` (optionally with a handler)."""
         for existing in self._routes:
             if existing.route.method == route.method and existing.route.path == route.path:

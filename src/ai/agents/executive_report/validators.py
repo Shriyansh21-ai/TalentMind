@@ -16,7 +16,7 @@ builder and the tests can both use them.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.executive_report.schemas import ExecutiveNarrative, ProvenanceEntry
 
@@ -36,9 +36,9 @@ _SOURCE_LABELS = {
 }
 
 
-def available_sources(evidence: Dict[str, Any]) -> List[str]:
+def available_sources(evidence: dict[str, Any]) -> list[str]:
     """Return the labels of the evidence sources actually present (ordered)."""
-    labels: List[str] = []
+    labels: list[str] = []
     for key, label in _SOURCE_LABELS.items():
         value = evidence.get(key)
         if value:
@@ -47,14 +47,14 @@ def available_sources(evidence: Dict[str, Any]) -> List[str]:
 
 
 def build_provenance(
-    narrative: ExecutiveNarrative, evidence: Dict[str, Any]
-) -> List[ProvenanceEntry]:
+    narrative: ExecutiveNarrative, evidence: dict[str, Any]
+) -> list[ProvenanceEntry]:
     """Build the provenance table linking narrative claims to their sources.
 
     Only claims whose backing source is present in the evidence are recorded, so
     the report never attributes a statement to a source it did not consume.
     """
-    entries: List[ProvenanceEntry] = []
+    entries: list[ProvenanceEntry] = []
 
     def _src(*keys: str) -> str:
         for key in keys:
@@ -74,11 +74,17 @@ def build_provenance(
     # Evidence register — facts an engine produced.
     if narrative.business_impact:
         entries.append(
-            ProvenanceEntry("Evidence", narrative.business_impact, _src("committee", "recommendation", "intelligence"))
+            ProvenanceEntry(
+                "Evidence",
+                narrative.business_impact,
+                _src("committee", "recommendation", "intelligence"),
+            )
         )
     if narrative.technical_impact:
         entries.append(
-            ProvenanceEntry("Evidence", narrative.technical_impact, _src("committee", "intelligence", "resume"))
+            ProvenanceEntry(
+                "Evidence", narrative.technical_impact, _src("committee", "intelligence", "resume")
+            )
         )
     if narrative.risk_overview:
         entries.append(
@@ -88,19 +94,23 @@ def build_provenance(
     # Inference register — interpretations.
     if narrative.leadership_potential:
         entries.append(
-            ProvenanceEntry("Inference", narrative.leadership_potential, _src("intelligence", "timeline"))
+            ProvenanceEntry(
+                "Inference", narrative.leadership_potential, _src("intelligence", "timeline")
+            )
         )
     if narrative.interview_readiness:
         entries.append(
-            ProvenanceEntry("Inference", narrative.interview_readiness, _src("interview", "recommendation"))
+            ProvenanceEntry(
+                "Inference", narrative.interview_readiness, _src("interview", "recommendation")
+            )
         )
 
     return entries
 
 
-def validate_provenance(entries: List[ProvenanceEntry]) -> List[str]:
+def validate_provenance(entries: list[ProvenanceEntry]) -> list[str]:
     """Return a list of warnings for any provenance rule violation (empty == ok)."""
-    warnings: List[str] = []
+    warnings: list[str] = []
     for entry in entries:
         if entry.kind not in ALLOWED_KINDS:
             warnings.append(f"Provenance entry has invalid register '{entry.kind}'.")
@@ -111,10 +121,10 @@ def validate_provenance(entries: List[ProvenanceEntry]) -> List[str]:
     return warnings
 
 
-def evidence_coverage_warnings(evidence: Dict[str, Any]) -> List[str]:
+def evidence_coverage_warnings(evidence: dict[str, Any]) -> list[str]:
     """Return warnings when the report rests on thin evidence (Module 16)."""
     sources = available_sources(evidence)
-    warnings: List[str] = []
+    warnings: list[str] = []
     if not evidence.get("committee"):
         warnings.append("No committee decision — the executive recommendation is less robust.")
     if not evidence.get("jd"):

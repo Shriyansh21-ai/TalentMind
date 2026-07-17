@@ -22,17 +22,16 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
+from src.ai.agents.executive_report.composer import compose_executive_narrative
+from src.ai.agents.executive_report.schemas import ExecutiveNarrative
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.prompts.loader import PromptLoader
 from src.ai.providers.base import LLMMessage
 from src.ai.providers.composers import register_composer
-
-from src.ai.agents.executive_report.composer import compose_executive_narrative
-from src.ai.agents.executive_report.schemas import ExecutiveNarrative
 
 # Prompts co-locate with the agent; a dedicated loader points at this package's
 # ``prompts/`` dir, leaving the shared prompt library untouched.
@@ -65,19 +64,19 @@ class ExecutiveReportInput:
 
     candidate_id: str = ""
     template: str = "executive"
-    candidate_overview: Dict[str, Any] = field(default_factory=dict)
-    resume: Dict[str, Any] = field(default_factory=dict)
-    jd: Dict[str, Any] = field(default_factory=dict)
-    committee: Dict[str, Any] = field(default_factory=dict)
-    intelligence: Dict[str, Any] = field(default_factory=dict)
-    timeline: Dict[str, Any] = field(default_factory=dict)
-    risk: Dict[str, Any] = field(default_factory=dict)
-    recommendation: Dict[str, Any] = field(default_factory=dict)
-    interview: Dict[str, Any] = field(default_factory=dict)
-    pipeline: Dict[str, Any] = field(default_factory=dict)
+    candidate_overview: dict[str, Any] = field(default_factory=dict)
+    resume: dict[str, Any] = field(default_factory=dict)
+    jd: dict[str, Any] = field(default_factory=dict)
+    committee: dict[str, Any] = field(default_factory=dict)
+    intelligence: dict[str, Any] = field(default_factory=dict)
+    timeline: dict[str, Any] = field(default_factory=dict)
+    risk: dict[str, Any] = field(default_factory=dict)
+    recommendation: dict[str, Any] = field(default_factory=dict)
+    interview: dict[str, Any] = field(default_factory=dict)
+    pipeline: dict[str, Any] = field(default_factory=dict)
 
 
-def build_executive_evidence(payload: ExecutiveReportInput) -> Dict[str, Any]:
+def build_executive_evidence(payload: ExecutiveReportInput) -> dict[str, Any]:
     """Pack the pre-gathered structured outputs into the evidence dict.
 
     This is the sole factual input to the narrative: it contains only existing
@@ -117,24 +116,24 @@ class ExecutiveHiringReportAgent(BaseAgent):
     )
     output_schema = ExecutiveNarrative
 
-    def build_messages(self, payload, loader, evidence: Dict[str, Any]) -> List[LLMMessage]:
+    def build_messages(self, payload, loader, evidence: dict[str, Any]) -> list[LLMMessage]:
         """Render prompts from the agent's own ``prompts/`` directory."""
         return super().build_messages(payload, _prompt_loader, evidence)
 
-    def build_evidence(self, payload: ExecutiveReportInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: ExecutiveReportInput) -> dict[str, Any]:
         """Return the aggregated executive evidence for ``payload``."""
         return build_executive_evidence(payload)
 
     def prompt_values(
-        self, payload: ExecutiveReportInput, evidence: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, payload: ExecutiveReportInput, evidence: dict[str, Any]
+    ) -> dict[str, str]:
         """Supply candidate id + template placeholders for the prompt."""
         return {
             "candidate_id": payload.candidate_id or "unknown",
             "template": payload.template or "executive",
         }
 
-    def cache_dimensions(self, payload: ExecutiveReportInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: ExecutiveReportInput) -> tuple[str, str]:
         """Cache by candidate id (subject) + evidence + template signature (scope)."""
         scope = json.dumps(
             {"t": payload.template, "e": build_executive_evidence(payload)},
@@ -160,7 +159,11 @@ def _orchestration_payload_builder(task, context) -> ExecutiveReportInput:
                 "location": getattr(profile, "location", ""),
             }
     return ExecutiveReportInput(
-        candidate_id=str(payload.get("candidate_id", "") or overview.get("candidate_id", "") or "executive_report"),
+        candidate_id=str(
+            payload.get("candidate_id", "")
+            or overview.get("candidate_id", "")
+            or "executive_report"
+        ),
         template=payload.get("template", "executive"),
         candidate_overview=overview,
         resume=payload.get("resume", {}),
@@ -175,7 +178,7 @@ def _orchestration_payload_builder(task, context) -> ExecutiveReportInput:
     )
 
 
-def _register_with_orchestration(agent: "ExecutiveHiringReportAgent") -> None:
+def _register_with_orchestration(agent: ExecutiveHiringReportAgent) -> None:
     """Register the agent with the Multi-Agent Orchestration platform (best-effort)."""
     try:
         from src.ai.orchestration.adapters import RunnerAgent

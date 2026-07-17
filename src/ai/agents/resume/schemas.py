@@ -14,12 +14,9 @@ it without a redesign.
 
 from __future__ import annotations
 
-from typing import List
-
 from pydantic import Field, field_validator
 
 from src.ai.schemas.base import BaseAIResponse
-
 
 # ---------------------------------------------------------------------------
 # Nested report models (numeric dimensions live here, never at top level)
@@ -43,11 +40,11 @@ class ResumeQuality(BaseAIResponse):
 class StructureReport(BaseAIResponse):
     """Resume structure analysis (Module 1)."""
 
-    sections_present: List[str] = Field(default_factory=list)
-    sections_missing: List[str] = Field(default_factory=list)
-    weak_sections: List[str] = Field(default_factory=list)
-    empty_sections: List[str] = Field(default_factory=list)
-    observations: List[str] = Field(default_factory=list)
+    sections_present: list[str] = Field(default_factory=list)
+    sections_missing: list[str] = Field(default_factory=list)
+    weak_sections: list[str] = Field(default_factory=list)
+    empty_sections: list[str] = Field(default_factory=list)
+    observations: list[str] = Field(default_factory=list)
 
 
 class CareerStory(BaseAIResponse):
@@ -59,15 +56,15 @@ class CareerStory(BaseAIResponse):
     consistency: str = ""
     focus: str = ""
     progression_strength: str = ""
-    observations: List[str] = Field(default_factory=list)
+    observations: list[str] = Field(default_factory=list)
 
 
 class TechnicalReport(BaseAIResponse):
     """Technical resume analysis (Module 4)."""
 
-    technologies: List[str] = Field(default_factory=list)
-    modern_technologies: List[str] = Field(default_factory=list)
-    dated_technologies: List[str] = Field(default_factory=list)
+    technologies: list[str] = Field(default_factory=list)
+    modern_technologies: list[str] = Field(default_factory=list)
+    dated_technologies: list[str] = Field(default_factory=list)
     diversity: str = ""
     depth: str = ""
     breadth: str = ""
@@ -75,7 +72,7 @@ class TechnicalReport(BaseAIResponse):
     ai_exposure: bool = False
     production_exposure: bool = False
     open_source: bool = False
-    observations: List[str] = Field(default_factory=list)
+    observations: list[str] = Field(default_factory=list)
 
 
 class ProjectInsight(BaseAIResponse):
@@ -89,30 +86,30 @@ class ProjectInsight(BaseAIResponse):
     production_readiness: str = ""
     uniqueness: str = ""
     scalability: str = ""
-    technologies: List[str] = Field(default_factory=list)
+    technologies: list[str] = Field(default_factory=list)
     evidence: str = ""
 
 
 class AchievementReport(BaseAIResponse):
     """Achievement intelligence (Module 6)."""
 
-    quantified: List[str] = Field(default_factory=list)
-    leadership: List[str] = Field(default_factory=list)
-    recognition: List[str] = Field(default_factory=list)
+    quantified: list[str] = Field(default_factory=list)
+    leadership: list[str] = Field(default_factory=list)
+    recognition: list[str] = Field(default_factory=list)
     strength: str = ""
-    missing: List[str] = Field(default_factory=list)
-    suggestions: List[str] = Field(default_factory=list)
+    missing: list[str] = Field(default_factory=list)
+    suggestions: list[str] = Field(default_factory=list)
 
 
 class ATSReport(BaseAIResponse):
     """ATS optimization report (Module 7). Resume quality only — never ranking."""
 
     friendliness: str = ""
-    matched_keywords: List[str] = Field(default_factory=list)
-    missing_keywords: List[str] = Field(default_factory=list)
-    overused_keywords: List[str] = Field(default_factory=list)
-    parsing_notes: List[str] = Field(default_factory=list)
-    suggestions: List[str] = Field(default_factory=list)
+    matched_keywords: list[str] = Field(default_factory=list)
+    missing_keywords: list[str] = Field(default_factory=list)
+    overused_keywords: list[str] = Field(default_factory=list)
+    parsing_notes: list[str] = Field(default_factory=list)
+    suggestions: list[str] = Field(default_factory=list)
 
 
 class ResumeRiskFinding(BaseAIResponse):
@@ -128,8 +125,8 @@ class ResumeRiskReport(BaseAIResponse):
     """Resume risk report — evidence only, never hallucinated (Module 8)."""
 
     level: str = "Low"
-    findings: List[ResumeRiskFinding] = Field(default_factory=list)
-    positive_signals: List[str] = Field(default_factory=list)
+    findings: list[ResumeRiskFinding] = Field(default_factory=list)
+    positive_signals: list[str] = Field(default_factory=list)
 
 
 class RewriteSuggestion(BaseAIResponse):
@@ -148,8 +145,8 @@ class WritingReport(BaseAIResponse):
     conciseness: str = ""
     action_verb_usage: str = ""
     bullet_quality: str = ""
-    observations: List[str] = Field(default_factory=list)
-    sample_rewrites: List[RewriteSuggestion] = Field(default_factory=list)
+    observations: list[str] = Field(default_factory=list)
+    sample_rewrites: list[RewriteSuggestion] = Field(default_factory=list)
 
 
 class Improvement(BaseAIResponse):
@@ -178,20 +175,20 @@ class ResumeAnalysis(BaseAIResponse):
     """
 
     executive_summary: str
-    strengths: List[str] = Field(default_factory=list)
-    weaknesses: List[str] = Field(default_factory=list)
+    strengths: list[str] = Field(default_factory=list)
+    weaknesses: list[str] = Field(default_factory=list)
     career_story: CareerStory = Field(default_factory=CareerStory)
     resume_quality: ResumeQuality = Field(default_factory=ResumeQuality)
     structure: StructureReport = Field(default_factory=StructureReport)
     writing: WritingReport = Field(default_factory=WritingReport)
     technical: TechnicalReport = Field(default_factory=TechnicalReport)
-    projects: List[ProjectInsight] = Field(default_factory=list)
+    projects: list[ProjectInsight] = Field(default_factory=list)
     achievements: AchievementReport = Field(default_factory=AchievementReport)
     ats_report: ATSReport = Field(default_factory=ATSReport)
     risk_report: ResumeRiskReport = Field(default_factory=ResumeRiskReport)
-    improvement_plan: List[Improvement] = Field(default_factory=list)
+    improvement_plan: list[Improvement] = Field(default_factory=list)
     confidence_note: str = ""
-    evidence: List[str] = Field(default_factory=list)
+    evidence: list[str] = Field(default_factory=list)
 
     @field_validator("executive_summary")
     @classmethod

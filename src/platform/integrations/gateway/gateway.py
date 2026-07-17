@@ -29,7 +29,7 @@ from src.platform.common.errors import (
 )
 from src.platform.common.ids import generate_id
 from src.platform.common.models import PlatformModel
-from src.platform.integrations.gateway.auth import AuthenticationHook, ApiPrincipal
+from src.platform.integrations.gateway.auth import ApiPrincipal, AuthenticationHook
 from src.platform.integrations.gateway.routing import HttpMethod, Router
 
 
@@ -67,7 +67,9 @@ class ApiGateway:
         try:
             resolved = self.router.resolve(request.method, request.path)
             if resolved is None:
-                return fail("not_found", f"no route for {request.method.value} {request.path}", meta=meta)
+                return fail(
+                    "not_found", f"no route for {request.method.value} {request.path}", meta=meta
+                )
             registered, params = resolved
             route = registered.route
 
@@ -117,9 +119,7 @@ class ApiGateway:
         key = principal.principal_id if principal else f"anon:{request.path}"
         result = self.rate_limiter.check(key)
         if not result.allowed:
-            raise QuotaExceededError(
-                f"rate limit exceeded (limit={result.limit}/min)"
-            )
+            raise QuotaExceededError(f"rate limit exceeded (limit={result.limit}/min)")
 
     def http_status(self, response: ApiResponse) -> int:
         """Return the HTTP status a response maps to (200 on success)."""

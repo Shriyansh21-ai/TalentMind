@@ -69,9 +69,7 @@ class ThreatDetectionService:
     ) -> None:
         self._clock = clock or SystemClock()
         self._brute_force_threshold = brute_force_threshold
-        self.events: InMemoryRepository[SecurityEvent] = InMemoryRepository(
-            "security_event"
-        )
+        self.events: InMemoryRepository[SecurityEvent] = InMemoryRepository("security_event")
         # (tenant, actor) -> failed attempt count
         self._failed_access: dict[tuple[str, str], int] = {}
         # (tenant, key) -> last known config hash (for drift)
@@ -123,8 +121,11 @@ class ThreatDetectionService:
         self._failed_access[key] = count
         if count >= self._brute_force_threshold:
             return self.report_event(
-                tenant_id, organization_id, ThreatType.BRUTE_FORCE,
-                risk_level=RiskLevel.HIGH, actor_id=actor_id,
+                tenant_id,
+                organization_id,
+                ThreatType.BRUTE_FORCE,
+                risk_level=RiskLevel.HIGH,
+                actor_id=actor_id,
                 description=f"{count} consecutive failed access attempts",
                 metadata={"attempts": count},
             )
@@ -135,8 +136,11 @@ class ThreatDetectionService:
     ) -> SecurityEvent:
         """Record an access-violation event (denied permission)."""
         return self.report_event(
-            tenant_id, organization_id, ThreatType.ACCESS_VIOLATION,
-            risk_level=RiskLevel.MEDIUM, actor_id=actor_id,
+            tenant_id,
+            organization_id,
+            ThreatType.ACCESS_VIOLATION,
+            risk_level=RiskLevel.MEDIUM,
+            actor_id=actor_id,
             description=f"denied access to '{permission}'",
             metadata={"permission": permission},
         )
@@ -156,8 +160,11 @@ class ThreatDetectionService:
         if not gained:
             return None
         return self.report_event(
-            tenant_id, organization_id, ThreatType.PERMISSION_ESCALATION,
-            risk_level=RiskLevel.HIGH, actor_id=actor_id,
+            tenant_id,
+            organization_id,
+            ThreatType.PERMISSION_ESCALATION,
+            risk_level=RiskLevel.HIGH,
+            actor_id=actor_id,
             description=f"privileged roles granted: {gained}",
             metadata={"roles": gained},
         )
@@ -171,7 +178,9 @@ class ThreatDetectionService:
         self._config_baseline[key] = config_hash
         if baseline is not None and baseline != config_hash:
             return self.report_event(
-                tenant_id, organization_id, ThreatType.CONFIGURATION_DRIFT,
+                tenant_id,
+                organization_id,
+                ThreatType.CONFIGURATION_DRIFT,
                 risk_level=RiskLevel.MEDIUM,
                 description=f"configuration '{config_key}' drifted from baseline",
                 metadata={"config_key": config_key},
@@ -187,9 +196,7 @@ class ThreatDetectionService:
         event.touch(self._clock.now())
         return self.events.update(event)
 
-    def list_events(
-        self, tenant_id: str, *, unresolved_only: bool = False
-    ) -> list[SecurityEvent]:
+    def list_events(self, tenant_id: str, *, unresolved_only: bool = False) -> list[SecurityEvent]:
         """Return a tenant's security events."""
         where = (lambda e: not e.resolved) if unresolved_only else None
         return self.events.list(tenant_id=tenant_id, where=where)

@@ -8,7 +8,6 @@ dataclass so it is trivial to serialize for future durable memory.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
 
 
 @dataclass
@@ -25,26 +24,26 @@ class ConversationState:
             (lets "compare the top two" resolve without explicit ids).
     """
 
-    current_candidate: Optional[str] = None
-    current_comparison: List[str] = field(default_factory=list)
+    current_candidate: str | None = None
+    current_comparison: list[str] = field(default_factory=list)
     current_jd: str = ""
-    current_pipeline_candidate: Optional[str] = None
-    current_filters: Dict[str, object] = field(default_factory=dict)
-    last_search_results: List[str] = field(default_factory=list)
+    current_pipeline_candidate: str | None = None
+    current_filters: dict[str, object] = field(default_factory=dict)
+    last_search_results: list[str] = field(default_factory=list)
 
     def focus_candidate(self, candidate_id: str) -> None:
         """Set the in-focus candidate."""
         if candidate_id:
             self.current_candidate = candidate_id
 
-    def set_comparison(self, candidate_ids: List[str]) -> None:
+    def set_comparison(self, candidate_ids: list[str]) -> None:
         """Set the active comparison set (deduplicated, order-preserving)."""
-        seen: List[str] = []
+        seen: list[str] = []
         for cid in candidate_ids:
             if cid and cid not in seen:
                 seen.append(cid)
         self.current_comparison = seen
 
-    def record_search(self, candidate_ids: List[str]) -> None:
+    def record_search(self, candidate_ids: list[str]) -> None:
         """Record the ids returned by the latest search."""
         self.last_search_results = list(candidate_ids)

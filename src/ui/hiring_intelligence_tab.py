@@ -13,17 +13,18 @@ enterprise statistics. This is an ORGANIZATION-level workspace (no candidate pic
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 import streamlit as st
 
-from src.ai.core.runner import AgentRunner
 from src.ai.agents.hiring_intelligence.analytics_engine import HiringIntelligenceEngine
 from src.ai.agents.hiring_intelligence.schemas import HiringIntelligenceReport
 from src.ai.agents.hiring_intelligence.templates import ANALYTICS_COHORT
+from src.ai.core.runner import AgentRunner
 
-_runner: Optional[AgentRunner] = None
-_engine: Optional[HiringIntelligenceEngine] = None
+_runner: AgentRunner | None = None
+_engine: HiringIntelligenceEngine | None = None
 
 
 def _get_engine(insights_fn=None) -> HiringIntelligenceEngine:
@@ -37,7 +38,7 @@ def _get_engine(insights_fn=None) -> HiringIntelligenceEngine:
 
 
 def render_hiring_intelligence(
-    candidates: List[Any],
+    candidates: list[Any],
     *,
     jd: str = "",
     insights_fn=None,
@@ -63,8 +64,12 @@ def render_hiring_intelligence(
 
 
 _REGISTER_BADGE = {
-    "Observed": "✅", "Estimated": "≈", "Forecast": "🔮", "Unavailable": "➖",
-    "Recommendation": "💡", "Human Review": "👤",
+    "Observed": "✅",
+    "Estimated": "≈",
+    "Forecast": "🔮",
+    "Unavailable": "➖",
+    "Recommendation": "💡",
+    "Human Review": "👤",
 }
 
 
@@ -80,11 +85,16 @@ def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None
     top = st.columns(4)
     top[0].metric("Analyzed Cohort", report.cohort_size)
     top[1].metric("Hiring Health", health.label if health else "n/a")
-    top[2].metric("Priority Optimizations", sum(1 for o in report.optimizations if o.priority in ("Critical", "High")))
+    top[2].metric(
+        "Priority Optimizations",
+        sum(1 for o in report.optimizations if o.priority in ("Critical", "High")),
+    )
     top[3].metric("Analytics Source", "Connected" if report.data_available else "Not connected")
 
     if not report.data_available:
-        st.info("ℹ️ No workforce-analytics source connected — trends, delays, team breakdowns and capacity are Unavailable and marked as such (Module 15). Analytics run over a bounded analyzed cohort.")
+        st.info(
+            "ℹ️ No workforce-analytics source connected — trends, delays, team breakdowns and capacity are Unavailable and marked as such (Module 15). Analytics run over a bounded analyzed cohort."
+        )
     for warning in report.warnings:
         st.warning(warning)
 
@@ -109,10 +119,13 @@ def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None
         st.caption("🔎 " + narrative.data_availability_note)
         c = st.columns(2)
         with c[0]:
-            st.markdown("**Key insights**"); _bullets(narrative.key_insights, "")
-            st.markdown("**Strategic recommendations**"); _bullets(narrative.strategic_recommendations, "")
+            st.markdown("**Key insights**")
+            _bullets(narrative.key_insights, "")
+            st.markdown("**Strategic recommendations**")
+            _bullets(narrative.strategic_recommendations, "")
         with c[1]:
-            st.markdown("**Assumptions**"); _bullets(narrative.assumptions, "")
+            st.markdown("**Assumptions**")
+            _bullets(narrative.assumptions, "")
         st.caption("📌 " + narrative.confidence_note)
 
     with tabs[1]:
@@ -146,7 +159,10 @@ def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None
             st.markdown(f"✅ **{t.dimension}: {t.group}** — {t.hiring_health}")
             st.caption(t.detail)
         if unavailable:
-            st.caption("Unavailable dimensions (need org-structure data): " + ", ".join(sorted({t.dimension for t in unavailable})))
+            st.caption(
+                "Unavailable dimensions (need org-structure data): "
+                + ", ".join(sorted({t.dimension for t in unavailable}))
+            )
 
     with tabs[5]:
         st.caption(narrative.trend_note)
@@ -179,7 +195,9 @@ def _render_report(report: HiringIntelligenceReport, *, key_prefix: str) -> None
             if b.note:
                 st.caption(b.note)
             for c in b.comparisons:
-                st.caption(f"• {c['group']}: {c['hiring_health']} · avg capability {c.get('avg_capability')} · {c.get('positive_share')}% positive ({c['count']})")
+                st.caption(
+                    f"• {c['group']}: {c['hiring_health']} · avg capability {c.get('avg_capability')} · {c.get('positive_share')}% positive ({c['count']})"
+                )
 
     with tabs[9]:
         st.caption(narrative.optimization_note)
@@ -229,7 +247,7 @@ def _bar(data: dict) -> None:
             st.caption(f"{label}: {'▇' * int(round(value / peak * 12)) or '·'} {value}")
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         if empty_message:
@@ -246,7 +264,9 @@ def _bullets(items: List[str], empty_message: str) -> None:
 RepositoryFactory = Callable[[], Any]
 
 
-def render_hiring_intelligence_workspace(repository_factory: RepositoryFactory, *, insights_fn=None) -> None:
+def render_hiring_intelligence_workspace(
+    repository_factory: RepositoryFactory, *, insights_fn=None
+) -> None:
     """Render the Hiring Intelligence workspace (organization-level; analyze a cohort)."""
     st.title("📈 Enterprise Hiring Intelligence & Workforce Analytics")
     st.caption(
@@ -263,12 +283,22 @@ def render_hiring_intelligence_workspace(repository_factory: RepositoryFactory, 
         st.error(f"Analytics data is not ready: {exc}")
         return
 
-    cohort_size = st.slider("Analyzed cohort size", min_value=3, max_value=ANALYTICS_COHORT, value=min(12, ANALYTICS_COHORT), key="hi_cohort")
-    jd_text = st.text_area("Optional job description (sharpens role alignment across the cohort)", key="hi_jd")
+    cohort_size = st.slider(
+        "Analyzed cohort size",
+        min_value=3,
+        max_value=ANALYTICS_COHORT,
+        value=min(12, ANALYTICS_COHORT),
+        key="hi_cohort",
+    )
+    jd_text = st.text_area(
+        "Optional job description (sharpens role alignment across the cohort)", key="hi_jd"
+    )
 
     if st.button("📈 Generate workforce intelligence", type="primary", key="hi_run"):
         candidates = repository.sample(limit=cohort_size)
         if not candidates:
             st.info("No candidates available.")
             return
-        render_hiring_intelligence(candidates, jd=jd_text, insights_fn=insights_fn, limit=cohort_size, key_prefix="hi_ws")
+        render_hiring_intelligence(
+            candidates, jd=jd_text, insights_fn=insights_fn, limit=cohort_size, key_prefix="hi_ws"
+        )

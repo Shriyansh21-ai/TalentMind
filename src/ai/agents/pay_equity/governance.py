@@ -8,7 +8,7 @@ recomputation, no legal conclusions (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from src.ai.agents.pay_equity.schemas import (
     CompressionAssessment,
@@ -18,7 +18,7 @@ from src.ai.agents.pay_equity.schemas import (
 )
 
 # Ordered sections of the executive transparency report (Module 9).
-REPORT_SECTIONS: List[Tuple[str, str]] = [
+REPORT_SECTIONS: list[tuple[str, str]] = [
     ("executive_summary", "Executive Summary"),
     ("equity_assessment", "Equity Assessment"),
     ("compression_analysis", "Compression Analysis"),
@@ -30,20 +30,20 @@ REPORT_SECTIONS: List[Tuple[str, str]] = [
 ]
 
 
-def section_titles() -> List[str]:
+def section_titles() -> list[str]:
     """Return the ordered transparency-report section titles."""
     return [title for _key, title in REPORT_SECTIONS]
 
 
 def build_governance_notes(
-    context: Dict[str, Any],
+    context: dict[str, Any],
     compression: CompressionAssessment,
     inversion: InversionAssessment,
     policy_alignment: PolicyAlignment,
     executive_review: ExecutiveReview,
-) -> List[str]:
+) -> list[str]:
     """Synthesize governance notes shared by fairness + the transparency report."""
-    notes: List[str] = []
+    notes: list[str] = []
 
     if not (compression.data_available or inversion.data_available):
         notes.append(

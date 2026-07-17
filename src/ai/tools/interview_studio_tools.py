@@ -11,8 +11,11 @@ frameworks (Module 15).
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
+# Importing the engine auto-registers the agent (AI platform + orchestration).
+from src.ai.agents.interview_studio.report import InterviewStudioEngine
+from src.ai.agents.interview_studio.templates import DEPTH_PROFILES, ROLE_PROFILES, detect_role
 from src.ai.core.runner import AgentRunner
 from src.ai.tools.base import (
     BaseTool,
@@ -22,11 +25,7 @@ from src.ai.tools.base import (
     ToolValidationError,
 )
 
-# Importing the engine auto-registers the agent (AI platform + orchestration).
-from src.ai.agents.interview_studio.report import InterviewStudioEngine
-from src.ai.agents.interview_studio.templates import DEPTH_PROFILES, ROLE_PROFILES, detect_role
-
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 
 def _get_runner() -> AgentRunner:
@@ -50,7 +49,7 @@ _DEPTH_KEYWORDS = {
 }
 
 
-def route_request(message: str) -> Dict[str, str]:
+def route_request(message: str) -> dict[str, str]:
     """Infer the role path + interview depth from a free-text copilot message.
 
     Role detection reuses the deterministic role router; depth is keyword-driven
@@ -89,12 +88,12 @@ class InterviewStudioTool(BaseTool):
         engine="Interview Studio",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         """Require a candidate id."""
         if not tool_input.get("candidate_id"):
             raise ToolValidationError("interview_studio requires 'candidate_id'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Resolve the candidate, build the interview package, and summarize it."""
         candidate_id = str(tool_input["candidate_id"])
         candidate = context.repository.get(candidate_id)
@@ -105,9 +104,7 @@ class InterviewStudioTool(BaseTool):
         role = tool_input.get("role") or routed["role"]
         depth = tool_input.get("depth") or routed["depth"]
 
-        engine = InterviewStudioEngine(
-            insights_fn=context.insights_fn, ai_runner=_get_runner()
-        )
+        engine = InterviewStudioEngine(insights_fn=context.insights_fn, ai_runner=_get_runner())
         report = engine.build(candidate=candidate, jd=context.jd, role=role, depth=depth)
 
         narrative = report.narrative
@@ -128,7 +125,11 @@ class InterviewStudioTool(BaseTool):
             "behavioral_questions": [q.text for q in report.behavioral_questions[:5]],
             "role_specific_questions": [q.text for q in report.role_specific_questions[:5]],
             "risk_validations": [
-                {"risk": rv.risk, "question": rv.validation_question, "pass_criteria": rv.pass_criteria}
+                {
+                    "risk": rv.risk,
+                    "question": rv.validation_question,
+                    "pass_criteria": rv.pass_criteria,
+                }
                 for rv in report.risk_validations[:5]
             ],
             "rubric_dimensions": [d.name for d in report.rubrics],

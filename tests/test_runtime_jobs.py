@@ -31,7 +31,9 @@ def _manager() -> JobManager:
     manager = JobManager(clock=clock)
     manager.define(
         JobDefinition(
-            id="d1", key="reindex", name="Reindex",
+            id="d1",
+            key="reindex",
+            name="Reindex",
             default_priority=JobPriority.NORMAL,
             default_retry=RetryPolicy(max_attempts=2),
         )
@@ -44,9 +46,15 @@ def _manager() -> JobManager:
 
 def test_queue_orders_by_priority_then_fifo():
     queue = JobQueue()
-    low = Job(id="j1", tenant_id="t", organization_id="t", definition_key="k", priority=JobPriority.LOW)
-    high = Job(id="j2", tenant_id="t", organization_id="t", definition_key="k", priority=JobPriority.HIGH)
-    normal = Job(id="j3", tenant_id="t", organization_id="t", definition_key="k", priority=JobPriority.NORMAL)
+    low = Job(
+        id="j1", tenant_id="t", organization_id="t", definition_key="k", priority=JobPriority.LOW
+    )
+    high = Job(
+        id="j2", tenant_id="t", organization_id="t", definition_key="k", priority=JobPriority.HIGH
+    )
+    normal = Job(
+        id="j3", tenant_id="t", organization_id="t", definition_key="k", priority=JobPriority.NORMAL
+    )
     queue.enqueue(low)
     queue.enqueue(high)
     queue.enqueue(normal)

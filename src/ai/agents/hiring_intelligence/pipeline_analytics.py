@@ -10,7 +10,7 @@ interview-planning bottleneck). Nothing is fabricated (Module 15).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.hiring_intelligence.analytics_engine import share
 from src.ai.agents.hiring_intelligence.schemas import Bottleneck
@@ -24,9 +24,11 @@ _TIMED_STAGES = [
 ]
 
 
-def build_bottlenecks(cohort: List[Dict[str, Any]], provider: Any, data_available: bool) -> List[Bottleneck]:
+def build_bottlenecks(
+    cohort: list[dict[str, Any]], provider: Any, data_available: bool
+) -> list[Bottleneck]:
     """Identify pipeline bottlenecks (Module 2)."""
-    bottlenecks: List[Bottleneck] = []
+    bottlenecks: list[Bottleneck] = []
     high_risk_share = share(cohort, lambda s: s["risk_level"] == "High")
     not_ready_share = share(cohort, lambda s: not s.get("interview_ready"))
 
@@ -37,7 +39,7 @@ def build_bottlenecks(cohort: List[Dict[str, Any]], provider: Any, data_availabl
                 stage="Risk validation",
                 severity="High" if high_risk_share >= 0.5 else "Medium",
                 observed=False,
-                potential_cause=f"{high_risk_share*100:.0f}% of the cohort is high-risk, requiring extra validation.",
+                potential_cause=f"{high_risk_share * 100:.0f}% of the cohort is high-risk, requiring extra validation.",
                 business_impact="Longer interview loops and more bar-raiser / escalation cycles.",
                 improvement="Front-load risk-validation questions and tighten sourcing filters.",
                 register="Estimated",
@@ -49,7 +51,7 @@ def build_bottlenecks(cohort: List[Dict[str, Any]], provider: Any, data_availabl
                 stage="Interview planning",
                 severity="Medium",
                 observed=False,
-                potential_cause=f"{not_ready_share*100:.0f}% of the cohort lacks a structured interview signal.",
+                potential_cause=f"{not_ready_share * 100:.0f}% of the cohort lacks a structured interview signal.",
                 business_impact="Ad-hoc interviews reduce comparability and slow debriefs.",
                 improvement="Standardize interview planning via the Interview Studio.",
                 register="Estimated",
@@ -64,15 +66,26 @@ def build_bottlenecks(cohort: List[Dict[str, Any]], provider: Any, data_availabl
         if stage in provider_stages:
             info = provider_stages[stage]
             bottlenecks.append(
-                Bottleneck(stage=stage, severity=info.get("severity", "Medium"), observed=True,
-                           potential_cause=info.get("cause", desc), business_impact=info.get("impact", ""),
-                           improvement=info.get("improvement", ""), register="Observed")
+                Bottleneck(
+                    stage=stage,
+                    severity=info.get("severity", "Medium"),
+                    observed=True,
+                    potential_cause=info.get("cause", desc),
+                    business_impact=info.get("impact", ""),
+                    improvement=info.get("improvement", ""),
+                    register="Observed",
+                )
             )
         else:
             bottlenecks.append(
-                Bottleneck(stage=stage, severity="Unknown", observed=False,
-                           potential_cause=f"{desc} — no stage-timing data connected.",
-                           business_impact="", improvement="Connect an analytics source to measure this delay.",
-                           register="Unavailable")
+                Bottleneck(
+                    stage=stage,
+                    severity="Unknown",
+                    observed=False,
+                    potential_cause=f"{desc} — no stage-timing data connected.",
+                    business_impact="",
+                    improvement="Connect an analytics source to measure this delay.",
+                    register="Unavailable",
+                )
             )
     return bottlenecks

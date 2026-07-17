@@ -20,7 +20,6 @@ from src.platform.security.observability import (
     SpanStatus,
 )
 
-
 # -- observability ----------------------------------------------------------
 
 
@@ -70,8 +69,16 @@ def test_correlation_ties_logs_and_spans():
 
 def test_alert_rule_triggers_with_severity():
     svc = MonitoringService(clock=FrozenClock())
-    svc.add_rule("t1", "o1", "High CPU", "cpu", domain=MonitorDomain.RUNTIME,
-                 comparison=Comparison.GT, threshold=80, severity=Severity.HIGH)
+    svc.add_rule(
+        "t1",
+        "o1",
+        "High CPU",
+        "cpu",
+        domain=MonitorDomain.RUNTIME,
+        comparison=Comparison.GT,
+        threshold=80,
+        severity=Severity.HIGH,
+    )
     alerts = svc.evaluate("t1", "o1", {"cpu": 95})
     assert len(alerts) == 1
     assert alerts[0].severity == Severity.HIGH

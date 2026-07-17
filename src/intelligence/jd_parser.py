@@ -1,8 +1,8 @@
 import re
 
 from .keyword_extractor import extract_keywords
-from .skill_classifier import classify
 from .models import JobProfile
+from .skill_classifier import classify
 
 
 def parse_jd(text: str):
@@ -11,11 +11,7 @@ def parse_jd(text: str):
     # Role
     # -------------------------
 
-    role_match = re.search(
-        r"(Senior|Lead|Principal|Staff)?\s?.*Engineer",
-        text,
-        re.I
-    )
+    role_match = re.search(r"(Senior|Lead|Principal|Staff)?\s?.*Engineer", text, re.I)
 
     role = role_match.group(0) if role_match else "Unknown"
 
@@ -23,11 +19,7 @@ def parse_jd(text: str):
     # Experience
     # -------------------------
 
-    exp = re.search(
-        r"(\d+)\+?\s+years",
-        text,
-        re.I
-    )
+    exp = re.search(r"(\d+)\+?\s+years", text, re.I)
 
     experience = int(exp.group(1)) if exp else 0
 
@@ -35,11 +27,7 @@ def parse_jd(text: str):
     # Leadership
     # -------------------------
 
-    leadership = (
-        "lead" in text.lower()
-        or "mentor" in text.lower()
-        or "manage" in text.lower()
-    )
+    leadership = "lead" in text.lower() or "mentor" in text.lower() or "manage" in text.lower()
 
     # -------------------------
     # Keywords
@@ -75,5 +63,5 @@ def parse_jd(text: str):
         keywords=keywords,
         leadership_required=leadership,
         complexity_score=0,
-        hiring_difficulty="Unknown"
+        hiring_difficulty="Unknown",
     )

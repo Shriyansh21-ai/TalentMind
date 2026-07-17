@@ -2,11 +2,7 @@ def calculate_jd_match_score(candidate):
 
     score = 0
 
-    text = (
-        candidate.profile.summary.lower()
-        + " "
-        + candidate.profile.current_title.lower()
-    )
+    text = candidate.profile.summary.lower() + " " + candidate.profile.current_title.lower()
 
     for job in candidate.career_history:
         text += " " + job.description.lower()
@@ -39,7 +35,7 @@ def calculate_jd_match_score(candidate):
         "mrr": 10,
         "map": 10,
         "a/b test": 10,
-        "evaluation framework": 12
+        "evaluation framework": 12,
     }
 
     for keyword, weight in keywords.items():

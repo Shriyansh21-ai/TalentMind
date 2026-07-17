@@ -16,9 +16,7 @@ collaborators are injected (SOLID / DI).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
-
-from src.ai.core.runner import AgentRunner
+from typing import Any, Protocol, runtime_checkable
 
 from src.ai.agents.audit import approvals as approvals_mod
 from src.ai.agents.audit import charts as charts_mod
@@ -35,10 +33,9 @@ from src.ai.agents.audit.agent import AuditInput, build_audit_evidence, hiring_a
 from src.ai.agents.audit.composer import compose_audit_narrative
 from src.ai.agents.audit.schemas import AuditNarrative, HiringAuditReport
 from src.ai.agents.audit.templates import AGENT_CATALOG
-
 from src.ai.agents.compliance.compliance_report import HiringComplianceEngine
 from src.ai.committee.schemas import CommitteeMode
-
+from src.ai.core.runner import AgentRunner
 
 # ---------------------------------------------------------------------------
 # Module 12 — future audit-archive provider interface (interface only)
@@ -59,7 +56,7 @@ class AuditArchiveProvider(Protocol):
         """Return True when a live audit archive can be served."""
         ...
 
-    def get_history(self, candidate_id: str) -> Optional[List[Dict[str, Any]]]:
+    def get_history(self, candidate_id: str) -> list[dict[str, Any]] | None:
         """Return stored historical decision records or ``None``."""
         ...
 
@@ -71,7 +68,7 @@ class NullAuditArchiveProvider:
         """Always False — no audit archive is connected."""
         return False
 
-    def get_history(self, candidate_id: str) -> Optional[List[Dict[str, Any]]]:
+    def get_history(self, candidate_id: str) -> list[dict[str, Any]] | None:
         """Return ``None`` — no history available."""
         return None
 
@@ -84,11 +81,11 @@ class HiringAuditEngine:
     def __init__(
         self,
         *,
-        ai_runner: Optional[AgentRunner] = None,
-        compliance_engine: Optional[HiringComplianceEngine] = None,
-        insights_fn: Optional[Any] = None,
-        compliance_provider: Optional[Any] = None,
-        archive_provider: Optional[AuditArchiveProvider] = None,
+        ai_runner: AgentRunner | None = None,
+        compliance_engine: HiringComplianceEngine | None = None,
+        insights_fn: Any | None = None,
+        compliance_provider: Any | None = None,
+        archive_provider: AuditArchiveProvider | None = None,
     ) -> None:
         """Wire the engine's collaborators (all optional; sane defaults used)."""
         self.ai_runner = ai_runner or AgentRunner()
@@ -103,7 +100,7 @@ class HiringAuditEngine:
         self,
         candidate: Any = None,
         *,
-        candidate_id: Optional[str] = None,
+        candidate_id: str | None = None,
         repository: Any = None,
         jd: str = "",
         mode: CommitteeMode = CommitteeMode.BALANCED,
@@ -121,17 +118,25 @@ class HiringAuditEngine:
 
         # 1) Reuse the Hiring Compliance engine for the whole chain (Module 13).
         compliance_engine = self.compliance_engine or HiringComplianceEngine(
-            insights_fn=self.insights_fn, ai_runner=self.ai_runner, data_provider=self.compliance_provider
+            insights_fn=self.insights_fn,
+            ai_runner=self.ai_runner,
+            data_provider=self.compliance_provider,
         )
-        compliance_report = compliance_engine.build(candidate=candidate, jd=jd, mode=mode, generated_on=generated_on)
+        compliance_report = compliance_engine.build(
+            candidate=candidate, jd=jd, mode=mode, generated_on=generated_on
+        )
         cr = compliance_report.to_dict()
 
         archive_available = bool(getattr(self.archive_provider, "is_available", lambda: False)())
 
         # 2) Build the shared audit context from the reused compliance report.
-        evidence_sources = list(dict.fromkeys(list(compliance_report.evidence_sources) + ["Hiring Compliance"]))
-        agents_participated = [e.origin_agent for e in AGENT_CATALOG if e.source in set(evidence_sources)]
-        context: Dict[str, Any] = {
+        evidence_sources = list(
+            dict.fromkeys(list(compliance_report.evidence_sources) + ["Hiring Compliance"])
+        )
+        agents_participated = [
+            e.origin_agent for e in AGENT_CATALOG if e.source in set(evidence_sources)
+        ]
+        context: dict[str, Any] = {
             "candidate_id": compliance_report.candidate_id,
             "overview": compliance_report.candidate_overview,
             "evidence_sources": evidence_sources,
@@ -156,7 +161,9 @@ class HiringAuditEngine:
         responsibility = approvals_mod.build_responsibility_matrix(context)
         governance_explanations = explain_mod.build_governance_explanations(context)
         audit_readiness = governance_mod.build_audit_readiness(context)
-        history = history_mod.reconstruct_history(compliance_report.candidate_id, self.archive_provider)
+        history = history_mod.reconstruct_history(
+            compliance_report.candidate_id, self.archive_provider
+        )
 
         # 4) Narrative via the AI Platform agent (offline composer fallback).
         payload = AuditInput(
@@ -178,12 +185,18 @@ class HiringAuditEngine:
         narrative = self._narrative(payload, evidence)
 
         chart_data = charts_mod.build_chart_data(
-            decision_trace=decision_trace, evidence_graph=evidence_graph, timeline=timeline,
-            responsibility=responsibility, readiness=audit_readiness, agents_participated=agents_participated,
+            decision_trace=decision_trace,
+            evidence_graph=evidence_graph,
+            timeline=timeline,
+            responsibility=responsibility,
+            readiness=audit_readiness,
+            agents_participated=agents_participated,
         )
 
         warnings = validators.evidence_coverage_warnings(evidence)
-        warnings += validators.validate_safety(narrative, responsibility, history, archive_available)
+        warnings += validators.validate_safety(
+            narrative, responsibility, history, archive_available
+        )
 
         return HiringAuditReport(
             report_id=self._next_report_id(compliance_report.candidate_id),
@@ -210,14 +223,14 @@ class HiringAuditEngine:
     # -- helpers ------------------------------------------------------------
 
     @staticmethod
-    def _equity_level(cr: Dict[str, Any]) -> str:
+    def _equity_level(cr: dict[str, Any]) -> str:
         """Best-effort pull of the pay-equity risk level from an exception, if any."""
         for e in cr.get("exceptions", []):
             if "Pay-equity" in e.get("kind", ""):
                 return "High"
         return "Unknown"
 
-    def _narrative(self, payload: AuditInput, evidence: Dict[str, Any]) -> AuditNarrative:
+    def _narrative(self, payload: AuditInput, evidence: dict[str, Any]) -> AuditNarrative:
         """Run the agent; fall back to the deterministic composer on any failure."""
         try:
             result = self.ai_runner.run(hiring_audit_agent, payload)

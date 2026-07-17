@@ -8,7 +8,7 @@ certain prediction. No I/O.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.hiring_intelligence.schemas import KPI, Trend, WorkforceNarrative
 
@@ -22,18 +22,22 @@ _FORBIDDEN_PHRASES = (
 )
 
 
-def available_sources(evidence: Dict[str, Any]) -> List[str]:
+def available_sources(evidence: dict[str, Any]) -> list[str]:
     """Return the evidence sources actually consulted."""
-    sources = ["Candidate Intelligence engine", "Resume Risk Detection", "Hiring Recommendation engine"]
+    sources = [
+        "Candidate Intelligence engine",
+        "Resume Risk Detection",
+        "Hiring Recommendation engine",
+    ]
     if evidence.get("data_available"):
         sources.append("Connected workforce-analytics data")
     return sources
 
 
-def evidence_coverage_warnings(evidence: Dict[str, Any]) -> List[str]:
+def evidence_coverage_warnings(evidence: dict[str, Any]) -> list[str]:
     """Return warnings when analytics data is missing (Module 15)."""
     analytics = evidence.get("analytics") or evidence
-    warnings: List[str] = []
+    warnings: list[str] = []
     if not analytics.get("data_available"):
         warnings.append(
             "No workforce-analytics source connected — trends, delays, team breakdowns and "
@@ -46,12 +50,12 @@ def evidence_coverage_warnings(evidence: Dict[str, Any]) -> List[str]:
 
 def validate_safety(
     narrative: WorkforceNarrative,
-    kpis: List[KPI],
-    trends: List[Trend],
+    kpis: list[KPI],
+    trends: list[Trend],
     data_available: bool,
-) -> List[str]:
+) -> list[str]:
     """Assert the no-fabrication / no-false-certainty guarantees (Module 15)."""
-    warnings: List[str] = []
+    warnings: list[str] = []
 
     # Unavailable KPIs/trends must carry no numeric value / no concrete direction.
     for k in kpis:

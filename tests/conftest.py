@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import List, Optional
 
 import pytest
 
@@ -36,7 +35,7 @@ def make_candidate(
     title: str = "Senior Machine Learning Engineer",
     company: str = "Acme AI",
     location: str = "Bangalore",
-    skills: Optional[List[str]] = None,
+    skills: list[str] | None = None,
     endorsements: int = 25,
     summary: str = "Experienced ML engineer building RAG and LLM systems.",
 ) -> Candidate:

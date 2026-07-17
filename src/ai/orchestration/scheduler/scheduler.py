@@ -13,7 +13,6 @@ and asynchronous / distributed execution in a future milestone.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from src.ai.orchestration.models import Priority, Task, TaskGraph
 
@@ -43,7 +42,7 @@ class SchedulePlan:
         policy: The :class:`SchedulePolicy` in force.
     """
 
-    groups: List[List[Task]] = field(default_factory=list)
+    groups: list[list[Task]] = field(default_factory=list)
     policy: SchedulePolicy = field(default_factory=SchedulePolicy)
 
     @property
@@ -56,7 +55,7 @@ class SchedulePlan:
         """Return the widest parallel group (peak concurrency)."""
         return max((len(group) for group in self.groups), default=0)
 
-    def describe(self) -> List[dict]:
+    def describe(self) -> list[dict]:
         """Return a JSON-serializable description of each group (for the UI)."""
         return [
             {
@@ -78,7 +77,7 @@ class SchedulePlan:
 class TaskScheduler:
     """Builds a :class:`SchedulePlan` from a :class:`TaskGraph`."""
 
-    def __init__(self, policy: Optional[SchedulePolicy] = None) -> None:
+    def __init__(self, policy: SchedulePolicy | None = None) -> None:
         """Bind the scheduler to a :class:`SchedulePolicy` (default if omitted)."""
         self.policy = policy or SchedulePolicy()
 
@@ -91,7 +90,7 @@ class TaskScheduler:
         groups = graph.execution_layers()  # validates + layers the graph
         # Respect the concurrency cap by splitting over-wide groups so the plan
         # already reflects the max_parallel policy (future async executors bind to it).
-        capped: List[List[Task]] = []
+        capped: list[list[Task]] = []
         cap = max(1, self.policy.max_parallel)
         for group in groups:
             if len(group) <= cap:

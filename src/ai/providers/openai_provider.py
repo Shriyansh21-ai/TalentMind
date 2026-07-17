@@ -8,7 +8,7 @@ actually selected and used.
 from __future__ import annotations
 
 import importlib.util
-from typing import Any, List, Tuple
+from typing import Any
 
 from src.ai.core.response import TokenUsage
 from src.ai.providers._remote import RemoteProvider
@@ -32,8 +32,8 @@ class OpenAIProvider(RemoteProvider):
         return OpenAI(api_key=self._api_key(), timeout=self.settings.timeout)
 
     def _complete(
-        self, client: Any, messages: List[LLMMessage], json_mode: bool
-    ) -> Tuple[str, TokenUsage]:
+        self, client: Any, messages: list[LLMMessage], json_mode: bool
+    ) -> tuple[str, TokenUsage]:
         """Call chat.completions and return ``(text, usage)``."""
         kwargs: dict = {
             "model": self.model,

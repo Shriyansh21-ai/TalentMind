@@ -32,7 +32,7 @@ class HealthState(str, Enum):
         }[self]
 
     @classmethod
-    def worst(cls, states: "list[HealthState]") -> "HealthState":
+    def worst(cls, states: list[HealthState]) -> HealthState:
         """Return the most severe state in ``states`` (HEALTHY if empty)."""
         if not states:
             return cls.HEALTHY

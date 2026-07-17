@@ -8,17 +8,15 @@ heuristic style of ``strengths.py``. Review/adjust the thresholds and phrasing
 to match your intended hiring criteria.
 """
 
-from typing import List
 
-
-def weaknesses(candidate) -> List[str]:
+def weaknesses(candidate) -> list[str]:
     """Return a list of areas to validate for a candidate.
 
     Heuristics mirror ``strengths.py`` (skill presence + experience), inverted
     to surface gaps. Adjust freely — this is presentation-tier signal only and
     does not feed any score.
     """
-    weaknesses: List[str] = []
+    weaknesses: list[str] = []
 
     skills = {s.name.lower() for s in candidate.skills}
 

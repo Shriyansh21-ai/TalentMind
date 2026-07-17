@@ -13,14 +13,13 @@ offline mode, and it is done.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.providers.composers import register_composer
 from src.ai.schemas.hiring_analysis import EXECUTIVE_DECISIONS, HiringAnalysis
-
 from src.insights.models import CandidateInsights
 from src.interview.models import InterviewPlan
 
@@ -46,7 +45,7 @@ class HiringAnalystInput:
 # ---------------------------------------------------------------------------
 
 
-def _top_skill_names(insights: CandidateInsights, limit: int = 8) -> List[str]:
+def _top_skill_names(insights: CandidateInsights, limit: int = 8) -> list[str]:
     """Return the candidate's most-endorsed skill names."""
     skills = sorted(
         insights.candidate.skills,
@@ -56,7 +55,7 @@ def _top_skill_names(insights: CandidateInsights, limit: int = 8) -> List[str]:
     return [s.name for s in skills[:limit]]
 
 
-def build_evidence(payload: HiringAnalystInput) -> Dict[str, Any]:
+def build_evidence(payload: HiringAnalystInput) -> dict[str, Any]:
     """Project the insight bundle + interview plan into an evidence dict."""
     insights = payload.insights
     intel = insights.intelligence
@@ -175,10 +174,10 @@ def _decision_from_recommendation(text: str) -> str:
     return "Insufficient Evidence"
 
 
-def _dedupe(items: List[str], limit: int = 6) -> List[str]:
+def _dedupe(items: list[str], limit: int = 6) -> list[str]:
     """Return de-duplicated, order-preserving, non-empty items up to ``limit``."""
     seen = set()
-    out: List[str] = []
+    out: list[str] = []
     for item in items:
         text = (item or "").strip()
         if text and text.lower() not in seen:
@@ -189,7 +188,7 @@ def _dedupe(items: List[str], limit: int = 6) -> List[str]:
     return out
 
 
-def compose_hiring_analysis(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_hiring_analysis(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose a :class:`HiringAnalysis` dict from evidence.
 
     This is the offline reasoning path: it produces professional narrative purely
@@ -328,15 +327,12 @@ def compose_hiring_analysis(evidence: Dict[str, Any]) -> Dict[str, Any]:
     )
 
     low_conf = confidence < 55 or risk_level == "High"
-    confidence_reasoning = (
-        f"Engine confidence is {confidence:.0f}%. "
-        + (
-            "Evidence is limited or risk is elevated, so this analysis is stated "
-            "with explicit uncertainty; prioritise the validation questions before "
-            "deciding."
-            if low_conf
-            else "The signals are consistent across engines, supporting a confident read."
-        )
+    confidence_reasoning = f"Engine confidence is {confidence:.0f}%. " + (
+        "Evidence is limited or risk is elevated, so this analysis is stated "
+        "with explicit uncertainty; prioritise the validation questions before "
+        "deciding."
+        if low_conf
+        else "The signals are consistent across engines, supporting a confident read."
     )
 
     return {
@@ -379,17 +375,17 @@ class HiringAnalystAgent(BaseAgent):
     )
     output_schema = HiringAnalysis
 
-    def build_evidence(self, payload: HiringAnalystInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: HiringAnalystInput) -> dict[str, Any]:
         """Return the structured evidence for ``payload`` (see module function)."""
         return build_evidence(payload)
 
     def prompt_values(
-        self, payload: HiringAnalystInput, evidence: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, payload: HiringAnalystInput, evidence: dict[str, Any]
+    ) -> dict[str, str]:
         """Supply the ``jd`` placeholder for the user prompt."""
         return {"jd": payload.jd.strip() or "(No job description provided.)"}
 
-    def cache_dimensions(self, payload: HiringAnalystInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: HiringAnalystInput) -> tuple[str, str]:
         """Cache by candidate id (subject) and job description (scope)."""
         return payload.insights.candidate_id, payload.jd or ""
 

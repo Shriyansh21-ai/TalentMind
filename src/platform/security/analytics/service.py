@@ -101,9 +101,7 @@ class OperationalAnalyticsService:
 
     # -- executive dashboard -----------------------------------------------
 
-    def executive_dashboard(
-        self, tenant_id: str, organization_id: str
-    ) -> dict[str, object]:
+    def executive_dashboard(self, tenant_id: str, organization_id: str) -> dict[str, object]:
         """Return a combined executive operational snapshot for a tenant."""
         return {
             "security": self.security_metrics(tenant_id, organization_id),

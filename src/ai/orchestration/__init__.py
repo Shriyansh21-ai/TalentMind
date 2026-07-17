@@ -38,6 +38,7 @@ Layers (each in its own subpackage, matching the milestone brief):
 
 from __future__ import annotations
 
+from src.ai.orchestration.context.context import SharedContext
 from src.ai.orchestration.models import (
     AgentOutput,
     Goal,
@@ -46,7 +47,11 @@ from src.ai.orchestration.models import (
     TaskGraph,
     TaskStatus,
 )
-from src.ai.orchestration.context.context import SharedContext
+from src.ai.orchestration.orchestrator.orchestrator import (
+    AgentOrchestrator,
+    OrchestrationResult,
+)
+from src.ai.orchestration.planner.planner import CapabilityTaskPlanner, TaskPlanner
 from src.ai.orchestration.registry.agent_registry import (
     AgentDescriptor,
     HealthStatus,
@@ -54,13 +59,8 @@ from src.ai.orchestration.registry.agent_registry import (
     OrchestrationRegistry,
     orchestration_registry,
 )
-from src.ai.orchestration.orchestrator.orchestrator import (
-    AgentOrchestrator,
-    OrchestrationResult,
-)
-from src.ai.orchestration.workflow.engine import WorkflowEngine, WorkflowResult
 from src.ai.orchestration.workflow.definition import ExecutionMode, WorkflowDefinition
-from src.ai.orchestration.planner.planner import CapabilityTaskPlanner, TaskPlanner
+from src.ai.orchestration.workflow.engine import WorkflowEngine, WorkflowResult
 
 __all__ = [
     "AgentOrchestrator",

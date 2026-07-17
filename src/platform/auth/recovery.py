@@ -121,9 +121,7 @@ class AccountRecoveryService:
     def consume(self, tenant_id: str, token: str) -> RecoveryToken:
         """Validate and mark a recovery token used; return it for the reset step."""
         token_hash = _hash(token)
-        matches = self._tokens.list(
-            tenant_id=tenant_id, where=lambda t: t.token_hash == token_hash
-        )
+        matches = self._tokens.list(tenant_id=tenant_id, where=lambda t: t.token_hash == token_hash)
         if not matches:
             raise PlatformValidationError("invalid recovery token")
         rec = matches[0]

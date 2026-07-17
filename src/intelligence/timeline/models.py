@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
 
 
 @dataclass
@@ -43,5 +42,5 @@ class CareerTimelineAnalysis:
     domain_consistency: float
     career_story: str
     timeline_summary: str
-    strengths: List[str] = field(default_factory=list)
-    concerns: List[str] = field(default_factory=list)
+    strengths: list[str] = field(default_factory=list)
+    concerns: list[str] = field(default_factory=list)

@@ -12,12 +12,11 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import Field, field_validator
 
 from src.ai.schemas.base import BaseAIResponse
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -66,20 +65,20 @@ class MemberOpinion:
     recommendation: Recommendation
     confidence: float
     opinion: str
-    strengths: List[str] = field(default_factory=list)
-    concerns: List[str] = field(default_factory=list)
-    evidence: List[str] = field(default_factory=list)
-    evidence_sources: List[str] = field(default_factory=list)
+    strengths: list[str] = field(default_factory=list)
+    concerns: list[str] = field(default_factory=list)
+    evidence: list[str] = field(default_factory=list)
+    evidence_sources: list[str] = field(default_factory=list)
     abstained: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the opinion."""
         data = asdict(self)
         data["recommendation"] = self.recommendation.value
         return data
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "MemberOpinion":
+    def from_dict(cls, data: dict[str, Any]) -> MemberOpinion:
         """Rehydrate a :class:`MemberOpinion` from its dict form."""
         data = dict(data)
         data["recommendation"] = Recommendation(data["recommendation"])
@@ -95,10 +94,10 @@ class Consensus:
     weighted_stance: float
     agreement_ratio: float
     reasoning: str = ""
-    stance_distribution: Dict[str, int] = field(default_factory=dict)
-    member_weights: Dict[str, float] = field(default_factory=dict)
+    stance_distribution: dict[str, int] = field(default_factory=dict)
+    member_weights: dict[str, float] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the consensus."""
         return {
             "level": self.level.value,
@@ -124,7 +123,7 @@ class Conflict:
     confidence_difference: str
     resolution_strategy: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the conflict."""
         return asdict(self)
 
@@ -133,13 +132,13 @@ class Conflict:
 class DiscussionRound:
     """The output of the discussion phase (Module 3)."""
 
-    agreements: List[str] = field(default_factory=list)
-    disagreements: List[str] = field(default_factory=list)
-    challenges: List[Dict[str, Any]] = field(default_factory=list)
-    missing_evidence: List[str] = field(default_factory=list)
-    notes: List[str] = field(default_factory=list)
+    agreements: list[str] = field(default_factory=list)
+    disagreements: list[str] = field(default_factory=list)
+    challenges: list[dict[str, Any]] = field(default_factory=list)
+    missing_evidence: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the discussion round."""
         return asdict(self)
 
@@ -154,12 +153,19 @@ class ConfidenceMetrics:
     unknown_risk: float
     decision_stability: float
     overall: float
-    explanations: Dict[str, str] = field(default_factory=dict)
+    explanations: dict[str, str] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the confidence metrics."""
         data = asdict(self)
-        for key in ("evidence_coverage", "consensus_strength", "confidence_distribution", "unknown_risk", "decision_stability", "overall"):
+        for key in (
+            "evidence_coverage",
+            "consensus_strength",
+            "confidence_distribution",
+            "unknown_risk",
+            "decision_stability",
+            "overall",
+        ):
             data[key] = round(getattr(self, key), 1)
         return data
 
@@ -180,10 +186,10 @@ class CommitteeDecision(BaseAIResponse):
     recommendation: str = "Hold"
     business_justification: str = ""
     technical_justification: str = ""
-    hiring_risks: List[str] = Field(default_factory=list)
-    interview_priorities: List[str] = Field(default_factory=list)
-    remaining_unknowns: List[str] = Field(default_factory=list)
-    follow_up_actions: List[str] = Field(default_factory=list)
+    hiring_risks: list[str] = Field(default_factory=list)
+    interview_priorities: list[str] = Field(default_factory=list)
+    remaining_unknowns: list[str] = Field(default_factory=list)
+    follow_up_actions: list[str] = Field(default_factory=list)
     confidence_note: str = ""
 
     @field_validator("executive_summary")
@@ -208,19 +214,19 @@ class CommitteeReport:
     meeting_id: str
     candidate_id: str
     mode: str
-    candidate_overview: Dict[str, Any]
+    candidate_overview: dict[str, Any]
     resume_summary: str
     jd_summary: str
-    opinions: List[MemberOpinion]
+    opinions: list[MemberOpinion]
     discussion: DiscussionRound
     consensus: Consensus
-    conflicts: List[Conflict]
+    conflicts: list[Conflict]
     confidence: ConfidenceMetrics
     decision: CommitteeDecision
-    evidence_sources: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    evidence_sources: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the whole report."""
         return {
             "meeting_id": self.meeting_id,

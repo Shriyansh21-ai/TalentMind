@@ -10,18 +10,18 @@ provider, required approvals are "Requires Review" (not assumed complete)
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from src.ai.agents.compliance.schemas import ApprovalMatrix, ApprovalStatus
 from src.ai.agents.compliance.templates import APPROVER_ROLES
 
 
-def build_approval_matrix(context: Dict[str, Any], provider: Any) -> ApprovalMatrix:
+def build_approval_matrix(context: dict[str, Any], provider: Any) -> ApprovalMatrix:
     """Build the approval matrix (Module 2)."""
     required = set(context.get("required_approvers", []))
-    reasons: Dict[str, str] = context.get("approval_reasons", {}) or {}
+    reasons: dict[str, str] = context.get("approval_reasons", {}) or {}
 
-    provider_state: Dict[str, Dict[str, Any]] = {}
+    provider_state: dict[str, dict[str, Any]] = {}
     has_provider = provider is not None and getattr(provider, "is_available", lambda: False)()
     if has_provider:
         provider_state = provider.get_approvals(context.get("candidate_id", "")) or {}
@@ -31,7 +31,8 @@ def build_approval_matrix(context: Dict[str, Any], provider: Any) -> ApprovalMat
         is_required = role in required
         reason = reasons.get(role) or (
             f"{role} approval required by the pay-equity/governance review."
-            if is_required else f"{role} approval not required by the pay-equity/governance review."
+            if is_required
+            else f"{role} approval not required by the pay-equity/governance review."
         )
         rec = provider_state.get(role) if has_provider else None
 
@@ -51,6 +52,8 @@ def build_approval_matrix(context: Dict[str, Any], provider: Any) -> ApprovalMat
         else:
             state = "Not Required"
 
-        approvals.append(ApprovalStatus(approver=role, required=is_required, state=state, reason=reason))
+        approvals.append(
+            ApprovalStatus(approver=role, required=is_required, state=state, reason=reason)
+        )
 
     return ApprovalMatrix(approvals=approvals)

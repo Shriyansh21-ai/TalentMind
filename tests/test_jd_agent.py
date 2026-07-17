@@ -10,18 +10,16 @@ from __future__ import annotations
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-from src.ai.providers.composers import has_composer
-
 from src.ai.agents.jd import extractors, validators
 from src.ai.agents.jd.agent import JDAnalystInput, jd_analyst_agent
 from src.ai.agents.jd.metrics import compute_metrics, market_estimates
 from src.ai.agents.jd.schemas import JDAnalysis
-
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 SAMPLE_JD = """Senior Machine Learning Engineer
 Department: AI Platform
@@ -99,9 +97,15 @@ def test_metrics_no_substring_false_positive():
 def test_metrics_dimensions_bounded_and_complete():
     m = compute_metrics(extractors.extract(SAMPLE_JD))
     for name in [
-        "overall", "structure", "technical_clarity", "role_clarity",
-        "requirement_quality", "business_context", "hiring_readiness",
-        "market_alignment", "organization_clarity",
+        "overall",
+        "structure",
+        "technical_clarity",
+        "role_clarity",
+        "requirement_quality",
+        "business_context",
+        "hiring_readiness",
+        "market_alignment",
+        "organization_clarity",
     ]:
         assert name in m.dimensions
         assert 0.0 <= m.dimensions[name] <= 100.0
@@ -161,10 +165,19 @@ def test_schema_is_score_free_at_top_level():
 def test_schema_top_level_fields_present():
     fields = set(JDAnalysis.field_names())
     for expected in [
-        "executive_summary", "role_intelligence", "technical_intelligence",
-        "hiring_intent", "organization_intelligence", "requirement_hierarchy",
-        "market_intelligence", "quality", "structure", "risk_report",
-        "improvement_plan", "confidence_note", "evidence",
+        "executive_summary",
+        "role_intelligence",
+        "technical_intelligence",
+        "hiring_intent",
+        "organization_intelligence",
+        "requirement_hierarchy",
+        "market_intelligence",
+        "quality",
+        "structure",
+        "risk_report",
+        "improvement_plan",
+        "confidence_note",
+        "evidence",
     ]:
         assert expected in fields
 
@@ -238,9 +251,9 @@ def test_agent_improvements_priority_ordered():
 
 
 def test_copilot_routes_jd_questions_to_jd_analysis():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -254,16 +267,16 @@ def test_copilot_routes_jd_questions_to_jd_analysis():
 
 
 def test_copilot_jd_intent_selects_jd_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.JD_ANALYSIS) == ["jd_analysis"]
 
 
 def test_copilot_existing_and_resume_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -279,9 +292,10 @@ def test_copilot_existing_and_resume_intents_unchanged():
 
 def test_copilot_delegates_to_jd_agent_end_to_end():
     from conftest import make_candidate
-    from src.ai.tools.provider import InMemoryCandidateRepository
+
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository([make_candidate(candidate_id="CAND_0000001")])
     cop = RecruiterCopilot(repo, ai_runner=_runner())
@@ -295,8 +309,9 @@ def test_copilot_delegates_to_jd_agent_end_to_end():
 
 def test_copilot_jd_analysis_without_jd_is_graceful():
     from conftest import make_candidate
-    from src.ai.tools.provider import InMemoryCandidateRepository
+
     from src.ai.copilot.controller import RecruiterCopilot
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository([make_candidate()])
     cop = RecruiterCopilot(repo, ai_runner=_runner())

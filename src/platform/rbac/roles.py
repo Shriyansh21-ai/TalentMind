@@ -14,7 +14,8 @@ from __future__ import annotations
 
 from enum import Enum
 
-from src.platform.rbac.permissions import Action, Resource, permission as p
+from src.platform.rbac.permissions import Action, Resource
+from src.platform.rbac.permissions import permission as p
 
 
 class Role(str, Enum):

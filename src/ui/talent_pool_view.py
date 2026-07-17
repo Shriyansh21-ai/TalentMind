@@ -7,14 +7,14 @@ rationale behind each assignment.
 
 from __future__ import annotations
 
-from typing import Dict, Sequence
+from collections.abc import Sequence
 
 import streamlit as st
 
+from src.dashboard import charts
 from src.insights.models import CandidateInsights
 from src.talent_pool.models import TalentPool
 from src.talent_pool.segmentation import pool_counts, segment_pool
-from src.dashboard import charts
 
 
 def render_talent_pools(insights: Sequence[CandidateInsights]) -> None:
@@ -31,9 +31,7 @@ def render_talent_pools(insights: Sequence[CandidateInsights]) -> None:
 
     assignments = segment_pool(insights)
     counts = pool_counts(assignments)
-    insight_by_id: Dict[str, CandidateInsights] = {
-        i.candidate_id: i for i in insights
-    }
+    insight_by_id: dict[str, CandidateInsights] = {i.candidate_id: i for i in insights}
 
     # Composition chart.
     non_zero = [(name, count) for name, count in counts.items() if count > 0]
@@ -52,11 +50,7 @@ def render_talent_pools(insights: Sequence[CandidateInsights]) -> None:
     pool_value = st.selectbox("Explore a pool", populated, key="pool_select")
     pool = TalentPool(pool_value)
 
-    members = [
-        assignment
-        for assignment in assignments.values()
-        if assignment.in_pool(pool)
-    ]
+    members = [assignment for assignment in assignments.values() if assignment.in_pool(pool)]
     st.caption(f"{len(members)} candidate(s) in **{pool_value}**")
 
     for assignment in members[:25]:

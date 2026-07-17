@@ -10,8 +10,7 @@ from __future__ import annotations
 import json
 import os
 from collections import deque
-from datetime import datetime, timezone
-from typing import Deque, List
+from datetime import UTC, datetime
 
 from src.ai.telemetry.models import TelemetryEvent
 
@@ -25,12 +24,12 @@ class TelemetryLogger:
         """Bind the logger to ``directory/filename`` (created lazily)."""
         self.directory = directory
         self.path = os.path.join(directory, filename)
-        self._ring: Deque[TelemetryEvent] = deque(maxlen=_RING_SIZE)
+        self._ring: deque[TelemetryEvent] = deque(maxlen=_RING_SIZE)
 
     def record(self, event: TelemetryEvent) -> None:
         """Persist ``event`` to disk and the in-memory ring (best-effort)."""
         if event.timestamp is None:
-            event.timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            event.timestamp = datetime.now(UTC).isoformat(timespec="seconds")
         self._ring.append(event)
         try:
             os.makedirs(self.directory, exist_ok=True)
@@ -40,7 +39,7 @@ class TelemetryLogger:
             # Never let telemetry I/O break the request.
             pass
 
-    def recent(self, limit: int = 50) -> List[TelemetryEvent]:
+    def recent(self, limit: int = 50) -> list[TelemetryEvent]:
         """Return the most recent events (newest last), up to ``limit``."""
         events = list(self._ring)
         return events[-limit:]

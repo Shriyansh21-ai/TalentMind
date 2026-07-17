@@ -80,7 +80,7 @@ class Metadata(PlatformModel):
         """Return the metadata value for ``key`` (or ``default``)."""
         return self.values.get(key, default)
 
-    def set(self, key: str, value: Any) -> "Metadata":
+    def set(self, key: str, value: Any) -> Metadata:
         """Return a copy with ``key`` set to ``value`` (immutable-style update)."""
         merged = {**self.values, key: value}
         return Metadata(values=merged)

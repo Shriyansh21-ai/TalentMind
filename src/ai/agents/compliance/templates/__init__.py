@@ -46,7 +46,7 @@ class CompliancePolicy:
     requires: str
 
 
-COMPLIANCE_POLICIES: Dict[str, CompliancePolicy] = {
+COMPLIANCE_POLICIES: dict[str, CompliancePolicy] = {
     "exec_hire_committee": CompliancePolicy(
         key="exec_hire_committee",
         name="Executive Hire -> Committee",
@@ -90,7 +90,7 @@ def get_policy(key: str) -> CompliancePolicy:
     return COMPLIANCE_POLICIES[key]
 
 
-def list_policies() -> List[CompliancePolicy]:
+def list_policies() -> list[CompliancePolicy]:
     """Return every registered compliance policy (stable order)."""
     return list(COMPLIANCE_POLICIES.values())
 
@@ -107,7 +107,7 @@ class WorkflowStepDef:
 
 # Ordered required workflow steps. ``evidence_source`` matches the labels the
 # upstream engines report, so presence is derived, never fabricated.
-WORKFLOW_STEPS: List[WorkflowStepDef] = [
+WORKFLOW_STEPS: list[WorkflowStepDef] = [
     WorkflowStepDef("resume_screen", "Resume screened", "Resume Analyst Agent"),
     WorkflowStepDef("jd_defined", "Job description defined", "JD Analyst Agent", critical=False),
     WorkflowStepDef("interview", "Interview completed", "Interview Intelligence"),
@@ -128,7 +128,7 @@ class DocumentDef:
     evidence_source: str = ""  # label that confirms presence (empty = provider-only)
 
 
-REQUIRED_DOCUMENTS: List[DocumentDef] = [
+REQUIRED_DOCUMENTS: list[DocumentDef] = [
     DocumentDef("resume", "Resume", "Resume Analyst Agent"),
     DocumentDef("job_description", "Job Description", "JD Analyst Agent"),
     DocumentDef("interview_notes", "Interview Notes", "Interview Intelligence"),
@@ -141,7 +141,7 @@ REQUIRED_DOCUMENTS: List[DocumentDef] = [
 
 # Module 12 — extension-point registry. Frameworks / systems the provider
 # interface is DESIGNED for; none is implemented.
-COMPLIANCE_FRAMEWORKS: List[str] = [
+COMPLIANCE_FRAMEWORKS: list[str] = [
     "ISO 30414",
     "SOC 2",
     "Internal Governance System",
@@ -151,4 +151,4 @@ COMPLIANCE_FRAMEWORKS: List[str] = [
 ]
 
 # The full approver ladder the compliance layer reasons over.
-APPROVER_ROLES: List[str] = ["Recruiter", "Hiring Manager", "HR", "Finance", "Legal", "Executive"]
+APPROVER_ROLES: list[str] = ["Recruiter", "Hiring Manager", "HR", "Finance", "Legal", "Executive"]

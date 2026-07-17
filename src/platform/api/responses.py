@@ -48,7 +48,10 @@ def ok(data: Any, *, meta: ResponseMeta | None = None) -> ApiResponse:
 
 
 def fail(
-    code: str, message: str, *, details: dict[str, Any] | None = None,
+    code: str,
+    message: str,
+    *,
+    details: dict[str, Any] | None = None,
     meta: ResponseMeta | None = None,
 ) -> ApiResponse:
     """Build an error envelope."""

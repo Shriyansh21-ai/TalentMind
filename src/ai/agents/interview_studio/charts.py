@@ -10,15 +10,15 @@ readiness — never hiring scores.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.interview_studio.schemas import (
     DecisionMatrix,
     InterviewQuestion,
     InterviewStage,
+    InterviewStrategy,
     RiskValidation,
     RubricDimension,
-    InterviewStrategy,
 )
 
 # The competency axes the coverage radar reports on.
@@ -35,7 +35,9 @@ _RADAR_AXES = [
 _RISK_LEVEL = {"high": 3, "medium": 2, "moderate": 2, "low": 1, "": 0, "none": 0}
 
 
-def _coverage_radar(questions: List[InterviewQuestion], risks: List[RiskValidation]) -> Dict[str, int]:
+def _coverage_radar(
+    questions: list[InterviewQuestion], risks: list[RiskValidation]
+) -> dict[str, int]:
     """Return question-count coverage per competency axis."""
     radar = {axis: 0 for axis in _RADAR_AXES}
     for q in questions:
@@ -56,12 +58,14 @@ def _coverage_radar(questions: List[InterviewQuestion], risks: List[RiskValidati
     return radar
 
 
-def _risk_heatmap(evidence: Dict[str, Any], risks: List[RiskValidation]) -> Dict[str, int]:
+def _risk_heatmap(evidence: dict[str, Any], risks: list[RiskValidation]) -> dict[str, int]:
     """Return a risk heatmap keyed by risk dimension -> severity (0-3)."""
     risk = evidence.get("risk") or {}
     heatmap = {
         "Job Hopping": _RISK_LEVEL.get(str(risk.get("job_hopping_risk", "")).lower(), 0),
-        "Career Gaps": _RISK_LEVEL.get(str(risk.get("gap_risk", risk.get("employment_gap_risk", ""))).lower(), 0),
+        "Career Gaps": _RISK_LEVEL.get(
+            str(risk.get("gap_risk", risk.get("employment_gap_risk", ""))).lower(), 0
+        ),
         "Communication": _RISK_LEVEL.get(str(risk.get("communication_risk", "")).lower(), 0),
         "Overall": _RISK_LEVEL.get(str(risk.get("risk_level", "")).lower(), 0),
     }
@@ -71,16 +75,16 @@ def _risk_heatmap(evidence: Dict[str, Any], risks: List[RiskValidation]) -> Dict
     return heatmap
 
 
-def _question_distribution(questions: List[InterviewQuestion]) -> Dict[str, int]:
+def _question_distribution(questions: list[InterviewQuestion]) -> dict[str, int]:
     """Return the count of questions per category."""
-    dist: Dict[str, int] = {}
+    dist: dict[str, int] = {}
     for q in questions:
         label = q.category.replace("_", " ").title()
         dist[label] = dist.get(label, 0) + 1
     return dist
 
 
-def _difficulty_distribution(questions: List[InterviewQuestion]) -> Dict[str, int]:
+def _difficulty_distribution(questions: list[InterviewQuestion]) -> dict[str, int]:
     """Return the count of questions per difficulty band."""
     order = ["Warm-up", "Core", "Deep", "Stretch"]
     dist = {d: 0 for d in order}
@@ -89,20 +93,26 @@ def _difficulty_distribution(questions: List[InterviewQuestion]) -> Dict[str, in
     return dist
 
 
-def _decision_readiness(evidence: Dict[str, Any], questions: List[InterviewQuestion], risks: List[RiskValidation]) -> float:
+def _decision_readiness(
+    evidence: dict[str, Any], questions: list[InterviewQuestion], risks: list[RiskValidation]
+) -> float:
     """Return a 0-1 readiness gauge (coverage-based, NOT a hiring score)."""
     # Readiness = how well-prepared the loop is: has questions, has risk coverage,
     # has upstream evidence. Bounded to [0, 1].
     have_questions = 1.0 if questions else 0.0
     have_risk = 1.0 if risks else 0.0
-    sources = sum(1 for k in ("resume", "intelligence", "risk", "recommendation", "committee", "interview") if evidence.get(k))
+    sources = sum(
+        1
+        for k in ("resume", "intelligence", "risk", "recommendation", "committee", "interview")
+        if evidence.get(k)
+    )
     coverage = min(1.0, sources / 6.0)
     return round((have_questions + have_risk + coverage) / 3.0, 3)
 
 
-def _timeline(stages: List[InterviewStage]) -> List[Dict[str, Any]]:
+def _timeline(stages: list[InterviewStage]) -> list[dict[str, Any]]:
     """Return a cumulative timeline of stages for the Gantt-style view."""
-    timeline: List[Dict[str, Any]] = []
+    timeline: list[dict[str, Any]] = []
     start = 0
     for stage in stages:
         timeline.append(
@@ -119,14 +129,14 @@ def _timeline(stages: List[InterviewStage]) -> List[Dict[str, Any]]:
 
 def build_chart_data(
     *,
-    evidence: Dict[str, Any],
+    evidence: dict[str, Any],
     strategy: InterviewStrategy,
-    stages: List[InterviewStage],
-    questions: List[InterviewQuestion],
-    rubrics: List[RubricDimension],
-    risk_validations: List[RiskValidation],
+    stages: list[InterviewStage],
+    questions: list[InterviewQuestion],
+    rubrics: list[RubricDimension],
+    risk_validations: list[RiskValidation],
     decision_matrix: DecisionMatrix,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Build every chart structure for the Interview Studio dashboard (Module 12)."""
     return {
         "timeline": _timeline(stages),

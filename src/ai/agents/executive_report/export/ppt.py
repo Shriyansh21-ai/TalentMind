@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import io
 import zipfile
-from typing import List, Tuple
 
 from src.ai.agents.executive_report.export._common import section_lines, xml_escape
 from src.ai.agents.executive_report.renderer import ReportDocument
@@ -86,10 +85,10 @@ hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sldLayout>"""
 def _textbox(shape_id: int, name: str, x: int, y: int, cx: int, cy: int, paragraphs: str) -> str:
     return (
         f'<p:sp><p:nvSpPr><p:cNvPr id="{shape_id}" name="{name}"/>'
-        "<p:cNvSpPr><a:spLocks noGrp=\"1\"/></p:cNvSpPr><p:nvPr/></p:nvSpPr>"
+        '<p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr/></p:nvSpPr>'
         f'<p:spPr><a:xfrm><a:off x="{x}" y="{y}"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm>'
         '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr>'
-        f"<p:txBody><a:bodyPr wrap=\"square\"/><a:lstStyle/>{paragraphs}</p:txBody></p:sp>"
+        f'<p:txBody><a:bodyPr wrap="square"/><a:lstStyle/>{paragraphs}</p:txBody></p:sp>'
     )
 
 
@@ -98,13 +97,13 @@ def _para(text: str, size: int, bold: bool, color: str) -> str:
     return (
         f'<a:p><a:r><a:rPr lang="en-US" sz="{size}"{b}>'
         f'<a:solidFill><a:srgbClr val="{color}"/></a:solidFill></a:rPr>'
-        f'<a:t>{xml_escape(text)}</a:t></a:r></a:p>'
+        f"<a:t>{xml_escape(text)}</a:t></a:r></a:p>"
     )
 
 
-def _slide_xml(title: str, lines: List[Tuple[str, str]], *, is_cover: bool = False) -> str:
+def _slide_xml(title: str, lines: list[tuple[str, str]], *, is_cover: bool = False) -> str:
     title_para = _para(title, 3200 if is_cover else 2400, True, "0B1F3A")
-    body_paras: List[str] = []
+    body_paras: list[str] = []
     for style, text in lines:
         if style == "h3":
             body_paras.append(_para(text, 1600, True, "13315C"))
@@ -115,7 +114,15 @@ def _slide_xml(title: str, lines: List[Tuple[str, str]], *, is_cover: bool = Fal
         else:
             body_paras.append(_para(text, 1400, False, "1A1A2E"))
     title_box = _textbox(2, "Title", 457200, 274638, 8229600, 1143000, title_para)
-    body_box = _textbox(3, "Body", 457200, 1600200, 8229600, 4800600, "".join(body_paras) or _para("", 1400, False, "1A1A2E"))
+    body_box = _textbox(
+        3,
+        "Body",
+        457200,
+        1600200,
+        8229600,
+        4800600,
+        "".join(body_paras) or _para("", 1400, False, "1A1A2E"),
+    )
     return (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         f'<p:sld xmlns:a="{_A}" xmlns:r="{_R}" xmlns:p="{_P}">'
@@ -123,16 +130,16 @@ def _slide_xml(title: str, lines: List[Tuple[str, str]], *, is_cover: bool = Fal
         '<p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/>'
         '<a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>'
         f"{title_box}{body_box}"
-        "</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1=\"lt1\" tx1=\"dk1\" bg2=\"lt2\" tx2=\"dk2\""
+        '</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2"'
         ' accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5"'
         ' accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sld>'
     )
 
 
-def _build_slides(document: ReportDocument) -> List[str]:
+def _build_slides(document: ReportDocument) -> list[str]:
     cover = document.cover
-    slides: List[str] = []
-    cover_lines: List[Tuple[str, str]] = [
+    slides: list[str] = []
+    cover_lines: list[tuple[str, str]] = [
         ("h3", document.subtitle),
         ("para", f"Recommendation: {cover.get('recommendation', '')}"),
         ("para", f"Executive Confidence: {cover.get('confidence', '')}"),
@@ -150,9 +157,7 @@ def _build_slides(document: ReportDocument) -> List[str]:
 
 
 def _presentation_xml(n_slides: int) -> str:
-    ids = "".join(
-        f'<p:sldId id="{256 + i}" r:id="rId{i + 2}"/>' for i in range(n_slides)
-    )
+    ids = "".join(f'<p:sldId id="{256 + i}" r:id="rId{i + 2}"/>' for i in range(n_slides))
     return (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         f'<p:presentation xmlns:a="{_A}" xmlns:r="{_R}" xmlns:p="{_P}">'

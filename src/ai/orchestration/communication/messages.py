@@ -11,26 +11,26 @@ from __future__ import annotations
 
 import itertools
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
 
 _counter = itertools.count(1)
 
 
 def _now_iso() -> str:
     """Return the current UTC time as an ISO-8601 string."""
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+    return datetime.now(UTC).isoformat(timespec="milliseconds")
 
 
 class MessageType(str, Enum):
     """The closed set of message kinds carried by the bus."""
 
-    TASK_REQUEST = "TaskRequest"        # "please run this task"
-    TASK_RESPONSE = "TaskResponse"      # "here is the result of a task"
-    STATUS_UPDATE = "StatusUpdate"      # progress / heartbeat
-    AGENT_EVENT = "AgentEvent"          # lifecycle notification from an agent
-    ERROR_EVENT = "ErrorEvent"          # a failure occurred
+    TASK_REQUEST = "TaskRequest"  # "please run this task"
+    TASK_RESPONSE = "TaskResponse"  # "here is the result of a task"
+    STATUS_UPDATE = "StatusUpdate"  # progress / heartbeat
+    AGENT_EVENT = "AgentEvent"  # lifecycle notification from an agent
+    ERROR_EVENT = "ErrorEvent"  # a failure occurred
     COMPLETION_EVENT = "CompletionEvent"  # a workflow/task finished
 
 
@@ -51,10 +51,10 @@ class SharedMessage:
 
     type: MessageType
     sender: str
-    payload: Dict[str, Any] = field(default_factory=dict)
-    recipient: Optional[str] = None
-    topic: Optional[str] = None
-    correlation_id: Optional[str] = None
+    payload: dict[str, Any] = field(default_factory=dict)
+    recipient: str | None = None
+    topic: str | None = None
+    correlation_id: str | None = None
     id: int = field(default_factory=lambda: next(_counter))
     timestamp: str = field(default_factory=_now_iso)
 
@@ -63,7 +63,7 @@ class SharedMessage:
         """Return the topic to route on (explicit topic or the type value)."""
         return self.topic or self.type.value
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the message."""
         return {
             "id": self.id,

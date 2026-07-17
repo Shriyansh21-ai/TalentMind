@@ -9,9 +9,10 @@ changing callers. No vendor integration ships.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Iterator, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from pydantic import Field
 
@@ -143,9 +144,7 @@ class RuntimeTelemetry:
             self._logs = self._logs[-self._log_capacity :]
         return entry
 
-    def logs(
-        self, *, component: str | None = None, limit: int = 100
-    ) -> list[RuntimeLogEntry]:
+    def logs(self, *, component: str | None = None, limit: int = 100) -> list[RuntimeLogEntry]:
         """Return the most recent log lines, newest first, filtered."""
         rows = self._logs
         if component is not None:

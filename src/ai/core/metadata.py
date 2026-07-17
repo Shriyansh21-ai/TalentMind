@@ -8,7 +8,6 @@ place.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
 
 
 @dataclass(frozen=True)
@@ -32,4 +31,4 @@ class AgentMetadata:
     description: str
     prompt_id: str
     prompt_version: str
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)

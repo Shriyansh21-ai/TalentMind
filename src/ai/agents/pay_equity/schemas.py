@@ -27,7 +27,7 @@ composable so Module 12 HRIS integrations can extend it without a redesign.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import Field, field_validator
 
@@ -59,9 +59,9 @@ class PayEquityNarrative(BaseAIResponse):
     fairness_note: str = ""
     review_note: str = ""
     data_availability_note: str = ""
-    key_findings: List[str] = Field(default_factory=list)
-    assumptions: List[str] = Field(default_factory=list)
-    human_review_recommendations: List[str] = Field(default_factory=list)
+    key_findings: list[str] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+    human_review_recommendations: list[str] = Field(default_factory=list)
     confidence_note: str = ""
 
     @field_validator("executive_summary")
@@ -89,7 +89,7 @@ class EquityFinding:
     register: str = "Unavailable Data"
     source: str = "Pay Equity Guardian"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the finding."""
         return asdict(self)
 
@@ -108,9 +108,9 @@ class CompressionAssessment:
     rationale: str = "Company compensation data unavailable."
     business_impact: str = ""
     mitigation: str = ""
-    evidence: List[str] = field(default_factory=list)
+    evidence: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the compression assessment."""
         return asdict(self)
 
@@ -127,7 +127,7 @@ class InversionCase:
     peer_ref: str
     detail: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -138,11 +138,11 @@ class InversionAssessment:
     risk_level: str = "Unavailable"  # Low | Medium | High | Unavailable
     data_available: bool = False
     rationale: str = "Unable to evaluate without internal compensation data."
-    cases: List[InversionCase] = field(default_factory=list)
+    cases: list[InversionCase] = field(default_factory=list)
     business_impact: str = ""
     recommended_review: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the inversion assessment."""
         return {
             "risk_level": self.risk_level,
@@ -167,10 +167,10 @@ class PromotionEquityAssessment:
     data_available: bool = False
     level_alignment: str = ""
     progression_note: str = ""
-    recommendations: List[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
     confidence: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the promotion-equity assessment."""
         return asdict(self)
 
@@ -188,10 +188,10 @@ class PolicyAlignment:
     policy_name: str = ""
     alignment: str = "Not Evaluable"  # Aligned | Partial | Violation | Not Evaluable
     rationale: str = ""
-    violations: List[str] = field(default_factory=list)
-    review_requirements: List[str] = field(default_factory=list)
+    violations: list[str] = field(default_factory=list)
+    review_requirements: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the policy alignment."""
         return asdict(self)
 
@@ -206,13 +206,13 @@ class FairnessAssessment:
     """Fairness intelligence (Module 6). Identifies review areas, not legal facts."""
 
     assessment: str = ""
-    concerns: List[str] = field(default_factory=list)
-    human_review_recommendations: List[str] = field(default_factory=list)
-    governance_notes: List[str] = field(default_factory=list)
-    evidence: List[str] = field(default_factory=list)
-    assumptions: List[str] = field(default_factory=list)
+    concerns: list[str] = field(default_factory=list)
+    human_review_recommendations: list[str] = field(default_factory=list)
+    governance_notes: list[str] = field(default_factory=list)
+    evidence: list[str] = field(default_factory=list)
+    assumptions: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the fairness assessment."""
         return asdict(self)
 
@@ -230,7 +230,7 @@ class ApprovalRequirement:
     required: bool = False
     reason: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -239,14 +239,14 @@ class ExecutiveReview:
     """The executive-review determination (Module 7)."""
 
     review_level: str = "Standard"  # Standard | Elevated | Executive
-    approvals: List[ApprovalRequirement] = field(default_factory=list)
+    approvals: list[ApprovalRequirement] = field(default_factory=list)
     rationale: str = ""
 
-    def required_approvers(self) -> List[str]:
+    def required_approvers(self) -> list[str]:
         """Return the approvers that are required."""
         return [a.approver for a in self.approvals if a.required]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the executive review."""
         return {
             "review_level": self.review_level,
@@ -273,9 +273,9 @@ class EquityScenario:
     budget_impact: str = ""
     promotion_impact: str = ""
     retention_impact: str = ""
-    tradeoffs: List[str] = field(default_factory=list)
+    tradeoffs: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the scenario."""
         return asdict(self)
 
@@ -290,11 +290,11 @@ class EquityRisk:
     """Overall internal-equity risk (feeds the Module 10 gauge)."""
 
     level: str = "Unknown"  # Low | Medium | High | Unknown
-    drivers: List[str] = field(default_factory=list)
+    drivers: list[str] = field(default_factory=list)
     confidence: float = 0.0
     data_available: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the equity risk."""
         return asdict(self)
 
@@ -321,23 +321,23 @@ class PayEquityReport:
     generated_on: str
     policy_key: str
     data_available: bool
-    candidate_overview: Dict[str, Any]
-    offer_summary: Dict[str, Any]
+    candidate_overview: dict[str, Any]
+    offer_summary: dict[str, Any]
     narrative: PayEquityNarrative
     equity_risk: EquityRisk
-    equity_findings: List[EquityFinding]
+    equity_findings: list[EquityFinding]
     compression: CompressionAssessment
     inversion: InversionAssessment
     promotion: PromotionEquityAssessment
     policy_alignment: PolicyAlignment
     fairness: FairnessAssessment
     executive_review: ExecutiveReview
-    scenarios: List[EquityScenario]
-    charts: Dict[str, Any] = field(default_factory=dict)
-    evidence_sources: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    scenarios: list[EquityScenario]
+    charts: dict[str, Any] = field(default_factory=dict)
+    evidence_sources: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the whole report."""
         return {
             "report_id": self.report_id,

@@ -8,14 +8,14 @@ semantic search compose: "candidates like <query> AND senior AND low-risk".
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Sequence
+from collections.abc import Sequence
 
 import streamlit as st
 
-from src.insights.models import CandidateInsights
-from src.pipeline.models import CandidatePipelineStatus, PipelineStage
 from src.filtering.engine import apply_filters
 from src.filtering.models import FilterCriteria
+from src.insights.models import CandidateInsights
+from src.pipeline.models import CandidatePipelineStatus, PipelineStage
 
 _RISK_LEVELS = ["Low", "Medium", "High"]
 _RECOMMENDATIONS = ["Strong Hire", "Hire", "Hold", "Reject"]
@@ -27,7 +27,7 @@ _FAISS_POOL = 200
 
 def render_smart_filters(
     insights: Sequence[CandidateInsights],
-    pipeline_states: Dict[str, CandidatePipelineStatus],
+    pipeline_states: dict[str, CandidatePipelineStatus],
 ) -> None:
     """Render the smart-filter panel and the filtered result list.
 
@@ -43,7 +43,7 @@ def render_smart_filters(
 
     criteria, semantic_query = _render_controls()
 
-    allowed_ids: Optional[set] = None
+    allowed_ids: set | None = None
     if semantic_query:
         allowed_ids = _semantic_gate(semantic_query)
         if allowed_ids is None:
@@ -110,7 +110,7 @@ def _render_controls():
     return criteria, semantic_query.strip()
 
 
-def _semantic_gate(query: str) -> Optional[set]:
+def _semantic_gate(query: str) -> set | None:
     """Return the candidate ids returned by FAISS for ``query`` (or ``None``).
 
     The FAISS-backed search (and its heavy torch / sentence-transformers
@@ -127,7 +127,7 @@ def _semantic_gate(query: str) -> Optional[set]:
     return {candidate.candidate_id for candidate, _ in hits}
 
 
-def _render_results(filtered: List[CandidateInsights]) -> None:
+def _render_results(filtered: list[CandidateInsights]) -> None:
     """Render a compact list of the filtered candidates."""
     if not filtered:
         st.caption("No candidates match — try relaxing the filters.")

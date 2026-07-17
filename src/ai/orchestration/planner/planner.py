@@ -19,7 +19,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
 
 from src.ai.orchestration.models import Goal, Priority, Task, TaskGraph
 from src.ai.orchestration.workflow.definition import (
@@ -40,10 +39,8 @@ class PlanTemplate:
     """
 
     name: str
-    keywords: List[Tuple[str, int]] = field(default_factory=list)
-    definition: WorkflowDefinition = field(
-        default_factory=lambda: WorkflowDefinition(name="empty")
-    )
+    keywords: list[tuple[str, int]] = field(default_factory=list)
+    definition: WorkflowDefinition = field(default_factory=lambda: WorkflowDefinition(name="empty"))
 
     def score(self, text: str) -> int:
         """Return the summed weight of keyword phrases present in ``text``."""
@@ -63,12 +60,12 @@ class CapabilityTaskPlanner(TaskPlanner):
 
     def __init__(
         self,
-        templates: Optional[List[PlanTemplate]] = None,
+        templates: list[PlanTemplate] | None = None,
         *,
         default_capability: str = "general",
     ) -> None:
         """Bind the planner to a template list + a default single-task capability."""
-        self.templates: List[PlanTemplate] = list(templates or [])
+        self.templates: list[PlanTemplate] = list(templates or [])
         self.default_capability = default_capability
 
     def register_template(self, template: PlanTemplate) -> PlanTemplate:
@@ -76,10 +73,10 @@ class CapabilityTaskPlanner(TaskPlanner):
         self.templates.append(template)
         return template
 
-    def match(self, goal: Goal) -> Tuple[Optional[PlanTemplate], float]:
+    def match(self, goal: Goal) -> tuple[PlanTemplate | None, float]:
         """Return the best-matching template + a 0-100 confidence."""
         text = f" {goal.description.lower().strip()} "
-        best: Optional[PlanTemplate] = None
+        best: PlanTemplate | None = None
         best_score = 0
         for template in self.templates:
             score = template.score(text)
@@ -110,9 +107,7 @@ class CapabilityTaskPlanner(TaskPlanner):
         graph.validate()
         return graph
 
-    def _single_task_graph(
-        self, goal: Goal, base_payload: dict, confidence: float
-    ) -> TaskGraph:
+    def _single_task_graph(self, goal: Goal, base_payload: dict, confidence: float) -> TaskGraph:
         """Fall back to a one-task graph using the default capability."""
         graph = TaskGraph()
         graph.add(
@@ -130,7 +125,7 @@ class CapabilityTaskPlanner(TaskPlanner):
         return graph
 
 
-def default_plan_templates() -> List[PlanTemplate]:
+def default_plan_templates() -> list[PlanTemplate]:
     """Return a small, generic set of example templates.
 
     These are **infrastructure examples**, not business agents: they wire
@@ -192,7 +187,14 @@ def default_plan_templates() -> List[PlanTemplate]:
     return [
         PlanTemplate(
             name="entity_analysis",
-            keywords=[("analyze", 3), ("analyse", 3), ("assess", 3), ("evaluate", 2), ("deep dive", 2), ("full", 1)],
+            keywords=[
+                ("analyze", 3),
+                ("analyse", 3),
+                ("assess", 3),
+                ("evaluate", 2),
+                ("deep dive", 2),
+                ("full", 1),
+            ],
             definition=analysis,
         ),
         PlanTemplate(

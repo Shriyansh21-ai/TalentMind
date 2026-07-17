@@ -13,10 +13,10 @@ offline modes agree on the facts.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def _overview_line(evidence: Dict[str, Any]) -> str:
+def _overview_line(evidence: dict[str, Any]) -> str:
     ov = evidence.get("candidate_overview") or {}
     title = ov.get("title") or "the candidate"
     years = ov.get("years_of_experience")
@@ -26,7 +26,7 @@ def _overview_line(evidence: Dict[str, Any]) -> str:
     return line
 
 
-def _range_str(evidence: Dict[str, Any]) -> str:
+def _range_str(evidence: dict[str, Any]) -> str:
     rr = evidence.get("recommended_range") or {}
     if not rr:
         return "a defensible range (pending computation)"
@@ -36,7 +36,7 @@ def _range_str(evidence: Dict[str, Any]) -> str:
     )
 
 
-def compose_compensation_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_compensation_narrative(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose a :class:`CompensationNarrative` from evidence."""
     rr = evidence.get("recommended_range") or {}
     conf_label = rr.get("confidence_label", "Moderate")
@@ -52,15 +52,17 @@ def compose_compensation_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
         f"Market position: {market}; classified as a {hire_type}."
     )
 
-    justifications: List[str] = list(rr.get("basis", []))
+    justifications: list[str] = list(rr.get("basis", []))
     intelligence = evidence.get("intelligence") or {}
     for s in (intelligence.get("strengths") or [])[:2]:
         justifications.append(f"Assessed strength: {s} (Candidate Intelligence).")
     justifications = list(dict.fromkeys(justifications))[:6]
 
-    assumptions: List[str] = list(rr.get("assumptions", []))
+    assumptions: list[str] = list(rr.get("assumptions", []))
     if not evidence.get("committee"):
-        assumptions.append("No committee decision was available; stance inferred from the recommendation engine.")
+        assumptions.append(
+            "No committee decision was available; stance inferred from the recommendation engine."
+        )
     assumptions = list(dict.fromkeys(assumptions))[:5]
 
     comp = evidence.get("candidate_comp") or {}
@@ -68,7 +70,11 @@ def compose_compensation_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
 
     recommendation_rationale = (
         "The range anchors on "
-        + ("the candidate's stated expectation" if has_expectation else "a seniority baseline (assumption)")
+        + (
+            "the candidate's stated expectation"
+            if has_expectation
+            else "a seniority baseline (assumption)"
+        )
         + " and applies documented internal premiums/discounts for skill, leadership, "
         "strategic value and risk. Every step is recorded in the offer-justification trail."
     )
@@ -100,7 +106,9 @@ def compose_compensation_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
     elif conf_label == "Low":
         confidence_note = "Confidence is low: evidence is thin — treat the range as provisional and validate before approval."
     else:
-        confidence_note = "Confidence is moderate: the range is defensible but partially assumption-based."
+        confidence_note = (
+            "Confidence is moderate: the range is defensible but partially assumption-based."
+        )
 
     return {
         "executive_summary": summary,

@@ -21,9 +21,7 @@ class WorkspaceRepository:
 
     def __init__(self) -> None:
         self.workspaces: InMemoryRepository[Workspace] = InMemoryRepository("workspace")
-        self.members: InMemoryRepository[WorkspaceMember] = InMemoryRepository(
-            "workspace_member"
-        )
+        self.members: InMemoryRepository[WorkspaceMember] = InMemoryRepository("workspace_member")
         self.projects: InMemoryRepository[Project] = InMemoryRepository("project")
         self.teams: InMemoryRepository[Team] = InMemoryRepository("team")
         self.pipelines: InMemoryRepository[Pipeline] = InMemoryRepository("pipeline")

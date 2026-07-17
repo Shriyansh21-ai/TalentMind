@@ -13,11 +13,12 @@ deterministic engines' output, so hallucination is structurally impossible.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Dict
+from collections.abc import Callable
+from typing import Any
 
-Composer = Callable[[Dict[str, Any]], Dict[str, Any]]
+Composer = Callable[[dict[str, Any]], dict[str, Any]]
 
-_COMPOSERS: Dict[str, Composer] = {}
+_COMPOSERS: dict[str, Composer] = {}
 
 
 def register_composer(schema_name: str, composer: Composer) -> None:

@@ -8,7 +8,7 @@ models that ship with the calendar, communication and document families
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.platform.integrations.ats import all_providers as ats_providers
 from src.platform.integrations.calendar import (
@@ -33,16 +33,24 @@ from src.platform.integrations.documents import (
 from src.platform.integrations.documents import all_providers as doc_providers
 from src.platform.integrations.hris import all_providers as hris_providers
 
-
 # -- provider coverage ------------------------------------------------------
 
 
 def test_hris_family_covers_required_vendors():
     keys = {p.key for p in hris_providers()}
     assert {
-        "workday", "sap_successfactors", "oracle_hcm", "adp", "bamboohr",
-        "rippling", "darwinbox", "ukg", "hibob", "personio",
-        "greenhouse_hris", "ashby_hris",
+        "workday",
+        "sap_successfactors",
+        "oracle_hcm",
+        "adp",
+        "bamboohr",
+        "rippling",
+        "darwinbox",
+        "ukg",
+        "hibob",
+        "personio",
+        "greenhouse_hris",
+        "ashby_hris",
     } <= keys
     assert all(p.category == ProviderCategory.HRIS for p in hris_providers())
 
@@ -50,23 +58,44 @@ def test_hris_family_covers_required_vendors():
 def test_ats_family_covers_required_vendors():
     keys = {p.key for p in ats_providers()}
     assert {
-        "greenhouse", "lever", "smartrecruiters", "ashby", "workable",
-        "jazzhr", "icims", "jobvite", "bullhorn", "teamtailor",
+        "greenhouse",
+        "lever",
+        "smartrecruiters",
+        "ashby",
+        "workable",
+        "jazzhr",
+        "icims",
+        "jobvite",
+        "bullhorn",
+        "teamtailor",
     } <= keys
     assert all(p.category == ProviderCategory.ATS for p in ats_providers())
 
 
 def test_calendar_and_communication_and_document_families():
     assert {p.key for p in cal_providers()} == {
-        "google_calendar", "microsoft_outlook", "exchange", "apple_calendar",
+        "google_calendar",
+        "microsoft_outlook",
+        "exchange",
+        "apple_calendar",
     }
     assert {p.key for p in comm_providers()} == {
-        "email", "slack", "microsoft_teams", "discord", "sms",
-        "whatsapp", "webhook_notifications",
+        "email",
+        "slack",
+        "microsoft_teams",
+        "discord",
+        "sms",
+        "whatsapp",
+        "webhook_notifications",
     }
     assert {p.key for p in doc_providers()} == {
-        "google_drive", "onedrive", "sharepoint", "dropbox", "box",
-        "amazon_s3", "azure_blob",
+        "google_drive",
+        "onedrive",
+        "sharepoint",
+        "dropbox",
+        "box",
+        "amazon_s3",
+        "azure_blob",
     }
 
 
@@ -82,27 +111,25 @@ def test_provider_describe_roundtrips_capabilities():
 
 
 def test_timezone_conversion_shifts_offset():
-    utc_noon = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    utc_noon = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
     ist = convert_timezone(utc_noon, 330)  # +05:30
     assert ist.hour == 17 and ist.minute == 30
 
 
 def test_availability_and_interview_slot():
     window = TimeWindow(
-        start=datetime(2026, 1, 1, 9, 0, tzinfo=timezone.utc),
-        end=datetime(2026, 1, 1, 17, 0, tzinfo=timezone.utc),
+        start=datetime(2026, 1, 1, 9, 0, tzinfo=UTC),
+        end=datetime(2026, 1, 1, 17, 0, tzinfo=UTC),
     )
     availability = Availability(participant_id="u1", free_windows=[window])
     slot_window = TimeWindow(
-        start=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc),
-        end=datetime(2026, 1, 1, 11, 0, tzinfo=timezone.utc),
+        start=datetime(2026, 1, 1, 10, 0, tzinfo=UTC),
+        end=datetime(2026, 1, 1, 11, 0, tzinfo=UTC),
     )
     assert availability.is_free_at(slot_window)
     assert slot_window.duration_minutes == 60
 
-    slot = InterviewSlot(
-        id="slot_1", tenant_id="t1", organization_id="t1", window=slot_window
-    )
+    slot = InterviewSlot(id="slot_1", tenant_id="t1", organization_id="t1", window=slot_window)
     assert slot.status == SlotStatus.OPEN
 
 

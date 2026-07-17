@@ -9,7 +9,7 @@ meeting-history index so the copilot can answer follow-up questions
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.ai.orchestration.memory.memory import (
     InMemoryOrchestrationMemory,
@@ -20,12 +20,12 @@ from src.ai.orchestration.memory.memory import (
 class CommitteeMemory:
     """A thin, meeting-scoped facade over the orchestration memory."""
 
-    def __init__(self, backend: Optional[OrchestrationMemory] = None) -> None:
+    def __init__(self, backend: OrchestrationMemory | None = None) -> None:
         """Bind to an orchestration memory backend (in-process by default)."""
         self.backend = backend or InMemoryOrchestrationMemory()
-        self._meetings: List[str] = []
+        self._meetings: list[str] = []
 
-    def remember_meeting(self, meeting_id: str, report_dict: Dict[str, Any]) -> None:
+    def remember_meeting(self, meeting_id: str, report_dict: dict[str, Any]) -> None:
         """Persist a completed meeting's full report + indexed facets."""
         self.backend.remember(meeting_id, "report", report_dict)
         self.backend.remember(meeting_id, "opinions", report_dict.get("opinions", []))
@@ -44,7 +44,7 @@ class CommitteeMemory:
         if meeting_id not in self._meetings:
             self._meetings.append(meeting_id)
 
-    def recall_meeting(self, meeting_id: str) -> Dict[str, Any]:
+    def recall_meeting(self, meeting_id: str) -> dict[str, Any]:
         """Return a stored meeting report (or empty dict)."""
         return self.backend.recall(meeting_id, "report", {})
 
@@ -52,13 +52,13 @@ class CommitteeMemory:
         """Return a stored facet (opinions / consensus / conflicts / decision)."""
         return self.backend.recall(meeting_id, key)
 
-    def latest_for(self, candidate_id: str) -> Dict[str, Any]:
+    def latest_for(self, candidate_id: str) -> dict[str, Any]:
         """Return the most recent meeting report for a candidate (or empty)."""
         for entry in reversed(self.backend.trace("committee_history")):
             if entry.get("candidate_id") == candidate_id:
                 return self.recall_meeting(entry["meeting_id"])
         return {}
 
-    def history(self) -> List[Dict[str, Any]]:
+    def history(self) -> list[dict[str, Any]]:
         """Return the ordered meeting-history index."""
         return self.backend.trace("committee_history")

@@ -13,7 +13,7 @@ from the underlying **evidence** they cite.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 SECTION_LABELS = {
     "contact_information": "Contact Information",
@@ -42,7 +42,7 @@ def band(value: float) -> str:
     return "Weak"
 
 
-def _labels(keys: List[str]) -> List[str]:
+def _labels(keys: list[str]) -> list[str]:
     """Map canonical section keys to display labels."""
     return [SECTION_LABELS.get(k, k) for k in keys]
 
@@ -52,17 +52,20 @@ def _labels(keys: List[str]) -> List[str]:
 # ---------------------------------------------------------------------------
 
 
-def build_structure(ev: Dict[str, Any]) -> Dict[str, Any]:
+def build_structure(ev: dict[str, Any]) -> dict[str, Any]:
     """Build the structure report from the evidence dict."""
     doc = ev.get("document", {})
     metrics = ev.get("metrics", {})
     present = doc.get("sections_present", [])
     empty = doc.get("sections_empty", [])
 
-    weak: List[str] = []
+    weak: list[str] = []
     if not doc.get("summary", "").strip():
         weak.append("Professional Summary")
-    if metrics.get("bullet_count", 0) and metrics.get("action_verb_bullets", 0) / max(metrics["bullet_count"], 1) < 0.3:
+    if (
+        metrics.get("bullet_count", 0)
+        and metrics.get("action_verb_bullets", 0) / max(metrics["bullet_count"], 1) < 0.3
+    ):
         weak.append("Work Experience (few action verbs)")
     if doc.get("projects") == [] or not doc.get("projects"):
         weak.append("Projects")
@@ -86,7 +89,7 @@ def build_structure(ev: Dict[str, Any]) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def build_career_story(ev: Dict[str, Any]) -> Dict[str, Any]:
+def build_career_story(ev: dict[str, Any]) -> dict[str, Any]:
     """Build the career-story report from the evidence dict."""
     doc = ev.get("document", {})
     metrics = ev.get("metrics", {})
@@ -95,7 +98,9 @@ def build_career_story(ev: Dict[str, Any]) -> Dict[str, Any]:
     titles = [e.get("title", "") for e in experiences]
 
     industries = {e.get("industry", "") for e in experiences if e.get("industry")}
-    consistency = "Focused" if len(industries) <= 1 else ("Cohesive" if len(industries) == 2 else "Broad")
+    consistency = (
+        "Focused" if len(industries) <= 1 else ("Cohesive" if len(industries) == 2 else "Broad")
+    )
     direction = _direction(titles)
     focus = "Specialist" if len(set(doc.get("skills", []))) <= 12 else "Generalist"
     progression = band(dims.get("career_narrative", 45))
@@ -107,7 +112,9 @@ def build_career_story(ev: Dict[str, Any]) -> Dict[str, Any]:
     observations = []
     if titles:
         observations.append(f"Most recent role: {titles[0]}.")
-    observations.append(f"Progression reads as {progression.lower()} based on title seniority over time.")
+    observations.append(
+        f"Progression reads as {progression.lower()} based on title seniority over time."
+    )
     return {
         "narrative": narrative,
         "direction": direction,
@@ -119,7 +126,7 @@ def build_career_story(ev: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _direction(titles: List[str]) -> str:
+def _direction(titles: list[str]) -> str:
     """Infer coarse career direction from title ordering (newest first)."""
     from src.ai.agents.resume.metrics import _seniority_rank
 
@@ -137,21 +144,29 @@ def _direction(titles: List[str]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def build_technical(ev: Dict[str, Any]) -> Dict[str, Any]:
+def build_technical(ev: dict[str, Any]) -> dict[str, Any]:
     """Build the technical report from the evidence dict."""
     metrics = ev.get("metrics", {})
     modern = metrics.get("modern_tech", [])
     dated = metrics.get("dated_tech", [])
-    diversity = "High" if metrics.get("skill_count", 0) >= 12 else ("Moderate" if metrics.get("skill_count", 0) >= 6 else "Narrow")
+    diversity = (
+        "High"
+        if metrics.get("skill_count", 0) >= 12
+        else ("Moderate" if metrics.get("skill_count", 0) >= 6 else "Narrow")
+    )
     depth = band(metrics.get("dimensions", {}).get("technical_depth", 40))
 
     observations = []
     if modern:
         observations.append("Modern stack present: " + ", ".join(modern[:8]) + ".")
     if dated:
-        observations.append("Older technologies present: " + ", ".join(dated) + " (verify current relevance).")
+        observations.append(
+            "Older technologies present: " + ", ".join(dated) + " (verify current relevance)."
+        )
     if not metrics.get("production_exposure"):
-        observations.append("Limited explicit production/scale language — inference only, worth confirming.")
+        observations.append(
+            "Limited explicit production/scale language — inference only, worth confirming."
+        )
     return {
         "technologies": metrics.get("technologies", []),
         "modern_technologies": modern,
@@ -172,12 +187,12 @@ def build_technical(ev: Dict[str, Any]) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def build_projects(ev: Dict[str, Any]) -> List[Dict[str, Any]]:
+def build_projects(ev: dict[str, Any]) -> list[dict[str, Any]]:
     """Build per-project intelligence from the evidence dict."""
     doc = ev.get("document", {})
     metrics = ev.get("metrics", {})
     projects = doc.get("projects", [])
-    insights: List[Dict[str, Any]] = []
+    insights: list[dict[str, Any]] = []
     for proj in projects[:8]:
         text = proj.get("text", "")
         low = text.lower()
@@ -185,14 +200,18 @@ def build_projects(ev: Dict[str, Any]) -> List[Dict[str, Any]]:
         complexity = "High" if word_count >= 18 else ("Medium" if word_count >= 9 else "Low")
         quantified = any(ch.isdigit() for ch in text)
         leadership = any(cue in low for cue in ("led", "owned", "mentored", "spearheaded"))
-        production = any(cue in low for cue in ("production", "scale", "users", "latency", "uptime"))
+        production = any(
+            cue in low for cue in ("production", "scale", "users", "latency", "uptime")
+        )
         techs = [t for t in metrics.get("modern_tech", []) if t in low]
         insights.append(
             {
                 "name": proj.get("name", "Project"),
                 "complexity": complexity,
                 "business_value": "Evident" if quantified else "Unclear (not quantified)",
-                "innovation": "Notable" if any(w in low for w in ("novel", "first", "new", "innovat")) else "Standard",
+                "innovation": "Notable"
+                if any(w in low for w in ("novel", "first", "new", "innovat"))
+                else "Standard",
                 "impact": "Quantified" if quantified else "Not quantified",
                 "production_readiness": "Production-grade" if production else "Unspecified",
                 "uniqueness": "Distinctive" if techs else "Common",
@@ -209,14 +228,14 @@ def build_projects(ev: Dict[str, Any]) -> List[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 
-def build_achievements(ev: Dict[str, Any]) -> Dict[str, Any]:
+def build_achievements(ev: dict[str, Any]) -> dict[str, Any]:
     """Build the achievement report from the evidence dict."""
     metrics = ev.get("metrics", {})
     quantified = metrics.get("quantified_statements", [])
     leadership = metrics.get("leadership_statements", [])
     recognition = metrics.get("recognition_statements", [])
 
-    missing: List[str] = []
+    missing: list[str] = []
     if not quantified:
         missing.append("Quantified business impact (%, $, scale, time saved).")
     if not leadership:
@@ -246,7 +265,7 @@ def build_achievements(ev: Dict[str, Any]) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def build_ats(ev: Dict[str, Any]) -> Dict[str, Any]:
+def build_ats(ev: dict[str, Any]) -> dict[str, Any]:
     """Build the ATS optimization report from the evidence dict."""
     metrics = ev.get("metrics", {})
     doc = ev.get("document", {})
@@ -255,15 +274,23 @@ def build_ats(ev: Dict[str, Any]) -> Dict[str, Any]:
 
     parsing_notes = []
     if len(doc.get("sections_present", [])) < 6:
-        parsing_notes.append("Fewer than 6 standard sections detected — add clear section headings.")
+        parsing_notes.append(
+            "Fewer than 6 standard sections detected — add clear section headings."
+        )
     if metrics.get("overused_keywords"):
-        parsing_notes.append("Some terms are heavily repeated: " + ", ".join(metrics["overused_keywords"]) + ".")
+        parsing_notes.append(
+            "Some terms are heavily repeated: " + ", ".join(metrics["overused_keywords"]) + "."
+        )
     if not parsing_notes:
         parsing_notes.append("Standard sections present; structure is parseable.")
 
     suggestions = []
     if metrics.get("missing_keywords"):
-        suggestions.append("Consider adding role-relevant keywords: " + ", ".join(metrics["missing_keywords"][:10]) + ".")
+        suggestions.append(
+            "Consider adding role-relevant keywords: "
+            + ", ".join(metrics["missing_keywords"][:10])
+            + "."
+        )
     if metrics.get("overused_keywords"):
         suggestions.append("Vary phrasing to reduce keyword repetition.")
     return {
@@ -281,7 +308,7 @@ def build_ats(ev: Dict[str, Any]) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def build_writing(ev: Dict[str, Any]) -> Dict[str, Any]:
+def build_writing(ev: dict[str, Any]) -> dict[str, Any]:
     """Build the writing report + sample rewrites from the evidence dict."""
     metrics = ev.get("metrics", {})
     bullet_count = metrics.get("bullet_count", 0)
@@ -312,10 +339,10 @@ def build_writing(ev: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _sample_rewrites(ev: Dict[str, Any]) -> List[Dict[str, str]]:
+def _sample_rewrites(ev: dict[str, Any]) -> list[dict[str, str]]:
     """Produce concrete before/after rewrites from weak bullets in evidence."""
     doc = ev.get("document", {})
-    rewrites: List[Dict[str, str]] = []
+    rewrites: list[dict[str, str]] = []
     bullets = []
     for exp in doc.get("experiences", []):
         bullets.extend(exp.get("bullets", []))
@@ -345,12 +372,12 @@ def _sample_rewrites(ev: Dict[str, Any]) -> List[Dict[str, str]]:
 _PRIORITY_RANK = {"high": 0, "medium": 1, "low": 2}
 
 
-def generate_improvements(ev: Dict[str, Any]) -> List[Dict[str, Any]]:
+def generate_improvements(ev: dict[str, Any]) -> list[dict[str, Any]]:
     """Generate prioritized improvement recommendations (ranked by impact)."""
     metrics = ev.get("metrics", {})
     doc = ev.get("document", {})
     dims = metrics.get("dimensions", {})
-    improvements: List[Dict[str, Any]] = []
+    improvements: list[dict[str, Any]] = []
 
     if not metrics.get("quantified_statements"):
         improvements.append(

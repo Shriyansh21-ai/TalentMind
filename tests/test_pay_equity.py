@@ -13,26 +13,24 @@ from __future__ import annotations
 import json
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-from src.ai.providers.composers import has_composer
-
+from src.ai.agents.pay_equity import compression as compression_mod
+from src.ai.agents.pay_equity import inversion as inversion_mod
+from src.ai.agents.pay_equity import policy as policy_mod
+from src.ai.agents.pay_equity import review as review_mod
+from src.ai.agents.pay_equity import risk as risk_mod
+from src.ai.agents.pay_equity import validators
 from src.ai.agents.pay_equity.agent import (
     PayEquityInput,
     build_pay_equity_evidence,
-    pay_equity_agent,
 )
+from src.ai.agents.pay_equity.composer import compose_pay_equity_narrative
 from src.ai.agents.pay_equity.equity_engine import (
     NullPayEquityDataProvider,
     PayEquityGuardianEngine,
     build_equity_findings,
 )
-from src.ai.agents.pay_equity.composer import compose_pay_equity_narrative
 from src.ai.agents.pay_equity.schemas import (
     CompressionAssessment,
     EquityRisk,
@@ -40,15 +38,13 @@ from src.ai.agents.pay_equity.schemas import (
     PayEquityNarrative,
     PayEquityReport,
 )
-from src.ai.agents.pay_equity import compression as compression_mod
-from src.ai.agents.pay_equity import inversion as inversion_mod
-from src.ai.agents.pay_equity import policy as policy_mod
-from src.ai.agents.pay_equity import risk as risk_mod
-from src.ai.agents.pay_equity import review as review_mod
-from src.ai.agents.pay_equity import validators
 from src.ai.agents.pay_equity.templates import get_policy
-
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 JD = "Senior Machine Learning Engineer. Python, PyTorch, AWS, Kubernetes, LLMs. 8+ years. Lead and mentor."
 
@@ -57,11 +53,30 @@ class _StubProvider:
     """An injected HRIS provider stub for the data-available path (Module 12)."""
 
     def __init__(self, peers=None, band=None):
-        self._peers = peers if peers is not None else [
-            {"employee_id": "E1", "compensation": 48.0, "tenure_years": 4, "responsibility": "senior"},
-            {"employee_id": "E2", "compensation": 45.0, "tenure_years": 6, "responsibility": "senior"},
-            {"employee_id": "E3", "compensation": 60.0, "tenure_years": 2, "responsibility": "senior"},
-        ]
+        self._peers = (
+            peers
+            if peers is not None
+            else [
+                {
+                    "employee_id": "E1",
+                    "compensation": 48.0,
+                    "tenure_years": 4,
+                    "responsibility": "senior",
+                },
+                {
+                    "employee_id": "E2",
+                    "compensation": 45.0,
+                    "tenure_years": 6,
+                    "responsibility": "senior",
+                },
+                {
+                    "employee_id": "E3",
+                    "compensation": 60.0,
+                    "tenure_years": 2,
+                    "responsibility": "senior",
+                },
+            ]
+        )
         self._band = band if band is not None else {"min": 40.0, "max": 55.0}
 
     def is_available(self) -> bool:
@@ -121,8 +136,8 @@ def test_narrative_schema_is_score_free():
 
 
 def test_tool_registered_in_builtin():
-    from src.ai.tools.registry import registry as tool_registry
     import src.ai.tools.builtin  # noqa: F401
+    from src.ai.tools.registry import registry as tool_registry
 
     assert tool_registry.has("pay_equity_guardian")
 
@@ -147,8 +162,16 @@ def test_composer_states_data_unavailable():
 def test_build_evidence_packs_all_sections():
     payload = PayEquityInput(candidate_id="C1")
     ev = build_pay_equity_evidence(payload)
-    for key in ("offer_summary", "compression", "inversion", "policy_alignment",
-                "fairness", "executive_review", "equity_risk", "data_available"):
+    for key in (
+        "offer_summary",
+        "compression",
+        "inversion",
+        "policy_alignment",
+        "fairness",
+        "executive_review",
+        "equity_risk",
+        "data_available",
+    ):
         assert key in ev
 
 
@@ -218,8 +241,13 @@ def test_policy_flags_review_on_compression():
 
 
 def test_equity_risk_unknown_without_data():
-    er = risk_mod.build_equity_risk(CompressionAssessment(), InversionAssessment(), policy_mod.evaluate_policy(
-        get_policy("pay_band_first"), _ctx(), CompressionAssessment(), InversionAssessment()))
+    er = risk_mod.build_equity_risk(
+        CompressionAssessment(),
+        InversionAssessment(),
+        policy_mod.evaluate_policy(
+            get_policy("pay_band_first"), _ctx(), CompressionAssessment(), InversionAssessment()
+        ),
+    )
     assert er.level == "Unknown"
     assert er.data_available is False
 
@@ -237,8 +265,13 @@ def test_executive_review_escalates_on_high_risk():
 
 def test_baseline_approvers_always_present():
     review = review_mod.build_executive_review(
-        _ctx(), EquityRisk(level="Unknown"), CompressionAssessment(), InversionAssessment(),
-        policy_mod.evaluate_policy(get_policy("pay_band_first"), _ctx(), CompressionAssessment(), InversionAssessment()),
+        _ctx(),
+        EquityRisk(level="Unknown"),
+        CompressionAssessment(),
+        InversionAssessment(),
+        policy_mod.evaluate_policy(
+            get_policy("pay_band_first"), _ctx(), CompressionAssessment(), InversionAssessment()
+        ),
     )
     for approver in ("Recruiter", "Hiring Manager", "HR"):
         assert approver in review.required_approvers()
@@ -314,7 +347,11 @@ def test_report_to_dict_is_serializable():
 def test_no_legal_or_discrimination_language():
     report = _report(provider=_StubProvider(), candidate_id="CAND_S")
     warnings = validators.validate_safety(
-        report.narrative, report.compression, report.inversion, report.equity_risk, report.data_available
+        report.narrative,
+        report.compression,
+        report.inversion,
+        report.equity_risk,
+        report.data_available,
     )
     assert warnings == []
 
@@ -322,14 +359,27 @@ def test_no_legal_or_discrimination_language():
 def test_narrative_never_scores_or_accuses():
     report = _report(provider=_StubProvider(), candidate_id="CAND_S2")
     blob = " ".join(v for v in report.narrative.to_dict().values() if isinstance(v, str)).lower()
-    for forbidden in ("discriminates against", "is discriminatory", "illegal", "lawsuit", "guilty of"):
+    for forbidden in (
+        "discriminates against",
+        "is discriminatory",
+        "illegal",
+        "lawsuit",
+        "guilty of",
+    ):
         assert forbidden not in blob
 
 
 def test_charts_present():
     report = _report(provider=_StubProvider(), candidate_id="CAND_C")
-    for key in ("equity_risk_gauge", "compression_matrix", "approval_flow",
-                "offer_alignment", "governance_status", "scenario_comparison", "executive_review_pipeline"):
+    for key in (
+        "equity_risk_gauge",
+        "compression_matrix",
+        "approval_flow",
+        "offer_alignment",
+        "governance_status",
+        "scenario_comparison",
+        "executive_review_pipeline",
+    ):
         assert key in report.charts
 
 
@@ -339,9 +389,9 @@ def test_charts_present():
 
 
 def test_copilot_routes_pay_equity_questions():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -356,16 +406,16 @@ def test_copilot_routes_pay_equity_questions():
 
 
 def test_copilot_pay_equity_intent_selects_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.PAY_EQUITY) == ["pay_equity_guardian"]
 
 
 def test_copilot_existing_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -382,9 +432,9 @@ def test_copilot_existing_intents_unchanged():
 
 
 def test_copilot_delegates_to_pay_equity_end_to_end():
-    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository(
         [make_candidate(candidate_id="CAND_0000001", title="Senior ML Engineer")]

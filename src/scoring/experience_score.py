@@ -1,6 +1,3 @@
-from src.models.candidates import Candidate
-
-
 def calculate_experience_score(candidate):
 
     exp = candidate.profile.years_of_experience

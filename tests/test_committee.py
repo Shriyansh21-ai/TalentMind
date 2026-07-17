@@ -10,21 +10,13 @@ with synthetic candidates (no dataset, no provider, no LLM).
 from __future__ import annotations
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-from src.ai.providers.composers import has_composer
-
-from src.ai.committee.committee import EvidenceBundle, HiringCommitteeEngine, gather_evidence
-from src.ai.committee.members import build_panel
-from src.ai.committee.consensus import build_consensus
+from src.ai.committee.committee import EvidenceBundle, HiringCommitteeEngine
 from src.ai.committee.conflict_resolution import detect_conflicts
+from src.ai.committee.consensus import build_consensus
 from src.ai.committee.discussion import run_discussion
-from src.ai.committee.memory import CommitteeMemory
+from src.ai.committee.members import build_panel
 from src.ai.committee.schemas import (
     CommitteeDecision,
     CommitteeMode,
@@ -32,8 +24,12 @@ from src.ai.committee.schemas import (
     MemberOpinion,
     Recommendation,
 )
-
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 JD = """Senior Machine Learning Engineer
 What you'll do
@@ -249,9 +245,9 @@ def test_memory_stores_and_recalls_meeting():
 
 
 def test_copilot_routes_committee_questions():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -265,16 +261,16 @@ def test_copilot_routes_committee_questions():
 
 
 def test_copilot_committee_intent_selects_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.HIRING_COMMITTEE) == ["hiring_committee"]
 
 
 def test_copilot_existing_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -289,11 +285,13 @@ def test_copilot_existing_intents_unchanged():
 
 
 def test_copilot_delegates_to_committee_end_to_end():
-    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
-    repo = InMemoryCandidateRepository([make_candidate(candidate_id="CAND_0000001", title="Senior ML Engineer")])
+    repo = InMemoryCandidateRepository(
+        [make_candidate(candidate_id="CAND_0000001", title="Senior ML Engineer")]
+    )
     cop = RecruiterCopilot(repo, ai_runner=_runner())
     turn = cop.ask("s1", "Run the hiring committee for CAND_0000001", jd=JD)
     assert turn.status == "ok"

@@ -7,8 +7,6 @@ agent classes. Agents register themselves at import time.
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.exceptions import AgentNotFoundError
 
@@ -17,7 +15,7 @@ class AgentRegistry:
     """In-process registry mapping agent name -> agent instance."""
 
     def __init__(self) -> None:
-        self._agents: Dict[str, BaseAgent] = {}
+        self._agents: dict[str, BaseAgent] = {}
 
     def register(self, agent: BaseAgent) -> BaseAgent:
         """Register ``agent`` under its metadata name; returns the agent.
@@ -43,11 +41,11 @@ class AgentRegistry:
         """Return ``True`` iff ``name`` is registered."""
         return name in self._agents
 
-    def names(self) -> List[str]:
+    def names(self) -> list[str]:
         """Return all registered agent names (sorted)."""
         return sorted(self._agents.keys())
 
-    def all(self) -> List[BaseAgent]:
+    def all(self) -> list[BaseAgent]:
         """Return all registered agents."""
         return list(self._agents.values())
 

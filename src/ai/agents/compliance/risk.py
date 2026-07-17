@@ -8,8 +8,6 @@ never a legal risk ruling (Module 14).
 
 from __future__ import annotations
 
-from typing import List
-
 from src.ai.agents.compliance.schemas import (
     ApprovalMatrix,
     ComplianceException,
@@ -21,7 +19,7 @@ from src.ai.agents.compliance.schemas import (
 
 def assess_governance_risk(
     workflow: WorkflowCompliance,
-    exceptions: List[ComplianceException],
+    exceptions: list[ComplianceException],
     approvals: ApprovalMatrix,
     documentation: DocumentationReview,
 ) -> GovernanceRisk:
@@ -30,7 +28,7 @@ def assess_governance_risk(
     high = [e for e in real_exceptions if e.severity == "High"]
     medium = [e for e in real_exceptions if e.severity == "Medium"]
 
-    missing_controls: List[str] = []
+    missing_controls: list[str] = []
     missing_controls += [s.name for s in workflow.steps if s.status == "Missing" and s.critical]
     missing_controls += [f"{a} approval" for a in approvals.outstanding()]
     missing_controls += documentation.missing()
@@ -43,7 +41,9 @@ def assess_governance_risk(
         level = "Low"
 
     drivers = [e.kind for e in real_exceptions[:5]] or ["No governance exceptions detected."]
-    human_review = list(dict.fromkeys(e.recommendation for e in (high + medium) if e.recommendation))[:5]
+    human_review = list(
+        dict.fromkeys(e.recommendation for e in (high + medium) if e.recommendation)
+    )[:5]
     if not human_review:
         human_review = ["Proceed through standard approvals; no elevated review indicated."]
 

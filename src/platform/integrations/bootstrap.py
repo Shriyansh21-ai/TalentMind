@@ -87,16 +87,10 @@ def build_integration_platform(
     the_clock = clock or SystemClock()
     container = Container()
 
-    container.register(
-        "intg.registry", lambda _c: registry or build_default_registry()
-    )
+    container.register("intg.registry", lambda _c: registry or build_default_registry())
     container.register("intg.vault", lambda _c: CredentialVault(clock=the_clock))
-    container.register(
-        "intg.observability", lambda _c: ObservabilityRegistry(clock=the_clock)
-    )
-    container.register(
-        "intg.events", lambda _c: EnterpriseEventBus(clock=the_clock)
-    )
+    container.register("intg.observability", lambda _c: ObservabilityRegistry(clock=the_clock))
+    container.register("intg.events", lambda _c: EnterpriseEventBus(clock=the_clock))
 
     def _manager(c: Container) -> IntegrationManager:
         events: EnterpriseEventBus = c.resolve("intg.events")  # type: ignore[assignment]
@@ -122,9 +116,7 @@ def build_integration_platform(
         "intg.webhooks",
         lambda c: WebhookService(vault=c.resolve("intg.vault"), clock=the_clock),  # type: ignore[arg-type]
     )
-    container.register(
-        "intg.sync", lambda _c: SynchronizationService(clock=the_clock)
-    )
+    container.register("intg.sync", lambda _c: SynchronizationService(clock=the_clock))
     container.register("intg.gateway", lambda _c: ApiGateway(clock=the_clock))
     container.register(
         "intg.marketplace",

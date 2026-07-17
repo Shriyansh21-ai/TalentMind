@@ -17,13 +17,12 @@ from src.platform.integrations.sync import (
     ConflictResolution,
     SyncBatch,
     SyncConflict,
+    SynchronizationService,
     SyncMode,
     SyncState,
-    SynchronizationService,
     detect_conflicts,
     resolve_conflict,
 )
-
 
 # -- event bus --------------------------------------------------------------
 
@@ -82,9 +81,7 @@ def test_event_type_defaults_to_integration():
 
 
 def test_conflict_detection_and_resolution_helpers():
-    conflicts = detect_conflicts(
-        "emp_1", {"title": "A", "level": 5}, {"title": "B", "level": 5}
-    )
+    conflicts = detect_conflicts("emp_1", {"title": "A", "level": 5}, {"title": "B", "level": 5})
     assert len(conflicts) == 1 and conflicts[0].field == "title"
     resolved = resolve_conflict(conflicts[0], ConflictResolution.SOURCE_WINS)
     assert resolved.resolved and resolved.resolved_value == "A"

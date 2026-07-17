@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List
 
 
 class TalentPool(str, Enum):
@@ -50,8 +49,8 @@ class PoolAssignment:
     """
 
     candidate_id: str
-    pools: List[TalentPool] = field(default_factory=list)
-    rationale: List[str] = field(default_factory=list)
+    pools: list[TalentPool] = field(default_factory=list)
+    rationale: list[str] = field(default_factory=list)
 
     def in_pool(self, pool: TalentPool) -> bool:
         """Return ``True`` iff the candidate belongs to ``pool``."""

@@ -21,6 +21,10 @@ from src.platform.auth import AuthenticationManager
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.config import ConfigurationService
 from src.platform.container import Container
+from src.platform.deployment.bootstrap import (
+    DeploymentPlatform,
+    build_deployment_platform,
+)
 from src.platform.developer import ExtensionRegistry
 from src.platform.integrations.bootstrap import (
     IntegrationPlatform,
@@ -28,16 +32,12 @@ from src.platform.integrations.bootstrap import (
 )
 from src.platform.notifications import NotificationService
 from src.platform.organizations import Organization, OrganizationService
+from src.platform.rbac import AccessControlService
 from src.platform.runtime.bootstrap import RuntimePlatform, build_runtime_platform
-from src.platform.deployment.bootstrap import (
-    DeploymentPlatform,
-    build_deployment_platform,
-)
 from src.platform.security.bootstrap import (
     SecurityPlatform,
     build_security_platform,
 )
-from src.platform.rbac import AccessControlService
 from src.platform.storage import StorageService
 from src.platform.subscription import PlanTier, SubscriptionService
 from src.platform.tenancy import Tenant, TenantService
@@ -152,13 +152,12 @@ def build_platform(*, clock: Clock | None = None) -> Platform:
     container = Container()
 
     # Organizations own the org repository; tenancy shares it (1:1 mapping).
-    container.register(
-        "organizations", lambda _c: OrganizationService(clock=the_clock)
-    )
+    container.register("organizations", lambda _c: OrganizationService(clock=the_clock))
     container.register(
         "tenants",
         lambda c: TenantService(
-            c.resolve("organizations").repo, clock=the_clock  # type: ignore[union-attr]
+            c.resolve("organizations").repo,
+            clock=the_clock,  # type: ignore[union-attr]
         ),
     )
     container.register("auth", lambda _c: AuthenticationManager(clock=the_clock))
@@ -172,20 +171,14 @@ def build_platform(*, clock: Clock | None = None) -> Platform:
 
     container.register("workspaces", _workspaces)
     container.register("config", lambda _c: ConfigurationService(clock=the_clock))
-    container.register(
-        "subscriptions", lambda _c: SubscriptionService(clock=the_clock)
-    )
-    container.register(
-        "notifications", lambda _c: NotificationService(clock=the_clock)
-    )
+    container.register("subscriptions", lambda _c: SubscriptionService(clock=the_clock))
+    container.register("notifications", lambda _c: NotificationService(clock=the_clock))
     container.register("audit", lambda _c: PlatformAuditService(clock=the_clock))
     container.register("storage", lambda _c: StorageService(clock=the_clock))
     container.register("extensions", lambda _c: ExtensionRegistry())
     # Phase 6 / Milestone 2 — the Enterprise Integration Platform is wired as a
     # lazily-built sub-platform, sharing the same injected clock.
-    container.register(
-        "integrations", lambda _c: build_integration_platform(clock=the_clock)
-    )
+    container.register("integrations", lambda _c: build_integration_platform(clock=the_clock))
     # Phase 6 / Milestone 3 — the Enterprise Runtime Platform shares the same
     # injected clock and publishes runtime events onto the integration platform's
     # enterprise event bus (Module 12 — integrate with the existing event bus).
@@ -198,13 +191,9 @@ def build_platform(*, clock: Clock | None = None) -> Platform:
     )
     # Phase 6 / Milestone 4 — the Enterprise Security & Governance Platform,
     # additive and sharing the same injected clock.
-    container.register(
-        "security", lambda _c: build_security_platform(clock=the_clock)
-    )
+    container.register("security", lambda _c: build_security_platform(clock=the_clock))
     # Phase 6 / Milestone 5 — the Enterprise Deployment Platform, additive and
     # sharing the same injected clock.
-    container.register(
-        "deployment", lambda _c: build_deployment_platform(clock=the_clock)
-    )
+    container.register("deployment", lambda _c: build_deployment_platform(clock=the_clock))
 
     return Platform(container=container, clock=the_clock)

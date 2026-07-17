@@ -13,16 +13,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class AgentStatus(str, Enum):
     """Outcome of an agent run."""
 
-    SUCCESS = "success"          # produced by the configured provider
-    CACHED = "cached"            # served from cache
-    FALLBACK = "fallback"        # deterministic composer used (provider skipped/failed)
-    FAILED = "failed"            # no usable result produced
+    SUCCESS = "success"  # produced by the configured provider
+    CACHED = "cached"  # served from cache
+    FALLBACK = "fallback"  # deterministic composer used (provider skipped/failed)
+    FAILED = "failed"  # no usable result produced
 
 
 @dataclass
@@ -56,7 +56,7 @@ class AgentResponse:
     model: str
     latency_ms: float = 0.0
     usage: TokenUsage = field(default_factory=TokenUsage)
-    raw: Optional[Any] = None
+    raw: Any | None = None
 
 
 @dataclass
@@ -83,13 +83,13 @@ class AgentResult:
     agent_version: str
     provider: str
     model: str
-    data: Optional[Any] = None
+    data: Any | None = None
     cache_hit: bool = False
     retries: int = 0
     latency_ms: float = 0.0
     usage: TokenUsage = field(default_factory=TokenUsage)
-    warnings: List[str] = field(default_factory=list)
-    error: Optional[str] = None
+    warnings: list[str] = field(default_factory=list)
+    error: str | None = None
 
     @property
     def ok(self) -> bool:

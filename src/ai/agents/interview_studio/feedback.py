@@ -9,14 +9,14 @@ the structure only; it never invents interview results or fills in a verdict
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.interview_studio.schemas import FeedbackForms, RubricDimension
 
 
 def build_feedback_forms(
-    rubrics: List[RubricDimension],
-    evidence: Dict[str, Any],
+    rubrics: list[RubricDimension],
+    evidence: dict[str, Any],
 ) -> FeedbackForms:
     """Assemble the four feedback templates from the rubric + evidence.
 
@@ -29,24 +29,32 @@ def build_feedback_forms(
     """
     dim_names = [d.name for d in rubrics]
 
-    interviewer_form = [
-        "Overall recommendation (Strong Hire / Hire / Hold / Reject) with one-line rationale",
-        "Rate each rubric dimension you assessed (Strong / Solid / Mixed / Weak) with a specific example:",
-    ] + [f"  - {name}" for name in dim_names] + [
-        "Strongest signal observed (with evidence)",
-        "Biggest concern observed (with evidence)",
-        "Questions you did NOT get to (for the next interviewer)",
-        "Would you want this person on your team? Why?",
-    ]
+    interviewer_form = (
+        [
+            "Overall recommendation (Strong Hire / Hire / Hold / Reject) with one-line rationale",
+            "Rate each rubric dimension you assessed (Strong / Solid / Mixed / Weak) with a specific example:",
+        ]
+        + [f"  - {name}" for name in dim_names]
+        + [
+            "Strongest signal observed (with evidence)",
+            "Biggest concern observed (with evidence)",
+            "Questions you did NOT get to (for the next interviewer)",
+            "Would you want this person on your team? Why?",
+        ]
+    )
 
-    hiring_manager_form = [
-        "Final disposition and the decision band from the matrix",
-        "How the loop resolved the committee's interview priorities:",
-    ] + [f"  - Priority: {p}" for p in _priorities(evidence)[:3]] + [
-        "Level / offer-band recommendation and rationale",
-        "Onboarding focus for any development areas surfaced",
-        "Any escalation triggered (and why)",
-    ]
+    hiring_manager_form = (
+        [
+            "Final disposition and the decision band from the matrix",
+            "How the loop resolved the committee's interview priorities:",
+        ]
+        + [f"  - Priority: {p}" for p in _priorities(evidence)[:3]]
+        + [
+            "Level / offer-band recommendation and rationale",
+            "Onboarding focus for any development areas surfaced",
+            "Any escalation triggered (and why)",
+        ]
+    )
 
     panel_form = [
         "Consolidated rubric roll-up across all interviewers (per dimension)",
@@ -73,7 +81,7 @@ def build_feedback_forms(
     )
 
 
-def _priorities(evidence: Dict[str, Any]) -> List[str]:
+def _priorities(evidence: dict[str, Any]) -> list[str]:
     """Return the committee/recommendation interview priorities (may be empty)."""
     committee = evidence.get("committee") or {}
     priorities = list((committee.get("decision") or {}).get("interview_priorities", []) or [])

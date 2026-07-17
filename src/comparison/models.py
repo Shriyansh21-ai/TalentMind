@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List
 
 
 @dataclass
@@ -48,16 +47,16 @@ class ComparisonRow:
     experience_score: float
     career_growth: float
     skill_match: float
-    strengths: List[str] = field(default_factory=list)
-    weaknesses: List[str] = field(default_factory=list)
-    recruiter_summary: List[str] = field(default_factory=list)
-    interview_focus: List[str] = field(default_factory=list)
-    missing_skills: List[str] = field(default_factory=list)
+    strengths: list[str] = field(default_factory=list)
+    weaknesses: list[str] = field(default_factory=list)
+    recruiter_summary: list[str] = field(default_factory=list)
+    interview_focus: list[str] = field(default_factory=list)
+    missing_skills: list[str] = field(default_factory=list)
 
 
 # Numeric metric keys eligible for "best candidate" highlighting, mapped to
 # whether a *higher* value is better. Risk is the sole lower-is-better metric.
-NUMERIC_METRICS: Dict[str, bool] = {
+NUMERIC_METRICS: dict[str, bool] = {
     "overall_score": True,
     "timeline_score": True,
     "risk_score": False,
@@ -79,10 +78,10 @@ class ComparisonReport:
             it (used by the UI to highlight the leader per row).
     """
 
-    rows: List[ComparisonRow] = field(default_factory=list)
-    best_by_metric: Dict[str, str] = field(default_factory=dict)
+    rows: list[ComparisonRow] = field(default_factory=list)
+    best_by_metric: dict[str, str] = field(default_factory=dict)
 
     @property
-    def candidate_ids(self) -> List[str]:
+    def candidate_ids(self) -> list[str]:
         """Return the ids of the compared candidates, in display order."""
         return [row.candidate_id for row in self.rows]

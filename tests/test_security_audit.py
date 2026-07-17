@@ -39,7 +39,14 @@ def test_tampering_is_detected():
 def test_search_and_filter():
     svc = _service()
     svc.record("t1", "o1", AuditEventType.AUTHENTICATION, "login", actor_id="alice")
-    svc.record("t1", "o1", AuditEventType.SECURITY, "threat", actor_id="system", outcome=AuditOutcome.FAILURE)
+    svc.record(
+        "t1",
+        "o1",
+        AuditEventType.SECURITY,
+        "threat",
+        actor_id="system",
+        outcome=AuditOutcome.FAILURE,
+    )
     assert len(svc.search("t1", event_type=AuditEventType.AUTHENTICATION)) == 1
     assert len(svc.search("t1", actor_id="alice")) == 1
     assert len(svc.search("t1", outcome=AuditOutcome.FAILURE)) == 1
@@ -48,7 +55,9 @@ def test_search_and_filter():
 def test_correlation_groups_entries():
     svc = _service()
     first = svc.record("t1", "o1", AuditEventType.AUTHENTICATION, "login")
-    svc.record("t1", "o1", AuditEventType.AUTHORIZATION, "access", correlation_id=first.correlation_id)
+    svc.record(
+        "t1", "o1", AuditEventType.AUTHORIZATION, "access", correlation_id=first.correlation_id
+    )
     correlated = svc.by_correlation("t1", first.correlation_id)
     assert len(correlated) == 2
 
@@ -57,7 +66,9 @@ def test_retention_prunes_old_entries():
     clock = FrozenClock()
     svc = EnterpriseAuditService(clock=clock)
     svc.record("t1", "o1", AuditEventType.PLATFORM, "old.event")
-    svc.set_retention("t1", "o1", RetentionPolicy(id="r", tenant_id="t1", organization_id="o1", default_days=30))
+    svc.set_retention(
+        "t1", "o1", RetentionPolicy(id="r", tenant_id="t1", organization_id="o1", default_days=30)
+    )
     clock.advance(days=40)
     svc.record("t1", "o1", AuditEventType.PLATFORM, "new.event")
     pruned = svc.apply_retention("t1")

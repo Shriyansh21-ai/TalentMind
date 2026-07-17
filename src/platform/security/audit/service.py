@@ -9,7 +9,7 @@ detectable via :meth:`verify_chain`. Deterministic and clock-driven.
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
@@ -34,18 +34,14 @@ class EnterpriseAuditService:
         clock: Clock | None = None,
     ) -> None:
         self._clock = clock or SystemClock()
-        self.repo: InMemoryRepository[AuditEntry] = repository or InMemoryRepository(
-            "audit_entry"
-        )
+        self.repo: InMemoryRepository[AuditEntry] = repository or InMemoryRepository("audit_entry")
         self._sequence: dict[str, int] = {}
         self._retention: dict[str, RetentionPolicy] = {}
 
     # -- recording ----------------------------------------------------------
 
     def _entries_for(self, tenant_id: str) -> list[AuditEntry]:
-        return sorted(
-            self.repo.list(tenant_id=tenant_id), key=lambda e: e.sequence
-        )
+        return sorted(self.repo.list(tenant_id=tenant_id), key=lambda e: e.sequence)
 
     @staticmethod
     def _compute_hash(entry: AuditEntry) -> str:
@@ -123,6 +119,7 @@ class EnterpriseAuditService:
         limit: int = 200,
     ) -> list[AuditEntry]:
         """Return matching entries, newest first."""
+
         def _predicate(entry: AuditEntry) -> bool:
             if event_type is not None and entry.event_type != event_type:
                 return False
@@ -168,9 +165,7 @@ class EnterpriseAuditService:
         self._retention[tenant_id] = policy
         return policy
 
-    def apply_retention(
-        self, tenant_id: str, *, now: datetime | None = None
-    ) -> int:
+    def apply_retention(self, tenant_id: str, *, now: datetime | None = None) -> int:
         """Delete entries older than their retention window; return count pruned."""
         policy = self._retention.get(tenant_id)
         if policy is None:

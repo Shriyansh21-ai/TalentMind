@@ -7,12 +7,12 @@ their own module), and the copilot discovers them automatically.
 
 from __future__ import annotations
 
-from src.ai.tools.registry import ToolRegistry, registry
-from src.ai.tools.search_tools import (
-    CandidateSearchTool,
-    FAISSSearchTool,
-    SkillGapTool,
-)
+from src.ai.tools.audit_tools import HiringAuditTool
+from src.ai.tools.committee_tools import HiringCommitteeTool
+from src.ai.tools.compensation_tools import CompensationGovernanceTool
+from src.ai.tools.compliance_tools import HiringComplianceTool
+from src.ai.tools.executive_report_tools import ExecutiveReportTool
+from src.ai.tools.hiring_intelligence_tools import HiringIntelligenceTool
 from src.ai.tools.intelligence_tools import (
     CandidateIntelligenceTool,
     ExplainabilityTool,
@@ -21,21 +21,21 @@ from src.ai.tools.intelligence_tools import (
     RiskTool,
     TimelineTool,
 )
+from src.ai.tools.interview_studio_tools import InterviewStudioTool
+from src.ai.tools.jd_tools import JDAnalysisTool
+from src.ai.tools.pay_equity_tools import PayEquityTool
+from src.ai.tools.registry import ToolRegistry, registry
+from src.ai.tools.resume_tools import ResumeAnalysisTool
+from src.ai.tools.search_tools import (
+    CandidateSearchTool,
+    FAISSSearchTool,
+    SkillGapTool,
+)
 from src.ai.tools.workspace_tools import (
     ComparisonTool,
     DashboardTool,
     PipelineTool,
 )
-from src.ai.tools.resume_tools import ResumeAnalysisTool
-from src.ai.tools.jd_tools import JDAnalysisTool
-from src.ai.tools.committee_tools import HiringCommitteeTool
-from src.ai.tools.executive_report_tools import ExecutiveReportTool
-from src.ai.tools.interview_studio_tools import InterviewStudioTool
-from src.ai.tools.compensation_tools import CompensationGovernanceTool
-from src.ai.tools.pay_equity_tools import PayEquityTool
-from src.ai.tools.compliance_tools import HiringComplianceTool
-from src.ai.tools.audit_tools import HiringAuditTool
-from src.ai.tools.hiring_intelligence_tools import HiringIntelligenceTool
 
 _BUILTIN_TOOLS = [
     FAISSSearchTool,

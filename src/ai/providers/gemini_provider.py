@@ -7,7 +7,7 @@ when the provider is actually selected and used.
 from __future__ import annotations
 
 import importlib.util
-from typing import Any, List, Tuple
+from typing import Any
 
 from src.ai.core.response import TokenUsage
 from src.ai.providers._remote import RemoteProvider
@@ -32,17 +32,15 @@ class GeminiProvider(RemoteProvider):
         return genai.GenerativeModel(self.model)
 
     def _complete(
-        self, client: Any, messages: List[LLMMessage], json_mode: bool
-    ) -> Tuple[str, TokenUsage]:
+        self, client: Any, messages: list[LLMMessage], json_mode: bool
+    ) -> tuple[str, TokenUsage]:
         """Call generate_content and return ``(text, usage)``.
 
         Gemini has no distinct system role, so system messages are folded into the
         prompt as a leading instruction block.
         """
         system_parts = [m.content for m in messages if m.role == "system"]
-        body_parts = [
-            m.content for m in messages if m.role in ("user", "assistant")
-        ]
+        body_parts = [m.content for m in messages if m.role in ("user", "assistant")]
         prompt = "\n\n".join([*system_parts, *body_parts])
 
         generation_config: dict = {

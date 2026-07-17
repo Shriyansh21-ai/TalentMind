@@ -20,7 +20,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from threading import RLock
-from typing import Dict, List, Optional
 
 from src.ai.orchestration.models import AgentOutput, Task
 
@@ -28,10 +27,10 @@ from src.ai.orchestration.models import AgentOutput, Task
 class HealthStatus(str, Enum):
     """Operational health of a registered agent."""
 
-    HEALTHY = "healthy"       # ready to accept work
-    DEGRADED = "degraded"     # usable but suspect (e.g. recent failures)
-    UNHEALTHY = "unhealthy"   # must not be delegated to
-    UNKNOWN = "unknown"       # not yet probed
+    HEALTHY = "healthy"  # ready to accept work
+    DEGRADED = "degraded"  # usable but suspect (e.g. recent failures)
+    UNHEALTHY = "unhealthy"  # must not be delegated to
+    UNKNOWN = "unknown"  # not yet probed
 
 
 @dataclass
@@ -52,11 +51,11 @@ class AgentDescriptor:
 
     name: str
     version: str = "v1"
-    capabilities: List[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
     description: str = ""
-    dependencies: List[str] = field(default_factory=list)
-    tool_requirements: List[str] = field(default_factory=list)
-    tags: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
+    tool_requirements: list[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     health: HealthStatus = HealthStatus.HEALTHY
     max_concurrency: int = 1
 
@@ -103,7 +102,7 @@ class OrchestrationRegistry:
     """Thread-safe, capability-indexed registry of orchestration agents."""
 
     def __init__(self) -> None:
-        self._agents: Dict[str, OrchestrationAgent] = {}
+        self._agents: dict[str, OrchestrationAgent] = {}
         self._lock = RLock()
 
     # -- registration -------------------------------------------------------
@@ -133,21 +132,19 @@ class OrchestrationRegistry:
         with self._lock:
             return name in self._agents
 
-    def names(self) -> List[str]:
+    def names(self) -> list[str]:
         """Return all registered agent names (sorted)."""
         with self._lock:
             return sorted(self._agents)
 
-    def all(self) -> List[OrchestrationAgent]:
+    def all(self) -> list[OrchestrationAgent]:
         """Return every registered agent."""
         with self._lock:
             return list(self._agents.values())
 
     # -- dynamic discovery --------------------------------------------------
 
-    def discover(
-        self, capability: str, *, healthy_only: bool = True
-    ) -> List[OrchestrationAgent]:
+    def discover(self, capability: str, *, healthy_only: bool = True) -> list[OrchestrationAgent]:
         """Return agents advertising ``capability``.
 
         Args:
@@ -158,22 +155,20 @@ class OrchestrationRegistry:
             agents = list(self._agents.values())
         matches = [a for a in agents if a.descriptor.handles(capability)]
         if healthy_only:
-            matches = [
-                a for a in matches if a.descriptor.health != HealthStatus.UNHEALTHY
-            ]
+            matches = [a for a in matches if a.descriptor.health != HealthStatus.UNHEALTHY]
         return matches
 
-    def capabilities(self) -> Dict[str, List[str]]:
+    def capabilities(self) -> dict[str, list[str]]:
         """Return ``{capability: [agent_name, ...]}`` across all agents."""
-        index: Dict[str, List[str]] = {}
+        index: dict[str, list[str]] = {}
         for agent in self.all():
             for cap in agent.descriptor.capabilities:
                 index.setdefault(cap, []).append(agent.descriptor.name)
         return {cap: sorted(names) for cap, names in index.items()}
 
-    def describe(self) -> List[Dict[str, object]]:
+    def describe(self) -> list[dict[str, object]]:
         """Return a JSON-serializable descriptor list (for the UI / telemetry)."""
-        rows: List[Dict[str, object]] = []
+        rows: list[dict[str, object]] = []
         for agent in self.all():
             d = agent.descriptor
             rows.append(

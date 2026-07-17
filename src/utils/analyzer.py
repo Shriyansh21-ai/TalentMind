@@ -11,10 +11,7 @@ def analyze_dataset(candidates):
 
     print(f"Total Candidates: {len(candidates)}")
 
-    countries = Counter(
-        c.profile.country
-        for c in candidates
-    )
+    countries = Counter(c.profile.country for c in candidates)
 
     print("\nTop Countries")
 
@@ -24,7 +21,6 @@ def analyze_dataset(candidates):
     skills = Counter()
 
     for candidate in candidates:
-
         for skill in candidate.skills:
             skills[skill.name] += 1
 

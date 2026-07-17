@@ -8,8 +8,6 @@ challenges another without grounds, and nothing is fabricated.
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 from src.ai.committee.schemas import DiscussionRound, MemberOpinion
 from src.ai.committee.voting import stance_of
 
@@ -24,7 +22,7 @@ _ALL_SOURCES = {
 }
 
 
-def run_discussion(opinions: List[MemberOpinion]) -> DiscussionRound:
+def run_discussion(opinions: list[MemberOpinion]) -> DiscussionRound:
     """Facilitate the discussion round and return its structured output."""
     active = [o for o in opinions if not o.abstained]
     round_ = DiscussionRound()
@@ -64,9 +62,9 @@ def run_discussion(opinions: List[MemberOpinion]) -> DiscussionRound:
     return round_
 
 
-def _build_challenges(active: List[MemberOpinion]) -> List[Dict[str, object]]:
+def _build_challenges(active: list[MemberOpinion]) -> list[dict[str, object]]:
     """Return evidence-backed challenges between divergent members."""
-    challenges: List[Dict[str, object]] = []
+    challenges: list[dict[str, object]] = []
     for challenger in active:
         for target in active:
             if challenger.role == target.role:
@@ -74,7 +72,11 @@ def _build_challenges(active: List[MemberOpinion]) -> List[Dict[str, object]]:
             gap = stance_of(challenger.recommendation) - stance_of(target.recommendation)
             # A confident, well-evidenced member challenges a more-negative, less
             # confident member (or vice-versa) when they diverge materially.
-            if abs(gap) >= 2.0 and challenger.confidence >= target.confidence + 10 and challenger.evidence:
+            if (
+                abs(gap) >= 2.0
+                and challenger.confidence >= target.confidence + 10
+                and challenger.evidence
+            ):
                 challenges.append(
                     {
                         "challenger": challenger.role_title,

@@ -57,8 +57,12 @@ def test_warn_policy_does_not_raise():
 
 def test_active_exception_waives_violation():
     gov = GovernanceService(clock=FrozenClock())
-    policy = gov.register_policy("t1", "o1", "MFA", enforcement=Enforcement.ENFORCE, rules=[_mfa_rule()])
-    gov.grant_exception("t1", "o1", policy.id, reason="legacy system", approved_by="ciso", ttl_days=30)
+    policy = gov.register_policy(
+        "t1", "o1", "MFA", enforcement=Enforcement.ENFORCE, rules=[_mfa_rule()]
+    )
+    gov.grant_exception(
+        "t1", "o1", policy.id, reason="legacy system", approved_by="ciso", ttl_days=30
+    )
     reports = gov.enforce("t1", {"identity.mfa": False})  # waived, no raise
     assert reports[0].waived and reports[0].compliant
 
@@ -66,7 +70,9 @@ def test_active_exception_waives_violation():
 def test_expired_exception_no_longer_waives():
     clock = FrozenClock()
     gov = GovernanceService(clock=clock)
-    policy = gov.register_policy("t1", "o1", "MFA", enforcement=Enforcement.ENFORCE, rules=[_mfa_rule()])
+    policy = gov.register_policy(
+        "t1", "o1", "MFA", enforcement=Enforcement.ENFORCE, rules=[_mfa_rule()]
+    )
     gov.grant_exception("t1", "o1", policy.id, reason="temp", approved_by="ciso", ttl_days=1)
     clock.advance(days=2)
     with pytest.raises(PolicyViolationError):

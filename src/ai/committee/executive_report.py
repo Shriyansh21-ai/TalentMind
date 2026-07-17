@@ -8,19 +8,18 @@ from every deliberation artefact plus the Chair's decision.
 from __future__ import annotations
 
 import statistics
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from src.ai.committee.schemas import (
     CommitteeDecision,
     CommitteeReport,
     ConfidenceMetrics,
+    Conflict,
     Consensus,
     ConsensusLevel,
-    Conflict,
     DiscussionRound,
     MemberOpinion,
 )
-from src.ai.committee.voting import evidence_coverage
 
 if TYPE_CHECKING:
     from src.ai.committee.committee import EvidenceBundle
@@ -42,9 +41,9 @@ def _clamp(v: float) -> float:
 
 
 def compute_confidence_metrics(
-    opinions: List[MemberOpinion],
+    opinions: list[MemberOpinion],
     consensus: Consensus,
-    bundle: "EvidenceBundle",
+    bundle: EvidenceBundle,
 ) -> ConfidenceMetrics:
     """Compute the five explainable confidence signals (Module 13)."""
     active = [o for o in opinions if not o.abstained]
@@ -52,7 +51,8 @@ def compute_confidence_metrics(
 
     coverage = _clamp(100.0 * (n_sources / _EXPECTED_SOURCES))
     consensus_strength = _clamp(
-        0.6 * _CONSENSUS_STRENGTH.get(consensus.level, 25.0) + 0.4 * consensus.agreement_ratio * 100.0
+        0.6 * _CONSENSUS_STRENGTH.get(consensus.level, 25.0)
+        + 0.4 * consensus.agreement_ratio * 100.0
     )
 
     confidences = [o.confidence for o in active] or [0.0]
@@ -60,9 +60,15 @@ def compute_confidence_metrics(
     distribution = _clamp(statistics.fmean(confidences) - 0.5 * spread)
 
     abstentions = sum(1 for o in opinions if o.abstained)
-    risk_penalty = 25.0 if (bundle.risk and "high" in str(getattr(bundle.risk, "risk_level", "")).lower()) else 0.0
+    risk_penalty = (
+        25.0
+        if (bundle.risk and "high" in str(getattr(bundle.risk, "risk_level", "")).lower())
+        else 0.0
+    )
     unknown_risk = _clamp(
-        (1 - n_sources / _EXPECTED_SOURCES) * 55.0 + (abstentions / max(1, len(opinions))) * 30.0 + risk_penalty
+        (1 - n_sources / _EXPECTED_SOURCES) * 55.0
+        + (abstentions / max(1, len(opinions))) * 30.0
+        + risk_penalty
     )
 
     stability = _decision_stability(opinions, consensus)
@@ -110,10 +116,10 @@ def compute_confidence_metrics(
     )
 
 
-def _decision_stability(opinions: List[MemberOpinion], consensus: Consensus) -> float:
+def _decision_stability(opinions: list[MemberOpinion], consensus: Consensus) -> float:
     """Return 0-100 stability: does the label survive dropping the top voice?"""
-    from src.ai.committee.schemas import CommitteeMode
     from src.ai.committee.consensus import build_consensus
+    from src.ai.committee.schemas import CommitteeMode
 
     if len(opinions) <= 1 or not consensus.member_weights:
         return 50.0
@@ -128,15 +134,15 @@ def _decision_stability(opinions: List[MemberOpinion], consensus: Consensus) -> 
 def build_committee_report(
     *,
     meeting_id: str,
-    bundle: "EvidenceBundle",
+    bundle: EvidenceBundle,
     mode: str,
-    opinions: List[MemberOpinion],
+    opinions: list[MemberOpinion],
     discussion: DiscussionRound,
     consensus: Consensus,
-    conflicts: List[Conflict],
+    conflicts: list[Conflict],
     confidence: ConfidenceMetrics,
     decision: CommitteeDecision,
-    warnings: List[str],
+    warnings: list[str],
 ) -> CommitteeReport:
     """Assemble the full :class:`CommitteeReport` (Module 9)."""
     overview = {
@@ -147,10 +153,14 @@ def build_committee_report(
         "location": bundle.location,
     }
     resume_summary = (
-        bundle.resume_analysis.executive_summary if bundle.resume_analysis else "No resume analysis available."
+        bundle.resume_analysis.executive_summary
+        if bundle.resume_analysis
+        else "No resume analysis available."
     )
     jd_summary = (
-        bundle.jd_analysis.executive_summary if bundle.jd_analysis else "No job description provided."
+        bundle.jd_analysis.executive_summary
+        if bundle.jd_analysis
+        else "No job description provided."
     )
     sources = sorted({s for o in opinions for s in o.evidence_sources})
     return CommitteeReport(

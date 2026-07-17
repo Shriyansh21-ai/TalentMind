@@ -9,13 +9,13 @@ Observed; an absent one is recorded with register Unavailable and confidence
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.audit.schemas import ProvenanceRecord
 from src.ai.agents.audit.templates import AGENT_CATALOG
 
 
-def _confidence_for(source: str, context: Dict[str, Any]) -> str:
+def _confidence_for(source: str, context: dict[str, Any]) -> str:
     """Return a qualitative confidence for a source from the observed signals."""
     # Reuse the governance-risk / equity signals already computed where they map;
     # otherwise report the confidence as a qualitative "Recorded" (present) marker.
@@ -28,10 +28,10 @@ def _confidence_for(source: str, context: Dict[str, Any]) -> str:
     return "Recorded"
 
 
-def build_provenance(context: Dict[str, Any]) -> List[ProvenanceRecord]:
+def build_provenance(context: dict[str, Any]) -> list[ProvenanceRecord]:
     """Build the evidence provenance records (Module 2)."""
     sources = set(context.get("evidence_sources", []))
-    records: List[ProvenanceRecord] = []
+    records: list[ProvenanceRecord] = []
     for entry in AGENT_CATALOG:
         present = entry.source in sources
         records.append(

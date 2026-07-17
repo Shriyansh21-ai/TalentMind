@@ -26,7 +26,7 @@ Recommendation or Human Review (Module 14).
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import Field, field_validator
 
@@ -55,10 +55,10 @@ class AuditNarrative(BaseAIResponse):
     governance_note: str = ""
     readiness_note: str = ""
     data_availability_note: str = ""
-    key_findings: List[str] = Field(default_factory=list)
-    assumptions: List[str] = Field(default_factory=list)
-    audit_recommendations: List[str] = Field(default_factory=list)
-    outstanding_risks: List[str] = Field(default_factory=list)
+    key_findings: list[str] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+    audit_recommendations: list[str] = Field(default_factory=list)
+    outstanding_risks: list[str] = Field(default_factory=list)
     confidence_note: str = ""
 
     @field_validator("executive_summary")
@@ -88,7 +88,7 @@ class DecisionTraceStep:
     evidence_source: str = ""
     register: str = "Unavailable"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -105,10 +105,10 @@ class ProvenanceRecord:
     evidence_type: str
     origin_agent: str
     confidence: str = "Unknown"  # qualitative label or "Unknown"
-    supporting_modules: List[str] = field(default_factory=list)
+    supporting_modules: list[str] = field(default_factory=list)
     register: str = "Observed"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -126,7 +126,7 @@ class EvidenceNode:
     kind: str = "agent"  # agent | decision
     present: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -138,7 +138,7 @@ class EvidenceEdge:
     target: str
     active: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -146,11 +146,14 @@ class EvidenceEdge:
 class EvidenceGraph:
     """The evidence graph (Modules 2, 10)."""
 
-    nodes: List[EvidenceNode] = field(default_factory=list)
-    edges: List[EvidenceEdge] = field(default_factory=list)
+    nodes: list[EvidenceNode] = field(default_factory=list)
+    edges: list[EvidenceEdge] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {"nodes": [n.to_dict() for n in self.nodes], "edges": [e.to_dict() for e in self.edges]}
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "nodes": [n.to_dict() for n in self.nodes],
+            "edges": [e.to_dict() for e in self.edges],
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -162,14 +165,14 @@ class EvidenceGraph:
 class ReasoningExplanation:
     """Reasoning explainability, register by register (Module 3)."""
 
-    observed_facts: List[str] = field(default_factory=list)
-    derived_insights: List[str] = field(default_factory=list)
-    business_reasoning: List[str] = field(default_factory=list)
-    assumptions: List[str] = field(default_factory=list)
-    human_decisions: List[str] = field(default_factory=list)
-    ai_decisions: List[str] = field(default_factory=list)
+    observed_facts: list[str] = field(default_factory=list)
+    derived_insights: list[str] = field(default_factory=list)
+    business_reasoning: list[str] = field(default_factory=list)
+    assumptions: list[str] = field(default_factory=list)
+    human_decisions: list[str] = field(default_factory=list)
+    ai_decisions: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -188,7 +191,7 @@ class TimelineEvent:
     status: str = "Unavailable"  # Observed | Unavailable
     detail: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -207,7 +210,7 @@ class DecisionResponsibility:
     status: str = "Observed"  # Observed | Unverified | Unavailable
     detail: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -225,7 +228,7 @@ class GovernanceExplanation:
     explanation: str
     register: str = "Inferred"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -241,12 +244,12 @@ class AuditReadiness:
     status: str = "Requires Review"  # Ready | Partially Ready | Not Ready | Requires Review
     readiness_level: str = "Medium"  # High | Medium | Low
     governance_completeness: str = ""
-    missing_evidence: List[str] = field(default_factory=list)
-    missing_documents: List[str] = field(default_factory=list)
-    missing_approvals: List[str] = field(default_factory=list)
-    unverified_decisions: List[str] = field(default_factory=list)
+    missing_evidence: list[str] = field(default_factory=list)
+    missing_documents: list[str] = field(default_factory=list)
+    missing_approvals: list[str] = field(default_factory=list)
+    unverified_decisions: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -260,10 +263,12 @@ class HistoricalReconstruction:
     """Historical decision reconstruction (Module 8). Uses stored artifacts only."""
 
     available: bool = False
-    status_message: str = "No historical audit archive connected; showing the current decision only."
-    records: List[Dict[str, Any]] = field(default_factory=list)
+    status_message: str = (
+        "No historical audit archive connected; showing the current decision only."
+    )
+    records: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -287,23 +292,23 @@ class HiringAuditReport:
     candidate_id: str
     generated_on: str
     data_available: bool
-    candidate_overview: Dict[str, Any]
+    candidate_overview: dict[str, Any]
     narrative: AuditNarrative
-    decision_trace: List[DecisionTraceStep]
-    provenance: List[ProvenanceRecord]
+    decision_trace: list[DecisionTraceStep]
+    provenance: list[ProvenanceRecord]
     evidence_graph: EvidenceGraph
     reasoning: ReasoningExplanation
-    timeline: List[TimelineEvent]
-    responsibility: List[DecisionResponsibility]
-    governance_explanations: List[GovernanceExplanation]
+    timeline: list[TimelineEvent]
+    responsibility: list[DecisionResponsibility]
+    governance_explanations: list[GovernanceExplanation]
     audit_readiness: AuditReadiness
     history: HistoricalReconstruction
-    charts: Dict[str, Any] = field(default_factory=dict)
-    evidence_sources: List[str] = field(default_factory=list)
-    agents_participated: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    charts: dict[str, Any] = field(default_factory=dict)
+    evidence_sources: list[str] = field(default_factory=list)
+    agents_participated: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the whole report."""
         return {
             "report_id": self.report_id,

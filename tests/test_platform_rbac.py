@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import faiss  # noqa: F401
-
 import pytest
 
 from src.platform.common import FrozenClock, PermissionDeniedError
@@ -69,9 +68,7 @@ def test_workspace_scoped_grant_limited_to_that_workspace():
     acl = _acl()
     acl.assign(T, O, "iv", Role.INTERVIEWER, scope_type=ScopeType.WORKSPACE, scope_id="ws_1")
     assert acl.is_allowed(_req("iv", Resource.CANDIDATE, Action.READ, workspace_id="ws_1"))
-    assert not acl.is_allowed(
-        _req("iv", Resource.CANDIDATE, Action.READ, workspace_id="ws_2")
-    )
+    assert not acl.is_allowed(_req("iv", Resource.CANDIDATE, Action.READ, workspace_id="ws_2"))
 
 
 def test_authorize_raises_permission_denied():

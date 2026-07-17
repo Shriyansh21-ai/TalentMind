@@ -9,27 +9,22 @@ synthetic candidates (no dataset, no FAISS, no provider, no LLM).
 from __future__ import annotations
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-
-from src.ai.agents.resume import extractors
+from src.ai.agents.resume import extractors, validators
 from src.ai.agents.resume.agent import (
     ResumeAnalystInput,
-    build_resume_evidence,
     resume_analyst_agent,
 )
 from src.ai.agents.resume.extractors import ResumeDocument, ResumeExperience
 from src.ai.agents.resume.metrics import compute_metrics
 from src.ai.agents.resume.schemas import ResumeAnalysis
-from src.ai.agents.resume import validators
-from src.ai.providers.composers import has_composer
-
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 
 def _runner() -> AgentRunner:
@@ -67,8 +62,15 @@ def test_metrics_dimensions_are_bounded_and_complete():
     doc = extractors.extract(make_candidate())
     m = compute_metrics(doc, jd="python machine learning aws")
     for name in [
-        "overall", "structure", "writing", "technical_depth", "project_quality",
-        "achievements", "ats_friendliness", "professionalism", "career_narrative",
+        "overall",
+        "structure",
+        "writing",
+        "technical_depth",
+        "project_quality",
+        "achievements",
+        "ats_friendliness",
+        "professionalism",
+        "career_narrative",
     ]:
         assert name in m.dimensions
         assert 0.0 <= m.dimensions[name] <= 100.0
@@ -93,7 +95,8 @@ def test_metrics_detects_buzzwords():
     doc = ResumeDocument(candidate_id="C")
     doc.experiences = [
         ResumeExperience(
-            company="X", title="Engineer",
+            company="X",
+            title="Engineer",
             description="Passionate results-driven rockstar ninja.",
             bullets=["Passionate results-driven rockstar ninja"],
         )
@@ -123,8 +126,12 @@ def test_risk_detects_multiple_current_roles():
 def test_risk_detects_employment_gap():
     doc = ResumeDocument(candidate_id="C")
     doc.experiences = [
-        ResumeExperience(company="New", title="Eng", start_date="2020-01-01", end_date="2021-01-01"),
-        ResumeExperience(company="Old", title="Eng", start_date="2015-01-01", end_date="2016-01-01"),
+        ResumeExperience(
+            company="New", title="Eng", start_date="2020-01-01", end_date="2021-01-01"
+        ),
+        ResumeExperience(
+            company="Old", title="Eng", start_date="2015-01-01", end_date="2016-01-01"
+        ),
     ]
     findings = validators.detect_risks(doc, compute_metrics(doc))
     assert any(f.type == "employment_gap" for f in findings)
@@ -156,9 +163,20 @@ def test_schema_is_score_free_at_top_level():
 def test_schema_top_level_fields_present():
     fields = set(ResumeAnalysis.field_names())
     for expected in [
-        "executive_summary", "strengths", "weaknesses", "career_story",
-        "resume_quality", "writing", "technical", "projects", "achievements",
-        "ats_report", "risk_report", "improvement_plan", "confidence_note", "evidence",
+        "executive_summary",
+        "strengths",
+        "weaknesses",
+        "career_story",
+        "resume_quality",
+        "writing",
+        "technical",
+        "projects",
+        "achievements",
+        "ats_report",
+        "risk_report",
+        "improvement_plan",
+        "confidence_note",
+        "evidence",
     ]:
         assert expected in fields
 
@@ -221,9 +239,10 @@ def test_agent_never_fabricates_quantified_achievements():
         resume_analyst_agent, ResumeAnalystInput(candidate_id="C", candidate=cand)
     )
     assert result.data.achievements.quantified == []
-    assert any("quantif" in w.lower() for w in result.data.weaknesses + [
-        i.title.lower() for i in result.data.improvement_plan
-    ])
+    assert any(
+        "quantif" in w.lower()
+        for w in result.data.weaknesses + [i.title.lower() for i in result.data.improvement_plan]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -232,9 +251,9 @@ def test_agent_never_fabricates_quantified_achievements():
 
 
 def test_copilot_routes_resume_questions_to_resume_review():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -247,16 +266,16 @@ def test_copilot_routes_resume_questions_to_resume_review():
 
 
 def test_copilot_resume_intent_selects_resume_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.RESUME_REVIEW) == ["resume_analysis"]
 
 
 def test_copilot_existing_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -270,9 +289,9 @@ def test_copilot_existing_intents_unchanged():
 
 
 def test_copilot_delegates_to_resume_agent_end_to_end():
-    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository(
         [make_candidate(candidate_id="CAND_0000001", title="Senior ML Engineer")]

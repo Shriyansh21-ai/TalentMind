@@ -18,18 +18,18 @@ from __future__ import annotations
 import hashlib
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
+from src.ai.agents.jd import extractors, validators
+from src.ai.agents.jd import metrics as metrics_mod
+from src.ai.agents.jd.composer import compose_jd_analysis
+from src.ai.agents.jd.schemas import JDAnalysis
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.prompts.loader import PromptLoader
 from src.ai.providers.base import LLMMessage
 from src.ai.providers.composers import register_composer
-
-from src.ai.agents.jd import extractors, metrics as metrics_mod, validators
-from src.ai.agents.jd.composer import compose_jd_analysis
-from src.ai.agents.jd.schemas import JDAnalysis
 
 # The agent's prompts live with the agent. A dedicated loader points at this
 # package's ``prompts/`` dir; the shared prompt library is left untouched.
@@ -52,7 +52,7 @@ class JDAnalystInput:
     title: str = ""
 
 
-def build_jd_evidence(payload: JDAnalystInput) -> Dict[str, Any]:
+def build_jd_evidence(payload: JDAnalystInput) -> dict[str, Any]:
     """Run the deterministic pipeline and return the evidence dict.
 
     This is the sole factual input to the analysis: parsed document + computed
@@ -92,17 +92,15 @@ class JDAnalystAgent(BaseAgent):
     )
     output_schema = JDAnalysis
 
-    def build_messages(self, payload, loader, evidence: Dict[str, Any]) -> List[LLMMessage]:
+    def build_messages(self, payload, loader, evidence: dict[str, Any]) -> list[LLMMessage]:
         """Render prompts from the agent's own ``prompts/`` directory."""
         return super().build_messages(payload, _prompt_loader, evidence)
 
-    def build_evidence(self, payload: JDAnalystInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: JDAnalystInput) -> dict[str, Any]:
         """Return the deterministic JD evidence for ``payload``."""
         return build_jd_evidence(payload)
 
-    def prompt_values(
-        self, payload: JDAnalystInput, evidence: Dict[str, Any]
-    ) -> Dict[str, str]:
+    def prompt_values(self, payload: JDAnalystInput, evidence: dict[str, Any]) -> dict[str, str]:
         """Supply the JD title + id placeholders for the prompt."""
         doc = evidence.get("document", {})
         return {
@@ -110,7 +108,7 @@ class JDAnalystAgent(BaseAgent):
             "jd_title": doc.get("title") or payload.title or "(untitled role)",
         }
 
-    def cache_dimensions(self, payload: JDAnalystInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: JDAnalystInput) -> tuple[str, str]:
         """Cache by JD id (subject) + a JD-text hash (scope) — Module 16."""
         return (payload.jd_id or "jd"), _jd_hash(payload.jd_text)
 
@@ -131,7 +129,7 @@ def _orchestration_payload_builder(task, context) -> JDAnalystInput:
     )
 
 
-def _register_with_orchestration(agent: "JDAnalystAgent") -> None:
+def _register_with_orchestration(agent: JDAnalystAgent) -> None:
     """Register the agent with the Multi-Agent Orchestration platform (best-effort)."""
     try:
         from src.ai.orchestration.adapters import RunnerAgent

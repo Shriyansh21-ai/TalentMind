@@ -101,27 +101,21 @@ class OrganizationService:
         org.touch(self._clock.now())
         return self.repo.organizations.update(org)
 
-    def update_settings(
-        self, organization_id: str, settings: OrganizationSettings
-    ) -> Organization:
+    def update_settings(self, organization_id: str, settings: OrganizationSettings) -> Organization:
         """Replace an organization's settings."""
         org = self.repo.organizations.require(organization_id)
         org.settings = settings
         org.touch(self._clock.now())
         return self.repo.organizations.update(org)
 
-    def update_branding(
-        self, organization_id: str, branding: OrganizationBranding
-    ) -> Organization:
+    def update_branding(self, organization_id: str, branding: OrganizationBranding) -> Organization:
         """Replace an organization's branding."""
         org = self.repo.organizations.require(organization_id)
         org.branding = branding
         org.touch(self._clock.now())
         return self.repo.organizations.update(org)
 
-    def update_limits(
-        self, organization_id: str, limits: OrganizationLimits
-    ) -> Organization:
+    def update_limits(self, organization_id: str, limits: OrganizationLimits) -> Organization:
         """Replace an organization's resource limits."""
         org = self.repo.organizations.require(organization_id)
         org.limits = limits

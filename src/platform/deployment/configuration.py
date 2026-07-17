@@ -34,11 +34,14 @@ _PROFILES: dict[str, dict[str, object]] = {
     "development": {"log_level": "DEBUG", "workers": 1, "telemetry_enabled": False},
     "testing": {"log_level": "WARNING", "workers": 1, "cache_ttl_seconds": 60},
     "production": {"log_level": "INFO", "workers": 4, "cache_ttl_seconds": 600},
-    "enterprise": {"log_level": "INFO", "workers": 8, "cache_ttl_seconds": 900,
-                   "max_upload_mb": 100},
+    "enterprise": {
+        "log_level": "INFO",
+        "workers": 8,
+        "cache_ttl_seconds": 900,
+        "max_upload_mb": 100,
+    },
     "cloud": {"log_level": "INFO", "workers": 6, "cache_ttl_seconds": 600},
-    "offline": {"log_level": "INFO", "workers": 2, "offline": True,
-                "telemetry_enabled": False},
+    "offline": {"log_level": "INFO", "workers": 2, "offline": True, "telemetry_enabled": False},
 }
 
 # Keys that must be present and their expected python types.
@@ -71,7 +74,9 @@ class ConfigurationPlatform:
         """Return the names of the built-in configuration profiles."""
         return list(_PROFILES)
 
-    def load(self, profile: str, *, overrides: dict[str, object] | None = None) -> dict[str, object]:
+    def load(
+        self, profile: str, *, overrides: dict[str, object] | None = None
+    ) -> dict[str, object]:
         """Return the merged configuration for ``profile`` (base ← profile ← overrides)."""
         if profile not in _PROFILES:
             raise ConfigurationPlatformError(f"unknown configuration profile '{profile}'")

@@ -11,12 +11,8 @@ Presentation only — all reasoning comes from the service facade.
 
 from __future__ import annotations
 
-from typing import List
-
 import streamlit as st
 
-from src.insights.models import CandidateInsights
-from src.interview.models import InterviewPlan
 from src.ai.core.response import AgentResult, AgentStatus
 from src.ai.schemas.hiring_analysis import HiringAnalysis
 from src.ai.services.hiring_analyst_service import (
@@ -24,6 +20,8 @@ from src.ai.services.hiring_analyst_service import (
     get_platform_status,
     peek_cached_analysis,
 )
+from src.insights.models import CandidateInsights
+from src.interview.models import InterviewPlan
 
 _DECISION_STYLE = {
     "Strong Hire": ("success", "🟢"),
@@ -73,9 +71,7 @@ def render_ai_analyst_tab(
 
     if generate or refresh:
         with st.spinner("Generating AI hiring analysis..."):
-            result = analyze_candidate(
-                insights, interview_plan, jd, force_refresh=bool(refresh)
-            )
+            result = analyze_candidate(insights, interview_plan, jd, force_refresh=bool(refresh))
 
     if result is None:
         st.info(
@@ -166,7 +162,7 @@ def _render_analysis(analysis: HiringAnalysis) -> None:
         st.write(analysis.confidence_reasoning)
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         st.caption(empty_message)

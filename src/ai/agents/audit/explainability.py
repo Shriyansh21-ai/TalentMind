@@ -9,12 +9,12 @@ determination (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.audit.schemas import GovernanceExplanation
 
 
-def build_governance_explanations(context: Dict[str, Any]) -> List[GovernanceExplanation]:
+def build_governance_explanations(context: dict[str, Any]) -> list[GovernanceExplanation]:
     """Build the transparent governance explanations (Module 6)."""
     sources = set(context.get("evidence_sources", []))
     approvals = context.get("approvals", {}) or {}
@@ -23,7 +23,7 @@ def build_governance_explanations(context: Dict[str, Any]) -> List[GovernanceExp
     review = context.get("review", {}) or {}
     equity_level = context.get("equity_risk_level", "")
 
-    explanations: List[GovernanceExplanation] = []
+    explanations: list[GovernanceExplanation] = []
 
     if required:
         reasons = "; ".join(
@@ -70,9 +70,12 @@ def build_governance_explanations(context: Dict[str, Any]) -> List[GovernanceExp
                 topic="Pay equity",
                 question="Why did an equity review trigger?",
                 explanation=(
-                    f"The Pay Equity Guardian assessed internal fairness of the offer"
-                    + (f" (equity risk {equity_level})." if equity_level and equity_level != "Unknown"
-                       else " (internal data unavailable, so it is provisional).")
+                    "The Pay Equity Guardian assessed internal fairness of the offer"
+                    + (
+                        f" (equity risk {equity_level})."
+                        if equity_level and equity_level != "Unknown"
+                        else " (internal data unavailable, so it is provisional)."
+                    )
                 ),
                 register="Observed",
             )

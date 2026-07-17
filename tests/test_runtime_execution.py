@@ -61,9 +61,7 @@ def test_cancellation_skips_remaining():
         ctx.cancel()
         return 1
 
-    report = engine.run_sequential(
-        [Task("a", cancel_then), Task("b", lambda: 2)], context=ctx
-    )
+    report = engine.run_sequential([Task("a", cancel_then), Task("b", lambda: 2)], context=ctx)
     assert report.results[0].status == ExecutionStatus.SUCCEEDED
     assert report.results[1].status == ExecutionStatus.CANCELLED
 
@@ -78,9 +76,7 @@ def test_retry_recovers_within_task():
             raise RuntimeError("transient")
         return "ok"
 
-    report = engine.run_sequential(
-        [Task("flaky", flaky, retry=RetryPolicy(max_attempts=3))]
-    )
+    report = engine.run_sequential([Task("flaky", flaky, retry=RetryPolicy(max_attempts=3))])
     assert report.results[0].status == ExecutionStatus.SUCCEEDED
     assert report.results[0].attempts == 2
 
@@ -94,8 +90,7 @@ def test_timeout_classified():
         return "done"
 
     report = engine.run_sequential(
-        [Task("slow", slow, timeout=TimeoutPolicy(seconds=1),
-              retry=RetryPolicy(max_attempts=1))]
+        [Task("slow", slow, timeout=TimeoutPolicy(seconds=1), retry=RetryPolicy(max_attempts=1))]
     )
     assert report.results[0].status == ExecutionStatus.TIMEOUT
 

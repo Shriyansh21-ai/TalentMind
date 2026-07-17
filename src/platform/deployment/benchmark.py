@@ -10,8 +10,8 @@ number is measured; reports summarise min/avg/max/p95 and throughput.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable
 
 from pydantic import Field
 
@@ -97,8 +97,12 @@ class BenchmarkRunner:
         avg = total_ms / iterations
         p95_index = min(len(samples) - 1, int(round(0.95 * (len(samples) - 1))))
         result = BenchmarkResult(
-            name=name, category=category, iterations=iterations,
-            min_ms=samples[0], max_ms=samples[-1], avg_ms=avg,
+            name=name,
+            category=category,
+            iterations=iterations,
+            min_ms=samples[0],
+            max_ms=samples[-1],
+            avg_ms=avg,
             p95_ms=samples[p95_index],
             ops_per_second=(1000.0 / avg) if avg > 0 else 0.0,
         )

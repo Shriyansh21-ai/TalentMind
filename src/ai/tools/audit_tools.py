@@ -10,8 +10,10 @@ record and never fabricates evidence/approvals/history (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
+# Importing the engine auto-registers the agent (AI platform + orchestration).
+from src.ai.agents.audit.audit_engine import HiringAuditEngine
 from src.ai.core.runner import AgentRunner
 from src.ai.tools.base import (
     BaseTool,
@@ -21,10 +23,7 @@ from src.ai.tools.base import (
     ToolValidationError,
 )
 
-# Importing the engine auto-registers the agent (AI platform + orchestration).
-from src.ai.agents.audit.audit_engine import HiringAuditEngine
-
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 
 def _get_runner() -> AgentRunner:
@@ -52,12 +51,12 @@ class HiringAuditTool(BaseTool):
         engine="Hiring Audit",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         """Require a candidate id."""
         if not tool_input.get("candidate_id"):
             raise ToolValidationError("hiring_audit requires 'candidate_id'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Resolve the candidate, reconstruct the journey, and summarize it."""
         candidate_id = str(tool_input["candidate_id"])
         candidate = context.repository.get(candidate_id)
@@ -69,22 +68,37 @@ class HiringAuditTool(BaseTool):
 
         narrative = report.narrative
         readiness = report.audit_readiness
-        ai_decisions = [d for d in report.responsibility if d.responsible_party == "AI" and d.status == "Observed"]
-        human_verified = [d for d in report.responsibility if d.responsible_party != "AI" and d.status == "Observed"]
+        ai_decisions = [
+            d
+            for d in report.responsibility
+            if d.responsible_party == "AI" and d.status == "Observed"
+        ]
+        human_verified = [
+            d
+            for d in report.responsibility
+            if d.responsible_party != "AI" and d.status == "Observed"
+        ]
         output = {
             "candidate_id": candidate_id,
             "data_available": report.data_available,
             "agents_participated": list(report.agents_participated),
             "agent_count": len(report.agents_participated),
-            "decision_trace": [{"stage": s.stage, "status": s.status} for s in report.decision_trace],
-            "timeline": [{"name": t.name, "actor": t.actor, "status": t.status} for t in report.timeline],
+            "decision_trace": [
+                {"stage": s.stage, "status": s.status} for s in report.decision_trace
+            ],
+            "timeline": [
+                {"name": t.name, "actor": t.actor, "status": t.status} for t in report.timeline
+            ],
             "ai_decisions": [d.decision for d in ai_decisions],
             "human_decisions_verified": [d.decision for d in human_verified],
             "outstanding_approvals": list(readiness.missing_approvals),
             "audit_readiness": readiness.status,
             "readiness_level": readiness.readiness_level,
             "missing_evidence": list(readiness.missing_evidence),
-            "governance_explanations": [{"topic": g.topic, "explanation": g.explanation} for g in report.governance_explanations],
+            "governance_explanations": [
+                {"topic": g.topic, "explanation": g.explanation}
+                for g in report.governance_explanations
+            ],
             "history_available": report.history.available,
             "executive_summary": narrative.executive_summary,
             "key_findings": list(narrative.key_findings),
@@ -100,7 +114,11 @@ class HiringAuditTool(BaseTool):
                 f"Hiring audit for {candidate_id}: {len(report.agents_participated)} agent(s) participated, "
                 f"audit readiness {readiness.status} ({readiness.readiness_level}). "
                 f"{len(ai_decisions)} AI decision(s), {len(human_verified)} verified human approval(s). "
-                + (f"Outstanding: {', '.join(readiness.missing_approvals)}. " if readiness.missing_approvals else "")
+                + (
+                    f"Outstanding: {', '.join(readiness.missing_approvals)}. "
+                    if readiness.missing_approvals
+                    else ""
+                )
                 + "Reconstructed from artefacts on record; no fabrication, no legal opinion."
             ),
             evidence_sources=["Hiring Audit"] + report.evidence_sources,

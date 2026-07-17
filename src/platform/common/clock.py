@@ -7,13 +7,13 @@ default; :class:`FrozenClock` gives tests full control over "now".
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Protocol, runtime_checkable
 
 
 def utcnow() -> datetime:
     """Return the current timezone-aware UTC time."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @runtime_checkable
@@ -41,7 +41,7 @@ class FrozenClock:
     """
 
     def __init__(self, start: datetime | None = None) -> None:
-        self._now = start or datetime(2026, 1, 1, tzinfo=timezone.utc)
+        self._now = start or datetime(2026, 1, 1, tzinfo=UTC)
 
     def now(self) -> datetime:
         """Return the frozen current time."""

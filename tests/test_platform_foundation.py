@@ -7,7 +7,6 @@ isolation guarantees, and the lazy DI container (Phase 6 / Milestone 1).
 from __future__ import annotations
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 import pytest
 
 from src.platform.common import (
@@ -28,9 +27,7 @@ class _Org(TenantScopedEntity):
 
 
 def _org(name: str = "Acme", tenant: str = "t1") -> _Org:
-    return _Org(
-        id=generate_id("org"), tenant_id=tenant, organization_id=tenant, name=name
-    )
+    return _Org(id=generate_id("org"), tenant_id=tenant, organization_id=tenant, name=name)
 
 
 # -- ids / clock ------------------------------------------------------------

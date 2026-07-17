@@ -16,11 +16,10 @@ as an Executive, CTO, HR, Recruiter, CEO, Engineering-Manager or Committee brief
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from src.ai.agents.executive_report.branding import DEFAULT_BRAND, Brand, section_number
 from src.ai.agents.executive_report.schemas import ExecutiveHiringReport
-
 
 # ---------------------------------------------------------------------------
 # Intermediate representation
@@ -37,9 +36,9 @@ class Block:
 
     kind: str
     text: str = ""
-    items: List[str] = field(default_factory=list)
-    rows: List[Tuple[str, str]] = field(default_factory=list)
-    metrics: List[Tuple[str, float, str]] = field(default_factory=list)
+    items: list[str] = field(default_factory=list)
+    rows: list[tuple[str, str]] = field(default_factory=list)
+    metrics: list[tuple[str, float, str]] = field(default_factory=list)
 
 
 @dataclass
@@ -48,7 +47,7 @@ class Section:
 
     number: str
     title: str
-    blocks: List[Block] = field(default_factory=list)
+    blocks: list[Block] = field(default_factory=list)
 
 
 @dataclass
@@ -57,13 +56,13 @@ class ReportDocument:
 
     title: str
     subtitle: str
-    cover: Dict[str, Any]
-    sections: List[Section]
+    cover: dict[str, Any]
+    sections: list[Section]
     brand: Brand = DEFAULT_BRAND
     footer: str = ""
 
     @property
-    def toc(self) -> List[Tuple[str, str]]:
+    def toc(self) -> list[tuple[str, str]]:
         """Return the table of contents as ``(number, title)`` pairs."""
         return [(s.number, s.title) for s in self.sections]
 
@@ -73,7 +72,7 @@ class ReportDocument:
 # ---------------------------------------------------------------------------
 
 
-def _s_executive_summary(report: ExecutiveHiringReport) -> List[Block]:
+def _s_executive_summary(report: ExecutiveHiringReport) -> list[Block]:
     n = report.narrative
     return [
         Block("paragraph", text=n.executive_summary),
@@ -102,7 +101,7 @@ def _s_executive_summary(report: ExecutiveHiringReport) -> List[Block]:
     ]
 
 
-def _s_candidate_intelligence(report: ExecutiveHiringReport) -> List[Block]:
+def _s_candidate_intelligence(report: ExecutiveHiringReport) -> list[Block]:
     ci = report.candidate_intelligence or {}
     tl = report.role_intelligence.get("_timeline", {}) if report.role_intelligence else {}
     blocks = [
@@ -121,20 +120,34 @@ def _s_candidate_intelligence(report: ExecutiveHiringReport) -> List[Block]:
     if story:
         blocks += [Block("subheading", text="Career Trajectory"), Block("paragraph", text=story)]
     if ci.get("strengths"):
-        blocks += [Block("subheading", text="Achievements & Strengths"), Block("bullets", items=list(ci["strengths"])[:6])]
+        blocks += [
+            Block("subheading", text="Achievements & Strengths"),
+            Block("bullets", items=list(ci["strengths"])[:6]),
+        ]
     if ci.get("weaknesses"):
-        blocks += [Block("subheading", text="Development Areas"), Block("bullets", items=list(ci["weaknesses"])[:6])]
+        blocks += [
+            Block("subheading", text="Development Areas"),
+            Block("bullets", items=list(ci["weaknesses"])[:6]),
+        ]
     rq = report.role_intelligence.get("_resume_quality") if report.role_intelligence else None
     if isinstance(rq, dict) and rq:
         blocks.append(
-            Block("note", text=f"Resume quality (not a hiring score): overall {rq.get('overall', 0):.0f}/100.")
+            Block(
+                "note",
+                text=f"Resume quality (not a hiring score): overall {rq.get('overall', 0):.0f}/100.",
+            )
         )
     return blocks
 
 
-def _s_role_intelligence(report: ExecutiveHiringReport) -> List[Block]:
+def _s_role_intelligence(report: ExecutiveHiringReport) -> list[Block]:
     ri = report.role_intelligence or {}
-    blocks = [Block("paragraph", text=report.jd_summary or "No job description was analysed for this report.")]
+    blocks = [
+        Block(
+            "paragraph",
+            text=report.jd_summary or "No job description was analysed for this report.",
+        )
+    ]
     rows = []
     for label, key in [
         ("Seniority", "seniority"),
@@ -149,18 +162,29 @@ def _s_role_intelligence(report: ExecutiveHiringReport) -> List[Block]:
     if rows:
         blocks.append(Block("kv", rows=rows))
     if ri.get("mandatory"):
-        blocks += [Block("subheading", text="Requirement Hierarchy — Mandatory"), Block("bullets", items=list(ri["mandatory"])[:6])]
+        blocks += [
+            Block("subheading", text="Requirement Hierarchy — Mandatory"),
+            Block("bullets", items=list(ri["mandatory"])[:6]),
+        ]
     if ri.get("technology_stack"):
-        blocks += [Block("subheading", text="Technology Stack"), Block("bullets", items=list(ri["technology_stack"])[:8])]
+        blocks += [
+            Block("subheading", text="Technology Stack"),
+            Block("bullets", items=list(ri["technology_stack"])[:8]),
+        ]
     if ri.get("business_priorities"):
-        blocks += [Block("subheading", text="Business Priorities"), Block("bullets", items=list(ri["business_priorities"])[:5])]
+        blocks += [
+            Block("subheading", text="Business Priorities"),
+            Block("bullets", items=list(ri["business_priorities"])[:5]),
+        ]
     return blocks
 
 
-def _s_committee(report: ExecutiveHiringReport) -> List[Block]:
+def _s_committee(report: ExecutiveHiringReport) -> list[Block]:
     committee = report.committee or {}
     if not committee:
-        return [Block("paragraph", text="The AI Hiring Committee was not convened for this report.")]
+        return [
+            Block("paragraph", text="The AI Hiring Committee was not convened for this report.")
+        ]
     consensus = committee.get("consensus", {})
     decision = committee.get("decision", {})
     confidence = committee.get("confidence", {})
@@ -192,7 +216,10 @@ def _s_committee(report: ExecutiveHiringReport) -> List[Block]:
         )
     disagreements = committee.get("discussion", {}).get("disagreements", [])
     if disagreements:
-        blocks += [Block("subheading", text="Disagreements"), Block("bullets", items=list(disagreements)[:5])]
+        blocks += [
+            Block("subheading", text="Disagreements"),
+            Block("bullets", items=list(disagreements)[:5]),
+        ]
     conflicts = committee.get("conflicts", [])
     if conflicts:
         blocks.append(Block("subheading", text="Conflict Resolution"))
@@ -208,7 +235,7 @@ def _s_committee(report: ExecutiveHiringReport) -> List[Block]:
     return blocks
 
 
-def _s_risk(report: ExecutiveHiringReport) -> List[Block]:
+def _s_risk(report: ExecutiveHiringReport) -> list[Block]:
     rd = report.risk_dashboard or {}
     blocks = [
         Block(
@@ -232,19 +259,31 @@ def _s_risk(report: ExecutiveHiringReport) -> List[Block]:
     if rows:
         blocks += [Block("subheading", text="Risk Matrix (sub-risks)"), Block("kv", rows=rows)]
     if rd.get("red_flags"):
-        blocks += [Block("subheading", text="Red Flags"), Block("bullets", items=list(rd["red_flags"])[:6])]
+        blocks += [
+            Block("subheading", text="Red Flags"),
+            Block("bullets", items=list(rd["red_flags"])[:6]),
+        ]
     if rd.get("validation_questions"):
-        blocks += [Block("subheading", text="Mitigations — Validate in Interview"), Block("bullets", items=list(rd["validation_questions"])[:6])]
+        blocks += [
+            Block("subheading", text="Mitigations — Validate in Interview"),
+            Block("bullets", items=list(rd["validation_questions"])[:6]),
+        ]
     if rd.get("positive_signals"):
-        blocks += [Block("subheading", text="Mitigating Signals"), Block("bullets", items=list(rd["positive_signals"])[:5])]
+        blocks += [
+            Block("subheading", text="Mitigating Signals"),
+            Block("bullets", items=list(rd["positive_signals"])[:5]),
+        ]
     return blocks
 
 
-def _s_interview(report: ExecutiveHiringReport) -> List[Block]:
+def _s_interview(report: ExecutiveHiringReport) -> list[Block]:
     iv = report.interview_strategy
     blocks = []
     if iv.roadmap:
-        blocks += [Block("subheading", text="Interview Roadmap"), Block("bullets", items=iv.roadmap)]
+        blocks += [
+            Block("subheading", text="Interview Roadmap"),
+            Block("bullets", items=iv.roadmap),
+        ]
     for title, items in [
         ("Technical Interview", iv.technical_interview),
         ("System Design", iv.system_design),
@@ -257,20 +296,29 @@ def _s_interview(report: ExecutiveHiringReport) -> List[Block]:
         if items:
             blocks += [Block("subheading", text=title), Block("bullets", items=items)]
     if iv.post_interview_recommendation:
-        blocks += [Block("subheading", text="Post-Interview Recommendation"), Block("paragraph", text=iv.post_interview_recommendation)]
+        blocks += [
+            Block("subheading", text="Post-Interview Recommendation"),
+            Block("paragraph", text=iv.post_interview_recommendation),
+        ]
     return blocks
 
 
-def _s_action_plan(report: ExecutiveHiringReport) -> List[Block]:
+def _s_action_plan(report: ExecutiveHiringReport) -> list[Block]:
     ap = report.action_plan
     blocks = [
         Block("kv", rows=[("Recommended Action", ap.primary_action)]),
         Block("paragraph", text=ap.rationale),
     ]
     if ap.alternatives:
-        blocks += [Block("subheading", text="Alternative Dispositions"), Block("bullets", items=ap.alternatives)]
+        blocks += [
+            Block("subheading", text="Alternative Dispositions"),
+            Block("bullets", items=ap.alternatives),
+        ]
     if ap.onboarding_plan:
-        blocks += [Block("subheading", text="Expected Onboarding Plan"), Block("bullets", items=ap.onboarding_plan)]
+        blocks += [
+            Block("subheading", text="Expected Onboarding Plan"),
+            Block("bullets", items=ap.onboarding_plan),
+        ]
     for title, items in [
         ("First 30 Days", ap.plan_30_day),
         ("First 60 Days", ap.plan_60_day),
@@ -281,9 +329,9 @@ def _s_action_plan(report: ExecutiveHiringReport) -> List[Block]:
     return blocks
 
 
-def _s_business_intelligence(report: ExecutiveHiringReport) -> List[Block]:
+def _s_business_intelligence(report: ExecutiveHiringReport) -> list[Block]:
     bi = report.business_intelligence
-    blocks: List[Block] = []
+    blocks: list[Block] = []
     for name, est in bi.items():
         blocks.append(
             Block(
@@ -298,7 +346,7 @@ def _s_business_intelligence(report: ExecutiveHiringReport) -> List[Block]:
     return blocks
 
 
-def _s_provenance(report: ExecutiveHiringReport) -> List[Block]:
+def _s_provenance(report: ExecutiveHiringReport) -> list[Block]:
     blocks = [
         Block(
             "paragraph",
@@ -319,7 +367,7 @@ def _s_provenance(report: ExecutiveHiringReport) -> List[Block]:
 
 
 # Registry of section-id → (title, builder). The template selects and orders ids.
-SECTION_BUILDERS: Dict[str, Tuple[str, Any]] = {
+SECTION_BUILDERS: dict[str, tuple[str, Any]] = {
     "executive_summary": ("Executive Summary", _s_executive_summary),
     "candidate_intelligence": ("Candidate Intelligence", _s_candidate_intelligence),
     "role_intelligence": ("Role Intelligence", _s_role_intelligence),
@@ -334,14 +382,14 @@ SECTION_BUILDERS: Dict[str, Tuple[str, Any]] = {
 
 def build_document(
     report: ExecutiveHiringReport,
-    section_ids: Optional[List[str]] = None,
+    section_ids: list[str] | None = None,
     *,
     brand: Brand = DEFAULT_BRAND,
     audience: str = "Executive Leadership",
 ) -> ReportDocument:
     """Flatten a report into a :class:`ReportDocument` for the given sections."""
     ids = section_ids or list(SECTION_BUILDERS.keys())
-    sections: List[Section] = []
+    sections: list[Section] = []
     for index, sid in enumerate(ids, start=1):
         entry = SECTION_BUILDERS.get(sid)
         if entry is None:

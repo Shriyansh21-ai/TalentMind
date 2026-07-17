@@ -13,41 +13,37 @@ from __future__ import annotations
 import json
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-from src.ai.providers.composers import has_composer
-
+from src.ai.agents.compensation import market_position as market_mod
+from src.ai.agents.compensation import negotiation as negotiation_mod
+from src.ai.agents.compensation import salary_strategy as strategy_mod
+from src.ai.agents.compensation import validators
 from src.ai.agents.compensation.agent import (
     CompensationInput,
     build_compensation_evidence,
-    compensation_agent,
 )
+from src.ai.agents.compensation.composer import compose_compensation_narrative
 from src.ai.agents.compensation.governance import (
     CompensationGovernanceEngine,
     build_governance_checks,
 )
-from src.ai.agents.compensation.composer import compose_compensation_narrative
-from src.ai.agents.compensation.schemas import (
-    CompensationNarrative,
-    CompensationReport,
-    CompensationRange,
-)
-from src.ai.agents.compensation import validators
-from src.ai.agents.compensation import market_position as market_mod
-from src.ai.agents.compensation import salary_strategy as strategy_mod
-from src.ai.agents.compensation import negotiation as negotiation_mod
-from src.ai.agents.compensation.pay_band import derive_pay_band
 from src.ai.agents.compensation.internal_equity import (
     NullCompensationDataProvider,
     assess_internal_equity,
 )
-
+from src.ai.agents.compensation.pay_band import derive_pay_band
+from src.ai.agents.compensation.schemas import (
+    CompensationNarrative,
+    CompensationRange,
+    CompensationReport,
+)
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 JD = """Senior Machine Learning Engineer
 - Design and own scalable ML systems in production
@@ -94,12 +90,14 @@ def test_narrative_schema_is_score_free():
 
 def test_narrative_top_level_has_no_score_fields():
     for name in CompensationNarrative.field_names():
-        assert not any(tok in name.lower() for tok in ("score", "rating", "percent", "confidence_value"))
+        assert not any(
+            tok in name.lower() for tok in ("score", "rating", "percent", "confidence_value")
+        )
 
 
 def test_tool_registered_in_builtin():
-    from src.ai.tools.registry import registry as tool_registry
     import src.ai.tools.builtin  # noqa: F401
+    from src.ai.tools.registry import registry as tool_registry
 
     assert tool_registry.has("compensation_governance")
 
@@ -116,7 +114,17 @@ def test_composer_never_empty_summary_and_validates():
 
 
 def test_composer_states_internal_heuristic_model():
-    out = compose_compensation_narrative({"recommended_range": {"currency": "INR", "minimum": 40, "target": 50, "maximum": 60, "unit": "LPA"}})
+    out = compose_compensation_narrative(
+        {
+            "recommended_range": {
+                "currency": "INR",
+                "minimum": 40,
+                "target": 50,
+                "maximum": 60,
+                "unit": "LPA",
+            }
+        }
+    )
     assert "internal heuristic model" in out["market_position_note"].lower()
 
 
@@ -128,8 +136,18 @@ def test_composer_reports_equity_unavailable():
 def test_build_evidence_packs_all_sources():
     payload = CompensationInput(candidate_id="C1", intelligence={"technical_score": 80})
     evidence = build_compensation_evidence(payload)
-    for key in ("candidate_comp", "resume", "jd", "committee", "intelligence", "timeline",
-                "risk", "recommendation", "interview", "recommended_range"):
+    for key in (
+        "candidate_comp",
+        "resume",
+        "jd",
+        "committee",
+        "intelligence",
+        "timeline",
+        "risk",
+        "recommendation",
+        "interview",
+        "recommended_range",
+    ):
         assert key in evidence
 
 
@@ -140,7 +158,12 @@ def test_build_evidence_packs_all_sources():
 
 def test_pay_band_is_a_range_not_a_point():
     evidence = {
-        "candidate_comp": {"currency": "INR", "unit": "LPA", "expected_min": 40, "expected_max": 60},
+        "candidate_comp": {
+            "currency": "INR",
+            "unit": "LPA",
+            "expected_min": 40,
+            "expected_max": 60,
+        },
         "candidate_overview": {"years_of_experience": 9},
         "intelligence": {"technical_score": 90, "leadership_score": 75, "confidence": 80},
     }
@@ -164,11 +187,13 @@ def test_pay_band_falls_back_to_assumption_without_expectation():
 
 
 def test_pay_band_applies_premiums():
-    strong = derive_pay_band({
-        "candidate_comp": {"expected_min": 40, "expected_max": 60},
-        "intelligence": {"technical_score": 95, "leadership_score": 90},
-        "committee": {"consensus": {"recommendation": "Strong Hire"}},
-    })
+    strong = derive_pay_band(
+        {
+            "candidate_comp": {"expected_min": 40, "expected_max": 60},
+            "intelligence": {"technical_score": 95, "leadership_score": 90},
+            "committee": {"consensus": {"recommendation": "Strong Hire"}},
+        }
+    )
     plain = derive_pay_band({"candidate_comp": {"expected_min": 40, "expected_max": 60}})
     assert strong.target > plain.target  # premiums lifted the target
 
@@ -196,10 +221,18 @@ def test_scenarios_are_ordered_and_named():
 
 def test_market_position_declares_no_external_data():
     band = derive_pay_band({"candidate_comp": {"expected_min": 40, "expected_max": 60}})
-    mp = market_mod.assess_market_position({"candidate_comp": {"expected_min": 40, "expected_max": 60}}, band)
+    mp = market_mod.assess_market_position(
+        {"candidate_comp": {"expected_min": 40, "expected_max": 60}}, band
+    )
     assert mp.data_available is False
     assert "internal heuristic model" in mp.data_note.lower()
-    assert mp.position in ("Below Market", "Market Competitive", "Premium", "Strategic Premium", "Budget-Constrained")
+    assert mp.position in (
+        "Below Market",
+        "Market Competitive",
+        "Premium",
+        "Strategic Premium",
+        "Budget-Constrained",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -210,7 +243,14 @@ def test_market_position_declares_no_external_data():
 def test_negotiation_separates_observed_evidence():
     band = derive_pay_band({"candidate_comp": {"expected_min": 40, "expected_max": 60}})
     ng = negotiation_mod.build_negotiation(
-        {"candidate_comp": {"expected_min": 40, "expected_max": 60, "offer_acceptance_rate": 0.8, "notice_period_days": 30}},
+        {
+            "candidate_comp": {
+                "expected_min": 40,
+                "expected_max": 60,
+                "offer_acceptance_rate": 0.8,
+                "notice_period_days": 30,
+            }
+        },
         band,
     )
     assert ng.observed_evidence
@@ -243,7 +283,11 @@ def test_internal_equity_evaluates_with_injected_provider():
             return [{"compensation": 52.0}]
 
     band = CompensationRange(minimum=45, target=50, maximum=58)
-    eq = assess_internal_equity({"candidate_overview": {"title": "ML Engineer", "years_of_experience": 9}}, band, StubProvider())
+    eq = assess_internal_equity(
+        {"candidate_overview": {"title": "ML Engineer", "years_of_experience": 9}},
+        band,
+        StubProvider(),
+    )
     assert eq.available is True
     dims = {c.dimension for c in eq.checks}
     assert "Pay-band consistency" in dims
@@ -263,9 +307,15 @@ def test_governance_checks_explain_why():
     band = derive_pay_band(evidence | {"candidate_comp": {"expected_min": 40, "expected_max": 60}})
     checks = build_governance_checks(evidence, band, "Critical Hire")
     dims = {c.dimension for c in checks}
-    for expected in ("Internal policy alignment", "Offer consistency", "Experience alignment",
-                     "Skill premium", "Leadership premium", "Strategic hiring premium",
-                     "Replacement vs. Growth hire"):
+    for expected in (
+        "Internal policy alignment",
+        "Offer consistency",
+        "Experience alignment",
+        "Skill premium",
+        "Leadership premium",
+        "Strategic hiring premium",
+        "Replacement vs. Growth hire",
+    ):
         assert expected in dims
     for c in checks:
         assert c.rationale  # every conclusion explains why
@@ -302,7 +352,9 @@ def test_engine_is_deterministic():
 
 def test_engine_without_committee():
     engine = CompensationGovernanceEngine(ai_runner=_runner())
-    report = engine.build(candidate=make_candidate(), jd=JD, run_committee=False, generated_on="2026-07-15")
+    report = engine.build(
+        candidate=make_candidate(), jd=JD, run_committee=False, generated_on="2026-07-15"
+    )
     assert report.recommended_range.minimum < report.recommended_range.maximum
     assert report.narrative.executive_summary
 
@@ -353,8 +405,15 @@ def test_critical_hire_requires_executive_sponsor():
     band = derive_pay_band(evidence | {"candidate_comp": {"expected_min": 40, "expected_max": 60}})
     budget = budget_mod.assess_budget(evidence, band)
     assert budget.hire_type == "Critical Hire"
-    audit = oj.build_audit_trail(evidence, band, market_mod.assess_market_position(evidence, band), budget,
-                                 decision_id="COMP-X", decision_timestamp="2026-07-15", equity_available=False)
+    audit = oj.build_audit_trail(
+        evidence,
+        band,
+        market_mod.assess_market_position(evidence, band),
+        budget,
+        decision_id="COMP-X",
+        decision_timestamp="2026-07-15",
+        equity_available=False,
+    )
     assert "Executive Sponsor" in audit.approvals_required
 
 
@@ -382,9 +441,9 @@ def test_available_sources_lists_candidate_expectation():
 
 
 def test_copilot_routes_compensation_questions():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -399,16 +458,16 @@ def test_copilot_routes_compensation_questions():
 
 
 def test_copilot_compensation_intent_selects_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.COMPENSATION_GOVERNANCE) == ["compensation_governance"]
 
 
 def test_copilot_existing_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -425,9 +484,9 @@ def test_copilot_existing_intents_unchanged():
 
 
 def test_copilot_delegates_to_compensation_end_to_end():
-    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository(
         [make_candidate(candidate_id="CAND_0000001", title="Senior ML Engineer")]

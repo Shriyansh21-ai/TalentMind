@@ -12,16 +12,9 @@ with a synthetic repository and no network.
 from __future__ import annotations
 
 import time
-from typing import Callable, List, Optional
+from collections.abc import Callable
 
-from src.models.candidates import Candidate
-from src.insights.models import CandidateInsights
-
-from src.ai.core.runner import AgentRunner
-from src.ai.tools.base import CandidateRepository, ToolContext, ToolResult
-from src.ai.tools.registry import ToolRegistry, ToolRunner, registry as default_registry
 import src.ai.tools.builtin  # noqa: F401  (registers built-in tools on import)
-
 from src.ai.agents.recruiter_copilot import (
     RecruiterCopilotInput,
     recruiter_copilot_agent,
@@ -32,6 +25,12 @@ from src.ai.copilot.planner import CopilotPlanner
 from src.ai.copilot.response_builder import build_turn
 from src.ai.copilot.session import CopilotSession
 from src.ai.copilot.state import ConversationState
+from src.ai.core.runner import AgentRunner
+from src.ai.tools.base import CandidateRepository, ToolContext, ToolResult
+from src.ai.tools.registry import ToolRegistry, ToolRunner
+from src.ai.tools.registry import registry as default_registry
+from src.insights.models import CandidateInsights
+from src.models.candidates import Candidate
 
 InsightsFn = Callable[[Candidate, str], CandidateInsights]
 
@@ -43,11 +42,11 @@ class RecruiterCopilot:
         self,
         repository: CandidateRepository,
         *,
-        tool_registry: Optional[ToolRegistry] = None,
-        ai_runner: Optional[AgentRunner] = None,
-        planner: Optional[CopilotPlanner] = None,
-        conversation: Optional[ConversationManager] = None,
-        insights_fn: Optional[InsightsFn] = None,
+        tool_registry: ToolRegistry | None = None,
+        ai_runner: AgentRunner | None = None,
+        planner: CopilotPlanner | None = None,
+        conversation: ConversationManager | None = None,
+        insights_fn: InsightsFn | None = None,
     ) -> None:
         """Wire the copilot's collaborators (DI; sensible defaults used)."""
         self.repository = repository
@@ -121,7 +120,7 @@ class RecruiterCopilot:
         self,
         state: ConversationState,
         plan: CopilotPlan,
-        tool_results: List[ToolResult],
+        tool_results: list[ToolResult],
     ) -> None:
         """Update the working state from the plan + tool results."""
         if plan.focus_candidate:
@@ -145,10 +144,8 @@ class RecruiterCopilot:
 def build_recruiter_copilot(
     repository: CandidateRepository,
     *,
-    insights_fn: Optional[InsightsFn] = None,
-    ai_runner: Optional[AgentRunner] = None,
+    insights_fn: InsightsFn | None = None,
+    ai_runner: AgentRunner | None = None,
 ) -> RecruiterCopilot:
     """Factory building a :class:`RecruiterCopilot` with default collaborators."""
-    return RecruiterCopilot(
-        repository, insights_fn=insights_fn, ai_runner=ai_runner
-    )
+    return RecruiterCopilot(repository, insights_fn=insights_fn, ai_runner=ai_runner)

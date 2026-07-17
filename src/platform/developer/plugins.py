@@ -78,9 +78,7 @@ class ExtensionRegistry:
         plugin = self._require(plugin_id)
         state = self._state[plugin_id]
         if not state.enabled:
-            sdk = PlatformSDK(
-                events=self.events, hooks=self.hooks, plugin_id=plugin_id
-            )
+            sdk = PlatformSDK(events=self.events, hooks=self.hooks, plugin_id=plugin_id)
             plugin.activate(sdk)
             state.enabled = True
         return state
@@ -118,7 +116,5 @@ class Marketplace(PlatformModel):
         """Return catalogue entries whose name/description matches ``term``."""
         needle = term.lower()
         return [
-            m
-            for m in self.listings
-            if needle in m.name.lower() or needle in m.description.lower()
+            m for m in self.listings if needle in m.name.lower() or needle in m.description.lower()
         ]

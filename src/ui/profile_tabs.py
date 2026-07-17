@@ -16,32 +16,31 @@ engines, similar-candidate search, pipeline status, timeline & risk engines)
 are unchanged and injected precomputed by ``candidate_card``.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import streamlit as st
 
-from src.models.candidates import Candidate
-from src.intelligence.candidate.models import CandidateIntelligence
-from src.intelligence.timeline.models import CareerTimelineAnalysis
-from src.intelligence.risk.models import RiskReport
 from src.hiring.recommendation_model import HiringRecommendation
-from src.interview.models import InterviewPlan
 from src.insights.models import CandidateInsights
-from src.semantic.similar_candidates import find_similar_candidates
-from src.recruiter.pipeline import save_status, get_status
+from src.intelligence.candidate.models import CandidateIntelligence
+from src.intelligence.risk.models import RiskReport
+from src.intelligence.timeline.models import CareerTimelineAnalysis
+from src.interview.models import InterviewPlan
+from src.models.candidates import Candidate
+from src.recruiter.pipeline import get_status, save_status
 from src.scoring.hiring_recommendation import get_hiring_recommendation
-from src.ui.timeline_tab import render_timeline_tab
-from src.ui.risk_tab import render_risk_tab
-from src.ui.interview_tab import render_interview_tab
+from src.semantic.similar_candidates import find_similar_candidates
 from src.ui.ai_analyst_tab import render_ai_analyst_tab
-
+from src.ui.interview_tab import render_interview_tab
+from src.ui.risk_tab import render_risk_tab
+from src.ui.timeline_tab import render_timeline_tab
 
 # ---------------------------------------------------------------------------
 # Individual tab renderers
 # ---------------------------------------------------------------------------
 
 
-def _render_summary_tab(candidate: Candidate, summary: List[str]) -> None:
+def _render_summary_tab(candidate: Candidate, summary: list[str]) -> None:
     """Render the Summary tab: AI recruiter summary + professional summary."""
     st.subheader("🤖 AI Recruiter Summary")
     if summary:
@@ -83,7 +82,7 @@ def _render_intelligence_tab(intel: CandidateIntelligence) -> None:
         st.warning(weakness)
 
 
-def _render_skills_tab(candidate: Candidate, gap: Dict[str, Any]) -> None:
+def _render_skills_tab(candidate: Candidate, gap: dict[str, Any]) -> None:
     """Render the Skills tab: skill list + JD gap analysis."""
     st.subheader("Skills")
 
@@ -128,8 +127,8 @@ def _render_hiring_tab(
     candidate: Candidate,
     score: float,
     badge: str,
-    explanation: Dict[str, Any],
-    gap: Dict[str, Any],
+    explanation: dict[str, Any],
+    gap: dict[str, Any],
     recommendation: HiringRecommendation,
 ) -> None:
     """Render the Hiring Recommendation tab.
@@ -217,7 +216,7 @@ def _render_hiring_tab(
 
 
 def _render_interview_plan_tab(
-    interview_plan: Optional[InterviewPlan],
+    interview_plan: InterviewPlan | None,
     recommendation: HiringRecommendation,
 ) -> None:
     """Render the Interview Plan tab.
@@ -247,10 +246,7 @@ def _render_similar_candidates(candidate: Candidate) -> None:
         for sim in sims:
             if sim.candidate_id == candidate.candidate_id:
                 continue
-            st.write(
-                f"🔹 {sim.profile.current_title} | "
-                f"{sim.profile.current_company}"
-            )
+            st.write(f"🔹 {sim.profile.current_title} | {sim.profile.current_company}")
     except Exception:
         pass
 
@@ -264,15 +260,15 @@ def render_profile_tabs(
     candidate: Candidate,
     score: float,
     badge: str,
-    explanation: Dict[str, Any],
+    explanation: dict[str, Any],
     intel: CandidateIntelligence,
-    gap: Dict[str, Any],
-    summary: List[str],
+    gap: dict[str, Any],
+    summary: list[str],
     recommendation: HiringRecommendation,
     timeline: CareerTimelineAnalysis,
     risk: RiskReport,
-    interview_plan: Optional[InterviewPlan] = None,
-    insights: Optional[CandidateInsights] = None,
+    interview_plan: InterviewPlan | None = None,
+    insights: CandidateInsights | None = None,
     jd: str = "",
 ) -> None:
     """Render the full nine-tab candidate detail view plus similar candidates.
@@ -351,9 +347,7 @@ def render_profile_tabs(
 
     with tab_ai:
         if insights is not None and interview_plan is not None:
-            render_ai_analyst_tab(
-                candidate.candidate_id, insights, interview_plan, jd
-            )
+            render_ai_analyst_tab(candidate.candidate_id, insights, interview_plan, jd)
         else:
             st.info("AI Hiring Analyst is unavailable for this view.")
 

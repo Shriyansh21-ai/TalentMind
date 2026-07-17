@@ -11,7 +11,7 @@ transport that can succeed or fail deterministically.
 from __future__ import annotations
 
 import json
-from typing import Callable
+from collections.abc import Callable
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
@@ -56,8 +56,8 @@ class WebhookService:
         self.vault = vault or CredentialVault(clock=self._clock)
         self.signer = signer or WebhookSigner(clock=self._clock)
         self._transport = transport or _always_ok
-        self.subscriptions_repo: InMemoryRepository[WebhookSubscription] = (
-            InMemoryRepository("webhook_subscription")
+        self.subscriptions_repo: InMemoryRepository[WebhookSubscription] = InMemoryRepository(
+            "webhook_subscription"
         )
         self.deliveries_repo: InMemoryRepository[WebhookDelivery] = InMemoryRepository(
             "webhook_delivery"
@@ -80,9 +80,7 @@ class WebhookService:
         max_retries: int = 3,
     ) -> WebhookSubscription:
         """Register a webhook subscription and store its signing secret."""
-        ref = self.vault.issue(
-            tenant_id, secret, credential_type=CredentialType.API_KEY
-        )
+        ref = self.vault.issue(tenant_id, secret, credential_type=CredentialType.API_KEY)
         now = self._clock.now()
         subscription = WebhookSubscription(
             id=generate_id("whk"),
@@ -177,9 +175,7 @@ class WebhookService:
     def retry(self, tenant_id: str, delivery_id: str) -> WebhookDelivery:
         """Re-attempt a failed/dead-lettered delivery."""
         delivery = self.deliveries_repo.require(delivery_id, tenant_id=tenant_id)
-        sub = self.subscriptions_repo.require(
-            delivery.subscription_id, tenant_id=tenant_id
-        )
+        sub = self.subscriptions_repo.require(delivery.subscription_id, tenant_id=tenant_id)
         body = _canonical_body(delivery.payload)
         secret = self.vault.resolve(tenant_id, sub.secret_ref)
         signature = self.signer.sign(secret, body)

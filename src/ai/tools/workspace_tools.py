@@ -7,11 +7,8 @@ aggregate questions.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
-from src.comparison.builder import build_comparison
-from src.dashboard import analytics
-from src.pipeline.store import PipelineStore
 from src.ai.tools.base import (
     BaseTool,
     ToolContext,
@@ -19,6 +16,9 @@ from src.ai.tools.base import (
     ToolResult,
     ToolValidationError,
 )
+from src.comparison.builder import build_comparison
+from src.dashboard import analytics
+from src.pipeline.store import PipelineStore
 
 
 class ComparisonTool(BaseTool):
@@ -31,17 +31,15 @@ class ComparisonTool(BaseTool):
         engine="Candidate Comparison",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         ids = tool_input.get("candidate_ids") or []
         if len(ids) < 2:
-            raise ToolValidationError(
-                "comparison requires at least 2 'candidate_ids'."
-            )
+            raise ToolValidationError("comparison requires at least 2 'candidate_ids'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
-        ids: List[str] = list(tool_input["candidate_ids"])[:5]
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
+        ids: list[str] = list(tool_input["candidate_ids"])[:5]
         insights = []
-        resolved: List[str] = []
+        resolved: list[str] = []
         for candidate_id in ids:
             candidate = context.repository.get(str(candidate_id))
             if candidate is not None:
@@ -49,9 +47,7 @@ class ComparisonTool(BaseTool):
                 resolved.append(candidate.candidate_id)
 
         if len(insights) < 2:
-            raise ToolValidationError(
-                "Could not resolve at least 2 candidates to compare."
-            )
+            raise ToolValidationError("Could not resolve at least 2 candidates to compare.")
 
         report = build_comparison(insights)
         rows = [
@@ -93,7 +89,7 @@ class PipelineTool(BaseTool):
         engine="Hiring Pipeline",
     )
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         store = PipelineStore()
         states = store.load()
         candidate_id = tool_input.get("candidate_id")
@@ -120,10 +116,7 @@ class PipelineTool(BaseTool):
                     "assigned_recruiter": status.assigned_recruiter,
                     "notes": list(status.notes[-5:]),
                 },
-                summary=(
-                    f"Candidate is at '{status.current_stage.value}' "
-                    f"({status.status})."
-                ),
+                summary=(f"Candidate is at '{status.current_stage.value}' ({status.status})."),
                 evidence_sources=["Hiring Pipeline"],
             )
 
@@ -147,7 +140,7 @@ class DashboardTool(BaseTool):
         engine="Recruiter Dashboard",
     )
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         candidates = context.repository.sample(limit=500)
         states = list(PipelineStore().load().values())
         experience = analytics.experience_distribution(candidates)
@@ -163,9 +156,6 @@ class DashboardTool(BaseTool):
                 "top_companies": analytics.company_distribution(candidates, limit=8),
                 "stage_distribution": analytics.stage_distribution(states),
             },
-            summary=(
-                f"Cohort of {len(candidates)} candidates, avg experience "
-                f"{avg_exp} yrs."
-            ),
+            summary=(f"Cohort of {len(candidates)} candidates, avg experience {avg_exp} yrs."),
             evidence_sources=["Recruiter Dashboard analytics"],
         )

@@ -12,13 +12,13 @@ offline modes agree on the facts.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 
 # Ordered preference for where the headline recommendation comes from. The
 # committee's consensus is authoritative when present; otherwise the hiring
 # recommendation engine; otherwise the candidate-intelligence engine.
-def _headline_recommendation(evidence: Dict[str, Any]) -> tuple:
+def _headline_recommendation(evidence: dict[str, Any]) -> tuple:
     """Return ``(recommendation_label, source_label)`` from the best source."""
     committee = evidence.get("committee") or {}
     consensus = committee.get("consensus") or {}
@@ -36,7 +36,7 @@ def _headline_recommendation(evidence: Dict[str, Any]) -> tuple:
     return "Further Assessment", "TalentMind synthesis"
 
 
-def _overview_line(evidence: Dict[str, Any]) -> str:
+def _overview_line(evidence: dict[str, Any]) -> str:
     """Return a one-line candidate descriptor for the summary opener."""
     ov = evidence.get("candidate_overview") or {}
     title = ov.get("title") or "the candidate"
@@ -59,7 +59,7 @@ def _first_sentences(text: str, limit: int = 2) -> str:
     return ". ".join(p for p in pieces[:limit] if p).strip().rstrip(".") + "."
 
 
-def _business_impact(evidence: Dict[str, Any]) -> str:
+def _business_impact(evidence: dict[str, Any]) -> str:
     """Restate the business case from committee + recommendation + intelligence."""
     committee = evidence.get("committee") or {}
     decision = committee.get("decision") or {}
@@ -69,11 +69,7 @@ def _business_impact(evidence: Dict[str, Any]) -> str:
     recommendation = evidence.get("recommendation") or {}
     reasons = recommendation.get("reasons") or []
     if reasons:
-        return (
-            "The hiring recommendation engine cites: "
-            + "; ".join(reasons[:3])
-            + "."
-        )
+        return "The hiring recommendation engine cites: " + "; ".join(reasons[:3]) + "."
 
     intelligence = evidence.get("intelligence") or {}
     strengths = intelligence.get("strengths") or []
@@ -82,7 +78,7 @@ def _business_impact(evidence: Dict[str, Any]) -> str:
     return "Business impact could not be substantiated from the available evidence."
 
 
-def _technical_impact(evidence: Dict[str, Any]) -> str:
+def _technical_impact(evidence: dict[str, Any]) -> str:
     """Restate the technical case from committee + resume + intelligence."""
     committee = evidence.get("committee") or {}
     decision = committee.get("decision") or {}
@@ -93,7 +89,7 @@ def _technical_impact(evidence: Dict[str, Any]) -> str:
     tech = intelligence.get("technical_score")
     resume = evidence.get("resume") or {}
     depth = (resume.get("quality") or {}).get("technical_depth")
-    bits: List[str] = []
+    bits: list[str] = []
     if isinstance(tech, (int, float)):
         bits.append(f"Candidate Intelligence rates technical strength {tech:.0f}/100")
     if isinstance(depth, (int, float)):
@@ -103,13 +99,13 @@ def _technical_impact(evidence: Dict[str, Any]) -> str:
     return "Technical evidence is limited in the current intelligence set."
 
 
-def _leadership_potential(evidence: Dict[str, Any]) -> str:
+def _leadership_potential(evidence: dict[str, Any]) -> str:
     """Restate leadership signal from timeline + intelligence."""
     intelligence = evidence.get("intelligence") or {}
     timeline = evidence.get("timeline") or {}
     lead = intelligence.get("leadership_score")
     progression = timeline.get("leadership_progression")
-    bits: List[str] = []
+    bits: list[str] = []
     if isinstance(lead, (int, float)):
         bits.append(f"leadership signal {lead:.0f}/100 (Candidate Intelligence)")
     if progression:
@@ -119,7 +115,7 @@ def _leadership_potential(evidence: Dict[str, Any]) -> str:
     return "Leadership potential is not strongly evidenced yet — validate in interview."
 
 
-def _risk_overview(evidence: Dict[str, Any]) -> str:
+def _risk_overview(evidence: dict[str, Any]) -> str:
     """Restate the risk posture from the Risk engine + committee risks."""
     risk = evidence.get("risk") or {}
     level = risk.get("risk_level", "Unknown")
@@ -136,7 +132,7 @@ def _risk_overview(evidence: Dict[str, Any]) -> str:
     return text
 
 
-def _interview_readiness(evidence: Dict[str, Any]) -> str:
+def _interview_readiness(evidence: dict[str, Any]) -> str:
     """Restate interview readiness from the interview plan + recommendation."""
     interview = evidence.get("interview") or {}
     topics = (interview.get("technical_topics") or []) + (
@@ -151,7 +147,7 @@ def _interview_readiness(evidence: Dict[str, Any]) -> str:
     return "No interview plan was generated; build one before proceeding."
 
 
-def _executive_confidence(evidence: Dict[str, Any]) -> tuple:
+def _executive_confidence(evidence: dict[str, Any]) -> tuple:
     """Return ``(label, note)`` qualitative confidence from the strongest source."""
     committee = evidence.get("committee") or {}
     overall = (committee.get("confidence") or {}).get("overall")
@@ -179,9 +175,9 @@ def _executive_confidence(evidence: Dict[str, Any]) -> tuple:
     return label, note
 
 
-def _top_reasons(evidence: Dict[str, Any]) -> List[str]:
+def _top_reasons(evidence: dict[str, Any]) -> list[str]:
     """Collect the strongest evidence-backed reasons to proceed."""
-    reasons: List[str] = []
+    reasons: list[str] = []
     recommendation = evidence.get("recommendation") or {}
     reasons.extend(recommendation.get("reasons") or [])
     intelligence = evidence.get("intelligence") or {}
@@ -192,9 +188,9 @@ def _top_reasons(evidence: Dict[str, Any]) -> List[str]:
     return list(dict.fromkeys(r for r in reasons if r))[:5]
 
 
-def _top_concerns(evidence: Dict[str, Any]) -> List[str]:
+def _top_concerns(evidence: dict[str, Any]) -> list[str]:
     """Collect the most material evidence-backed concerns."""
-    concerns: List[str] = []
+    concerns: list[str] = []
     risk = evidence.get("risk") or {}
     concerns.extend(risk.get("red_flags") or [])
     recommendation = evidence.get("recommendation") or {}
@@ -204,7 +200,7 @@ def _top_concerns(evidence: Dict[str, Any]) -> List[str]:
     return list(dict.fromkeys(c for c in concerns if c))[:5]
 
 
-def compose_executive_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_executive_narrative(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose an :class:`ExecutiveNarrative` from evidence."""
     recommendation, rec_source = _headline_recommendation(evidence)
     conf_label, conf_note = _executive_confidence(evidence)

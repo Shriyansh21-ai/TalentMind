@@ -11,18 +11,22 @@ reason over identical facts.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.resume import report
 from src.ai.agents.resume.report import band
 
 
-def _executive_summary(ev: Dict[str, Any], quality: Dict[str, float]) -> str:
+def _executive_summary(ev: dict[str, Any], quality: dict[str, float]) -> str:
     """Compose the executive summary from the evidence + dimensions."""
     doc = ev.get("document", {})
     overall = quality.get("overall", 0.0)
     yoe = doc.get("years_of_experience", 0.0)
-    headline = doc.get("headline") or (doc.get("experiences", [{}])[0].get("title", "candidate") if doc.get("experiences") else "candidate")
+    headline = doc.get("headline") or (
+        doc.get("experiences", [{}])[0].get("title", "candidate")
+        if doc.get("experiences")
+        else "candidate"
+    )
     sections = len(doc.get("sections_present", []))
     return (
         f"Resume for {headline} (~{yoe:.0f} yrs experience) reads as "
@@ -32,10 +36,10 @@ def _executive_summary(ev: Dict[str, Any], quality: Dict[str, float]) -> str:
     )
 
 
-def _strengths(ev: Dict[str, Any], quality: Dict[str, float]) -> List[str]:
+def _strengths(ev: dict[str, Any], quality: dict[str, float]) -> list[str]:
     """Derive strengths from the highest-scoring dimensions + concrete signals."""
     metrics = ev.get("metrics", {})
-    strengths: List[str] = []
+    strengths: list[str] = []
     top = sorted(
         ((k, v) for k, v in quality.items() if k != "overall"),
         key=lambda kv: kv[1],
@@ -43,28 +47,34 @@ def _strengths(ev: Dict[str, Any], quality: Dict[str, float]) -> List[str]:
     )
     for name, value in top[:3]:
         if value >= 60:
-            strengths.append(f"{name.replace('_', ' ').title()} is {band(value).lower()} ({value:.0f}/100).")
+            strengths.append(
+                f"{name.replace('_', ' ').title()} is {band(value).lower()} ({value:.0f}/100)."
+            )
     if metrics.get("quantified_statements"):
         strengths.append(f"{len(metrics['quantified_statements'])} quantified achievement(s).")
     if metrics.get("modern_tech"):
-        strengths.append("Modern technology footprint: " + ", ".join(metrics["modern_tech"][:5]) + ".")
+        strengths.append(
+            "Modern technology footprint: " + ", ".join(metrics["modern_tech"][:5]) + "."
+        )
     return strengths or ["Baseline resume structure is in place."]
 
 
-def _weaknesses(ev: Dict[str, Any], quality: Dict[str, float]) -> List[str]:
+def _weaknesses(ev: dict[str, Any], quality: dict[str, float]) -> list[str]:
     """Derive weaknesses from the lowest-scoring dimensions + gaps."""
-    weaknesses: List[str] = []
+    weaknesses: list[str] = []
     low = sorted(((k, v) for k, v in quality.items() if k != "overall"), key=lambda kv: kv[1])
     for name, value in low[:3]:
         if value < 55:
-            weaknesses.append(f"{name.replace('_', ' ').title()} is {band(value).lower()} ({value:.0f}/100).")
+            weaknesses.append(
+                f"{name.replace('_', ' ').title()} is {band(value).lower()} ({value:.0f}/100)."
+            )
     metrics = ev.get("metrics", {})
     if not metrics.get("quantified_statements"):
         weaknesses.append("Achievements are not quantified.")
     return weaknesses or ["No major weaknesses detected in the resume structure."]
 
 
-def _confidence_note(ev: Dict[str, Any]) -> str:
+def _confidence_note(ev: dict[str, Any]) -> str:
     """State confidence + uncertainty based on how much evidence exists."""
     doc = ev.get("document", {})
     bullets = ev.get("metrics", {}).get("bullet_count", 0)
@@ -80,7 +90,7 @@ def _confidence_note(ev: Dict[str, Any]) -> str:
     )
 
 
-def _evidence_list(ev: Dict[str, Any]) -> List[str]:
+def _evidence_list(ev: dict[str, Any]) -> list[str]:
     """Return a compact list of the concrete evidence the analysis relied on."""
     doc = ev.get("document", {})
     metrics = ev.get("metrics", {})
@@ -95,7 +105,7 @@ def _evidence_list(ev: Dict[str, Any]) -> List[str]:
     return items
 
 
-def compose_resume_analysis(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_resume_analysis(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose a :class:`ResumeAnalysis` dict from evidence."""
     ev = evidence or {}
     metrics = ev.get("metrics", {})

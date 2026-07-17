@@ -9,7 +9,7 @@ direction (Module 15).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.hiring_intelligence.schemas import Trend
 
@@ -24,13 +24,13 @@ _TREND_NAMES = [
 ]
 
 
-def build_trends(cohort: List[Dict[str, Any]], provider: Any, data_available: bool) -> List[Trend]:
+def build_trends(cohort: list[dict[str, Any]], provider: Any, data_available: bool) -> list[Trend]:
     """Identify hiring trends (Module 4)."""
-    provider_trends: Dict[str, Any] = {}
+    provider_trends: dict[str, Any] = {}
     if data_available and provider is not None and hasattr(provider, "get_trends"):
         provider_trends = (provider.get_trends() or {}).get("series", {})
 
-    trends: List[Trend] = []
+    trends: list[Trend] = []
     for name in _TREND_NAMES:
         if name in provider_trends:
             info = provider_trends[name]

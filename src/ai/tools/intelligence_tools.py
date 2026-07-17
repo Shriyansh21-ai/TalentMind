@@ -7,10 +7,8 @@ re-derivation.
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
-from src.scoring.explainability import explain_candidate
-from src.interview.planner import build_interview_plan
 from src.ai.tools.base import (
     BaseTool,
     ToolContext,
@@ -18,9 +16,11 @@ from src.ai.tools.base import (
     ToolResult,
     ToolValidationError,
 )
+from src.interview.planner import build_interview_plan
+from src.scoring.explainability import explain_candidate
 
 
-def _require_candidate(tool_input: Dict[str, Any], context: ToolContext):
+def _require_candidate(tool_input: dict[str, Any], context: ToolContext):
     """Resolve and return the referenced candidate, or raise."""
     candidate_id = tool_input.get("candidate_id")
     if not candidate_id:
@@ -41,7 +41,7 @@ class CandidateIntelligenceTool(BaseTool):
         engine="Candidate Intelligence Engine",
     )
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         candidate = _require_candidate(tool_input, context)
         intel = context.build_insights(candidate).intelligence
         return ToolResult(
@@ -80,7 +80,7 @@ class TimelineTool(BaseTool):
         engine="Career Timeline Intelligence",
     )
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         candidate = _require_candidate(tool_input, context)
         timeline = context.build_insights(candidate).timeline
         return ToolResult(
@@ -115,7 +115,7 @@ class RiskTool(BaseTool):
         engine="Resume Risk Detection",
     )
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         candidate = _require_candidate(tool_input, context)
         risk = context.build_insights(candidate).risk
         return ToolResult(
@@ -146,7 +146,7 @@ class RecommendationTool(BaseTool):
         engine="Hiring Recommendation Engine",
     )
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         candidate = _require_candidate(tool_input, context)
         rec = context.build_insights(candidate).recommendation
         return ToolResult(
@@ -179,7 +179,7 @@ class InterviewTool(BaseTool):
         engine="Interview Intelligence",
     )
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         candidate = _require_candidate(tool_input, context)
         insights = context.build_insights(candidate)
         plan = build_interview_plan(insights)
@@ -196,9 +196,7 @@ class InterviewTool(BaseTool):
                 "coding_focus": list(plan.coding_focus),
                 "risk_followups": list(plan.risk_followups),
             },
-            summary=(
-                f"Interview plan with {len(plan.technical_topics)} technical topic(s)."
-            ),
+            summary=(f"Interview plan with {len(plan.technical_topics)} technical topic(s)."),
             evidence_sources=["Interview Intelligence"],
         )
 
@@ -213,7 +211,7 @@ class ExplainabilityTool(BaseTool):
         engine="Explainability",
     )
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         candidate = _require_candidate(tool_input, context)
         explanation = explain_candidate(candidate)
         trimmed = {

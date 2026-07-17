@@ -9,7 +9,7 @@ timestamps — Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.audit.schemas import TimelineEvent
 
@@ -27,11 +27,11 @@ _TIMELINE = [
 ]
 
 
-def build_timeline(context: Dict[str, Any]) -> List[TimelineEvent]:
+def build_timeline(context: dict[str, Any]) -> list[TimelineEvent]:
     """Reconstruct the hiring timeline (Module 4)."""
     sources = set(context.get("evidence_sources", []))
     approvals = context.get("approvals", {}) or {}
-    events: List[TimelineEvent] = []
+    events: list[TimelineEvent] = []
 
     order = 1
     for name, source, actor in _TIMELINE:
@@ -42,7 +42,9 @@ def build_timeline(context: Dict[str, Any]) -> List[TimelineEvent]:
                 name=name,
                 actor=actor,
                 status="Observed" if observed else "Unavailable",
-                detail=f"Evidenced by {source}." if observed else f"Not evidenced ({source} absent).",
+                detail=f"Evidenced by {source}."
+                if observed
+                else f"Not evidenced ({source} absent).",
             )
         )
         order += 1
@@ -58,7 +60,8 @@ def build_timeline(context: Dict[str, Any]) -> List[TimelineEvent]:
             actor="Human",
             status=exec_status,
             detail=(
-                "Executive approval recorded." if exec_state == "Complete"
+                "Executive approval recorded."
+                if exec_state == "Complete"
                 else f"Executive approval {exec_state.lower()} (unverified without an approval system)."
             ),
         )
@@ -74,7 +77,8 @@ def build_timeline(context: Dict[str, Any]) -> List[TimelineEvent]:
             status="Observed" if committee_present else "Unavailable",
             detail=(
                 "Final decision anchored on the committee + governance chain."
-                if committee_present else "Final decision not reconstructable without a committee decision."
+                if committee_present
+                else "Final decision not reconstructable without a committee decision."
             ),
         )
     )

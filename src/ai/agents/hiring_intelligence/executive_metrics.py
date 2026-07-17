@@ -10,7 +10,7 @@ a null value) unless an analytics provider is connected. Never fabricates number
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.hiring_intelligence.analytics_engine import (
     hiring_health_label,
@@ -29,40 +29,83 @@ def _band(value: float) -> str:
     return "Low"
 
 
-def build_kpis(cohort: List[Dict[str, Any]], provider: Any, data_available: bool) -> List[KPI]:
+def build_kpis(cohort: list[dict[str, Any]], provider: Any, data_available: bool) -> list[KPI]:
     """Build the executive KPIs (Module 5)."""
     total = len(cohort)
     hire_share = share(cohort, lambda s: is_positive(s["recommendation"]))
     high_risk_share = share(cohort, lambda s: s["risk_level"] == "High")
     interview_share = share(cohort, lambda s: s.get("interview_ready"))
-    strategic_share = share(cohort, lambda s: s["overall"] >= 70 or "strong" in s["recommendation"].lower())
+    strategic_share = share(
+        cohort, lambda s: s["overall"] >= 70 or "strong" in s["recommendation"].lower()
+    )
     confidence = min(100.0, 45.0 + total * 3.0)
 
-    provider_kpis: Dict[str, Any] = {}
+    provider_kpis: dict[str, Any] = {}
     if data_available and provider is not None:
         # A connected analytics source may supply the governance-family KPIs.
-        provider_kpis = (provider.get_trends() or {}).get("kpis", {}) if hasattr(provider, "get_trends") else {}
+        provider_kpis = (
+            (provider.get_trends() or {}).get("kpis", {}) if hasattr(provider, "get_trends") else {}
+        )
 
-    kpis: List[KPI] = []
+    kpis: list[KPI] = []
     for definition in KPI_DEFS:
         if definition.key == "hiring_health":
             value = max(0.0, min(100.0, hire_share * 100.0 - high_risk_share * 50.0))
-            kpis.append(KPI(name=definition.name, value=value, label=hiring_health_label(hire_share, high_risk_share),
-                            register="Observed", confidence=confidence,
-                            basis=f"{hire_share*100:.0f}% positive recommendations, {high_risk_share*100:.0f}% high-risk across {total} candidates."))
+            kpis.append(
+                KPI(
+                    name=definition.name,
+                    value=value,
+                    label=hiring_health_label(hire_share, high_risk_share),
+                    register="Observed",
+                    confidence=confidence,
+                    basis=f"{hire_share * 100:.0f}% positive recommendations, {high_risk_share * 100:.0f}% high-risk across {total} candidates.",
+                )
+            )
         elif definition.key == "interview_readiness":
             value = interview_share * 100.0
-            kpis.append(KPI(name=definition.name, value=value, label=_band(value), register="Observed",
-                            confidence=confidence, basis=f"{interview_share*100:.0f}% of the cohort has a structured interview signal."))
+            kpis.append(
+                KPI(
+                    name=definition.name,
+                    value=value,
+                    label=_band(value),
+                    register="Observed",
+                    confidence=confidence,
+                    basis=f"{interview_share * 100:.0f}% of the cohort has a structured interview signal.",
+                )
+            )
         elif definition.key == "strategic_readiness":
             value = strategic_share * 100.0
-            kpis.append(KPI(name=definition.name, value=value, label=_band(value), register="Observed",
-                            confidence=confidence, basis=f"{strategic_share*100:.0f}% strong-hire / high-capability candidates."))
+            kpis.append(
+                KPI(
+                    name=definition.name,
+                    value=value,
+                    label=_band(value),
+                    register="Observed",
+                    confidence=confidence,
+                    basis=f"{strategic_share * 100:.0f}% strong-hire / high-capability candidates.",
+                )
+            )
         elif definition.key in provider_kpis:
             v = float(provider_kpis[definition.key])
-            kpis.append(KPI(name=definition.name, value=v, label=_band(v), register="Observed",
-                            confidence=70.0, basis="From the connected analytics source."))
+            kpis.append(
+                KPI(
+                    name=definition.name,
+                    value=v,
+                    label=_band(v),
+                    register="Observed",
+                    confidence=70.0,
+                    basis="From the connected analytics source.",
+                )
+            )
         else:
-            kpis.append(KPI(name=definition.name, value=None, label="Unavailable", register="Unavailable",
-                            confidence=0.0, basis="Requires connected governance/analytics data (Module 13)."))
+            kpis.append(
+                KPI(
+                    name=definition.name,
+                    value=None,
+                    label="Unavailable",
+                    register="Unavailable",
+                    confidence=0.0,
+                    basis="Requires connected governance/analytics data (Module 13).",
+                )
+            )
     return kpis

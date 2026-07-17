@@ -90,20 +90,14 @@ def build_security_platform(*, clock: Clock | None = None) -> SecurityPlatform:
     container = Container()
 
     container.register("sec.identity", lambda _c: IdentityManager(clock=the_clock))
-    container.register(
-        "sec.authorization", lambda _c: AuthorizationEngine(clock=the_clock)
-    )
+    container.register("sec.authorization", lambda _c: AuthorizationEngine(clock=the_clock))
     container.register("sec.audit", lambda _c: EnterpriseAuditService(clock=the_clock))
     container.register("sec.secrets", lambda _c: SecretManager(clock=the_clock))
-    container.register(
-        "sec.observability", lambda _c: ObservabilityService(clock=the_clock)
-    )
+    container.register("sec.observability", lambda _c: ObservabilityService(clock=the_clock))
     container.register("sec.monitoring", lambda _c: MonitoringService(clock=the_clock))
     container.register("sec.governance", lambda _c: GovernanceService(clock=the_clock))
     container.register("sec.compliance", lambda _c: ComplianceService(clock=the_clock))
-    container.register(
-        "sec.threat", lambda _c: ThreatDetectionService(clock=the_clock)
-    )
+    container.register("sec.threat", lambda _c: ThreatDetectionService(clock=the_clock))
     container.register(
         "sec.configuration",
         lambda _c: ConfigurationGovernanceService(clock=the_clock),

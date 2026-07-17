@@ -17,9 +17,7 @@ Two responsibilities live here:
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
-
-from src.ai.core.runner import AgentRunner
+from typing import Any
 
 from src.ai.agents.compensation import budget as budget_mod
 from src.ai.agents.compensation import charts as charts_mod
@@ -43,12 +41,12 @@ from src.ai.agents.compensation.schemas import (
     CompensationReport,
     GovernanceCheck,
 )
-
 from src.ai.committee.committee import HiringCommitteeEngine, gather_evidence
 from src.ai.committee.schemas import CommitteeMode
+from src.ai.core.runner import AgentRunner
 
 
-def _num(source: Dict[str, Any], key: str, default: float = 0.0) -> float:
+def _num(source: dict[str, Any], key: str, default: float = 0.0) -> float:
     try:
         return float(source.get(key, default))
     except (TypeError, ValueError):
@@ -56,15 +54,15 @@ def _num(source: Dict[str, Any], key: str, default: float = 0.0) -> float:
 
 
 def build_governance_checks(
-    evidence: Dict[str, Any],
+    evidence: dict[str, Any],
     band: CompensationRange,
     hire_type: str,
-) -> List[GovernanceCheck]:
+) -> list[GovernanceCheck]:
     """Evaluate the Module 3 governance dimensions, each with an explicit WHY."""
     intelligence = evidence.get("intelligence") or {}
     overview = evidence.get("candidate_overview") or {}
     comp = evidence.get("candidate_comp") or {}
-    checks: List[GovernanceCheck] = []
+    checks: list[GovernanceCheck] = []
 
     # Internal policy alignment — the range is a band, not a fixed number.
     checks.append(
@@ -85,7 +83,9 @@ def build_governance_checks(
             dimension="Offer consistency",
             status="Aligned" if consistent else "Review",
             rationale=f"Target {band.target:.1f} {band.unit} lies within the band "
-            f"{band.minimum:.1f}-{band.maximum:.1f}." if consistent else "Target falls outside the band.",
+            f"{band.minimum:.1f}-{band.maximum:.1f}."
+            if consistent
+            else "Target falls outside the band.",
         )
     )
 
@@ -163,10 +163,10 @@ class CompensationGovernanceEngine:
     def __init__(
         self,
         *,
-        ai_runner: Optional[AgentRunner] = None,
-        committee_engine: Optional[HiringCommitteeEngine] = None,
-        insights_fn: Optional[Any] = None,
-        equity_provider: Optional[CompensationDataProvider] = None,
+        ai_runner: AgentRunner | None = None,
+        committee_engine: HiringCommitteeEngine | None = None,
+        insights_fn: Any | None = None,
+        equity_provider: CompensationDataProvider | None = None,
     ) -> None:
         """Wire the engine's collaborators (all optional; sane defaults used)."""
         self.ai_runner = ai_runner or AgentRunner()
@@ -180,7 +180,7 @@ class CompensationGovernanceEngine:
         self,
         candidate: Any = None,
         *,
-        candidate_id: Optional[str] = None,
+        candidate_id: str | None = None,
         repository: Any = None,
         jd: str = "",
         mode: CommitteeMode = CommitteeMode.BALANCED,
@@ -203,7 +203,7 @@ class CompensationGovernanceEngine:
         )
 
         # 2) Committee decision (reuses the same cached outputs).
-        committee_dict: Dict[str, Any] = {}
+        committee_dict: dict[str, Any] = {}
         if run_committee:
             engine = self.committee_engine or HiringCommitteeEngine(
                 insights_fn=self.insights_fn, ai_runner=self.ai_runner
@@ -248,7 +248,9 @@ class CompensationGovernanceEngine:
         equity = equity_mod.assess_internal_equity(evidence, band, self.equity_provider)
         future = future_mod.build_future_outlook(evidence)
         governance_checks = build_governance_checks(evidence, band, budget.hire_type)
-        justification = justification_mod.build_justification(evidence, band, market, budget, negotiation)
+        justification = justification_mod.build_justification(
+            evidence, band, market, budget, negotiation
+        )
 
         # 5) Enrich the payload with the computed heuristics so the narrative can cite them.
         payload.recommended_range = band.to_dict()
@@ -262,15 +264,22 @@ class CompensationGovernanceEngine:
         # 7) Flagship audit trail (Module 12).
         report_id = self._next_report_id(bundle.candidate_id)
         audit_trail = justification_mod.build_audit_trail(
-            evidence, band, market, budget,
+            evidence,
+            band,
+            market,
+            budget,
             decision_id=f"COMP-{report_id}",
             decision_timestamp=generated_on,
             equity_available=equity.available,
         )
 
         chart_data = charts_mod.build_chart_data(
-            band=band, scenarios=scenarios, market=market,
-            budget=budget, negotiation=negotiation, future=future,
+            band=band,
+            scenarios=scenarios,
+            market=market,
+            budget=budget,
+            negotiation=negotiation,
+            future=future,
         )
 
         warnings = validators.evidence_coverage_warnings(evidence)
@@ -300,7 +309,7 @@ class CompensationGovernanceEngine:
     # -- normalization helpers ---------------------------------------------
 
     @staticmethod
-    def _overview(bundle: Any) -> Dict[str, Any]:
+    def _overview(bundle: Any) -> dict[str, Any]:
         return {
             "candidate_id": bundle.candidate_id,
             "title": bundle.title,
@@ -310,7 +319,7 @@ class CompensationGovernanceEngine:
         }
 
     @staticmethod
-    def _candidate_comp(candidate: Any) -> Dict[str, Any]:
+    def _candidate_comp(candidate: Any) -> dict[str, Any]:
         """Extract the candidate's OWN stated compensation signals (Observed Evidence)."""
         redrob = getattr(candidate, "redrob_signals", None)
         if redrob is None:
@@ -329,7 +338,7 @@ class CompensationGovernanceEngine:
         }
 
     @staticmethod
-    def _model_dict(model: Any) -> Dict[str, Any]:
+    def _model_dict(model: Any) -> dict[str, Any]:
         """Return a plain dict for a pydantic model / dataclass / dict / None."""
         if model is None:
             return {}
@@ -342,7 +351,7 @@ class CompensationGovernanceEngine:
         except TypeError:
             return dict(model) if isinstance(model, dict) else {}
 
-    def _resume(self, resume_analysis: Any) -> Dict[str, Any]:
+    def _resume(self, resume_analysis: Any) -> dict[str, Any]:
         if resume_analysis is None:
             return {}
         return {
@@ -350,14 +359,16 @@ class CompensationGovernanceEngine:
             "strengths": list(getattr(resume_analysis, "strengths", []) or []),
         }
 
-    def _jd(self, jd_analysis: Any) -> Dict[str, Any]:
+    def _jd(self, jd_analysis: Any) -> dict[str, Any]:
         if jd_analysis is None:
             return {}
         return {"executive_summary": getattr(jd_analysis, "executive_summary", "")}
 
     # -- narrative ----------------------------------------------------------
 
-    def _narrative(self, payload: CompensationInput, evidence: Dict[str, Any]) -> CompensationNarrative:
+    def _narrative(
+        self, payload: CompensationInput, evidence: dict[str, Any]
+    ) -> CompensationNarrative:
         """Run the agent; fall back to the deterministic composer on any failure."""
         try:
             result = self.ai_runner.run(compensation_agent, payload)

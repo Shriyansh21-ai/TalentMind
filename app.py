@@ -17,24 +17,22 @@ import os
 # the reverse OpenMP load order segfaults the process at import time. Importing
 # faiss first here (the single entry point) guarantees a safe load order.
 import faiss  # noqa: F401  (imported for load-order side effect only)
-
 import streamlit as st
 
 from src.ingestion.candidate_loader import load_candidates
+from src.intelligence.dashboard import show_job_dashboard
+from src.intelligence.jd_analyzer import analyze
+from src.intelligence.jd_parser import parse_jd
+from src.recruiter.pipeline import load_actions
 from src.scoring.final_score import calculate_final_score
 from src.scoring.hybrid_score import hybrid_score
 from src.semantic.recruiter_search import build_search_index
-from src.intelligence.jd_parser import parse_jd
-from src.intelligence.jd_analyzer import analyze
-from src.intelligence.dashboard import show_job_dashboard
-from src.recruiter.pipeline import load_actions
-
-from src.ui.sidebar import render_sidebar
-from src.ui.dashboard import render_dashboard
-from src.ui.workspace import render_enterprise_workspace
-from src.ui.recruiter_search import render_recruiter_search
 from src.ui.candidate_card import render_candidate_card
+from src.ui.dashboard import render_dashboard
 from src.ui.export import render_export
+from src.ui.recruiter_search import render_recruiter_search
+from src.ui.sidebar import render_sidebar
+from src.ui.workspace import render_enterprise_workspace
 
 # --------------------------------------------------
 # ENV
@@ -104,9 +102,9 @@ def _render_copilot_workspace() -> None:
     same cached loaders + FAISS index the console uses, so nothing heavy runs
     until the recruiter actually sends a message.
     """
+    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ui.copilot_page import render_copilot
     from src.ui.helpers import get_insights
-    from src.ai.tools.provider import InMemoryCandidateRepository
 
     def _build_repository():
         candidates = get_candidates()
@@ -143,8 +141,8 @@ def _render_resume_workspace() -> None:
     the console) and delegates to the ResumeAnalystAgent for recruiter-grade
     resume analysis. Resume quality only — never hiring ranking.
     """
-    from src.ui.resume_intelligence_tab import render_resume_workspace
     from src.ai.tools.provider import InMemoryCandidateRepository
+    from src.ui.resume_intelligence_tab import render_resume_workspace
 
     def _build_repository():
         candidates = get_candidates()
@@ -178,9 +176,9 @@ def _render_committee_workspace() -> None:
     the console) and convenes the multi-agent committee, which only consumes
     cached structured outputs. All logic lives in ``src/ai/committee``.
     """
+    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ui.committee_tab import render_committee_workspace
     from src.ui.helpers import get_insights
-    from src.ai.tools.provider import InMemoryCandidateRepository
 
     def _build_repository():
         candidates = get_candidates()
@@ -206,9 +204,9 @@ def _render_executive_report_workspace() -> None:
     boardroom-grade executive report with PDF/DOCX/HTML/PPTX export. It consumes
     existing outputs only. All logic lives in ``src/ai/agents/executive_report``.
     """
+    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ui.executive_report_tab import render_executive_report_workspace
     from src.ui.helpers import get_insights
-    from src.ai.tools.provider import InMemoryCandidateRepository
 
     def _build_repository():
         candidates = get_candidates()
@@ -236,9 +234,9 @@ def _render_interview_studio_workspace() -> None:
     consumes existing outputs only. All logic lives in
     ``src/ai/agents/interview_studio``.
     """
-    from src.ui.interview_studio_tab import render_interview_studio_workspace
-    from src.ui.helpers import get_insights
     from src.ai.tools.provider import InMemoryCandidateRepository
+    from src.ui.helpers import get_insights
+    from src.ui.interview_studio_tab import render_interview_studio_workspace
 
     def _build_repository():
         candidates = get_candidates()
@@ -266,9 +264,9 @@ def _render_compensation_workspace() -> None:
     transparency audit trail. It consumes existing outputs only and fabricates no
     salary/market data. All logic lives in ``src/ai/agents/compensation``.
     """
+    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ui.compensation_tab import render_compensation_workspace
     from src.ui.helpers import get_insights
-    from src.ai.tools.provider import InMemoryCandidateRepository
 
     def _build_repository():
         candidates = get_candidates()
@@ -295,9 +293,9 @@ def _render_pay_equity_workspace() -> None:
     executive-review chain. It fabricates no payroll and concludes no legal
     violation. All logic lives in ``src/ai/agents/pay_equity``.
     """
-    from src.ui.pay_equity_tab import render_pay_equity_workspace
-    from src.ui.helpers import get_insights
     from src.ai.tools.provider import InMemoryCandidateRepository
+    from src.ui.helpers import get_insights
+    from src.ui.pay_equity_tab import render_pay_equity_workspace
 
     def _build_repository():
         candidates = get_candidates()
@@ -325,9 +323,9 @@ def _render_compliance_workspace() -> None:
     and fabricates no compliance conclusion. All logic lives in
     ``src/ai/agents/compliance``.
     """
+    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ui.compliance_tab import render_compliance_workspace
     from src.ui.helpers import get_insights
-    from src.ai.tools.provider import InMemoryCandidateRepository
 
     def _build_repository():
         candidates = get_candidates()
@@ -355,9 +353,9 @@ def _render_audit_workspace() -> None:
     It never fabricates evidence/approvals/history. All logic lives in
     ``src/ai/agents/audit``.
     """
+    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ui.audit_tab import render_audit_workspace
     from src.ui.helpers import get_insights
-    from src.ai.tools.provider import InMemoryCandidateRepository
 
     def _build_repository():
         candidates = get_candidates()
@@ -385,9 +383,9 @@ def _render_hiring_intelligence_workspace() -> None:
     intelligence only (never candidate ranking) and marks unavailable metrics
     honestly. All logic lives in ``src/ai/agents/hiring_intelligence``.
     """
-    from src.ui.hiring_intelligence_tab import render_hiring_intelligence_workspace
-    from src.ui.helpers import get_insights
     from src.ai.tools.provider import InMemoryCandidateRepository
+    from src.ui.helpers import get_insights
+    from src.ui.hiring_intelligence_tab import render_hiring_intelligence_workspace
 
     def _build_repository():
         candidates = get_candidates()
@@ -603,4 +601,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

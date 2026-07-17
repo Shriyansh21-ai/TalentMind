@@ -10,7 +10,7 @@ blurs responsibility and never attributes an unverified human action as observed
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.audit import human_review
 from src.ai.agents.audit.schemas import DecisionResponsibility
@@ -25,10 +25,10 @@ _AI_DECISIONS = [
 ]
 
 
-def build_responsibility_matrix(context: Dict[str, Any]) -> List[DecisionResponsibility]:
+def build_responsibility_matrix(context: dict[str, Any]) -> list[DecisionResponsibility]:
     """Build the Human vs AI responsibility matrix (Module 5)."""
     sources = set(context.get("evidence_sources", []))
-    matrix: List[DecisionResponsibility] = []
+    matrix: list[DecisionResponsibility] = []
 
     # AI side — attributed to "AI", observed only if the evidence source is present.
     for source, decision, kind in _AI_DECISIONS:

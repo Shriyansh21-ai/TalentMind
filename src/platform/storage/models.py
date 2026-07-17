@@ -10,8 +10,9 @@ from __future__ import annotations
 
 from enum import Enum
 
-from src.platform.common.models import Metadata, TenantScopedEntity
 from pydantic import Field
+
+from src.platform.common.models import Metadata, TenantScopedEntity
 
 
 class StorageClass(str, Enum):

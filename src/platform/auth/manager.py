@@ -43,13 +43,9 @@ class AuthenticationManager:
 
         # Auth aggregate repositories.
         self.users: InMemoryRepository[User] = InMemoryRepository("user")
-        self.credentials: InMemoryRepository[Credential] = InMemoryRepository(
-            "credential"
-        )
+        self.credentials: InMemoryRepository[Credential] = InMemoryRepository("credential")
         self.sessions_repo: InMemoryRepository[Session] = InMemoryRepository("session")
-        self.refresh_repo: InMemoryRepository[RefreshToken] = InMemoryRepository(
-            "refresh_token"
-        )
+        self.refresh_repo: InMemoryRepository[RefreshToken] = InMemoryRepository("refresh_token")
         self.devices: InMemoryRepository[Device] = InMemoryRepository("device")
         self.verifications: InMemoryRepository[EmailVerification] = InMemoryRepository(
             "email_verification"
@@ -62,15 +58,11 @@ class AuthenticationManager:
         self.identity: IdentityProvider = LocalIdentityProvider(
             self.users, self.credentials, hasher=self._hasher
         )
-        self.sessions = SessionManager(
-            self.sessions_repo, self.refresh_repo, clock=self._clock
-        )
+        self.sessions = SessionManager(self.sessions_repo, self.refresh_repo, clock=self._clock)
         self.email_verification = EmailVerificationService(
             self.verifications, self.users, clock=self._clock
         )
-        self.recovery = AccountRecoveryService(
-            self.recovery_tokens, self.users, clock=self._clock
-        )
+        self.recovery = AccountRecoveryService(self.recovery_tokens, self.users, clock=self._clock)
 
     # -- registration -------------------------------------------------------
 
@@ -194,9 +186,7 @@ class AuthenticationManager:
 
     # -- credential lifecycle ----------------------------------------------
 
-    def change_password(
-        self, user: User, current_password: str, new_password: str
-    ) -> None:
+    def change_password(self, user: User, current_password: str, new_password: str) -> None:
         """Change a password after verifying the current one and the policy."""
         self.identity.authenticate(user.tenant_id, user.email, current_password)
         self._assert_new_password(user, new_password)
@@ -223,7 +213,9 @@ class AuthenticationManager:
             cred = existing[0]
             # Current credential (verified against the current salt)...
             if cred.hash and self._hasher.verify(
-                new_password, salt=cred.salt, expected=cred.hash,
+                new_password,
+                salt=cred.salt,
+                expected=cred.hash,
                 iterations=cred.iterations,
             ):
                 raise PlatformValidationError("password was used recently")
@@ -234,7 +226,9 @@ class AuthenticationManager:
                 except ValueError:
                     continue
                 if self._hasher.verify(
-                    new_password, salt=old_salt, expected=old_hash,
+                    new_password,
+                    salt=old_salt,
+                    expected=old_hash,
                     iterations=int(old_iter),
                 ):
                     raise PlatformValidationError("password was used recently")

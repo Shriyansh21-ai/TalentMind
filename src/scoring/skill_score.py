@@ -1,6 +1,5 @@
 from src.models.candidates import Candidate
 
-
 TARGET_SKILLS = {
     "python",
     "embeddings",
@@ -22,7 +21,7 @@ TARGET_SKILLS = {
     "evaluation",
     "ndcg",
     "mrr",
-    "map"
+    "map",
 }
 
 
@@ -30,13 +29,9 @@ def calculate_skill_score(candidate: Candidate):
 
     score = 0
 
-    candidate_skills = {
-        skill.name.lower()
-        for skill in candidate.skills
-    }
+    candidate_skills = {skill.name.lower() for skill in candidate.skills}
 
     for target in TARGET_SKILLS:
-
         if target in candidate_skills:
             score += 5
 

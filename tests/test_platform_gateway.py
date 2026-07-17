@@ -136,9 +136,7 @@ def test_rate_limit_exceeded_returns_429():
         "key-3", ApiPrincipal(principal_id="u3", tenant_id="t1", scopes=["integrations:read"])
     )
     gw = _gateway_with_route(auth_hook=auth, rate_limiter=limiter, clock=clock)
-    req = ApiRequest(
-        method=HttpMethod.GET, path="/integrations/i1", headers={"X-Api-Key": "key-3"}
-    )
+    req = ApiRequest(method=HttpMethod.GET, path="/integrations/i1", headers={"X-Api-Key": "key-3"})
     assert gw.handle(req).success  # first consumes the only token
     second = gw.handle(req)
     assert not second.success and second.error.code == "quota_exceeded"

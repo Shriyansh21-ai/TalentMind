@@ -70,31 +70,75 @@ def _default_profiles() -> dict[str, DeploymentProfile]:
     docker = DeploymentTargetType.DOCKER
     local = DeploymentTargetType.LOCAL
     profiles = [
-        DeploymentProfile(name="development", environment=Environment.DEVELOPMENT,
-                          target=DeploymentTarget(target_type=local), config_profile="development"),
-        DeploymentProfile(name="testing", environment=Environment.TESTING,
-                          target=DeploymentTarget(target_type=docker), config_profile="testing"),
-        DeploymentProfile(name="staging", environment=Environment.STAGING,
-                          target=DeploymentTarget(target_type=k8s), replicas=2,
-                          autoscale=True, min_replicas=2, max_replicas=4, config_profile="production"),
-        DeploymentProfile(name="production", environment=Environment.PRODUCTION,
-                          target=DeploymentTarget(target_type=k8s), replicas=3,
-                          autoscale=True, min_replicas=3, max_replicas=10,
-                          resources=ResourceLimits(cpu_limit="2000m", memory_limit="4Gi"),
-                          config_profile="production"),
-        DeploymentProfile(name="air_gapped", environment=Environment.AIR_GAPPED,
-                          target=DeploymentTarget(target_type=k8s), replicas=2,
-                          offline=True, config_profile="offline"),
-        DeploymentProfile(name="offline_enterprise", environment=Environment.OFFLINE_ENTERPRISE,
-                          target=DeploymentTarget(target_type=docker), replicas=1,
-                          offline=True, config_profile="offline"),
-        DeploymentProfile(name="cloud", environment=Environment.CLOUD,
-                          target=DeploymentTarget(target_type=k8s, region="us-east-1"),
-                          replicas=3, autoscale=True, min_replicas=3, max_replicas=20,
-                          config_profile="cloud"),
-        DeploymentProfile(name="hybrid", environment=Environment.HYBRID,
-                          target=DeploymentTarget(target_type=k8s), replicas=2,
-                          autoscale=True, min_replicas=2, max_replicas=8, config_profile="enterprise"),
+        DeploymentProfile(
+            name="development",
+            environment=Environment.DEVELOPMENT,
+            target=DeploymentTarget(target_type=local),
+            config_profile="development",
+        ),
+        DeploymentProfile(
+            name="testing",
+            environment=Environment.TESTING,
+            target=DeploymentTarget(target_type=docker),
+            config_profile="testing",
+        ),
+        DeploymentProfile(
+            name="staging",
+            environment=Environment.STAGING,
+            target=DeploymentTarget(target_type=k8s),
+            replicas=2,
+            autoscale=True,
+            min_replicas=2,
+            max_replicas=4,
+            config_profile="production",
+        ),
+        DeploymentProfile(
+            name="production",
+            environment=Environment.PRODUCTION,
+            target=DeploymentTarget(target_type=k8s),
+            replicas=3,
+            autoscale=True,
+            min_replicas=3,
+            max_replicas=10,
+            resources=ResourceLimits(cpu_limit="2000m", memory_limit="4Gi"),
+            config_profile="production",
+        ),
+        DeploymentProfile(
+            name="air_gapped",
+            environment=Environment.AIR_GAPPED,
+            target=DeploymentTarget(target_type=k8s),
+            replicas=2,
+            offline=True,
+            config_profile="offline",
+        ),
+        DeploymentProfile(
+            name="offline_enterprise",
+            environment=Environment.OFFLINE_ENTERPRISE,
+            target=DeploymentTarget(target_type=docker),
+            replicas=1,
+            offline=True,
+            config_profile="offline",
+        ),
+        DeploymentProfile(
+            name="cloud",
+            environment=Environment.CLOUD,
+            target=DeploymentTarget(target_type=k8s, region="us-east-1"),
+            replicas=3,
+            autoscale=True,
+            min_replicas=3,
+            max_replicas=20,
+            config_profile="cloud",
+        ),
+        DeploymentProfile(
+            name="hybrid",
+            environment=Environment.HYBRID,
+            target=DeploymentTarget(target_type=k8s),
+            replicas=2,
+            autoscale=True,
+            min_replicas=2,
+            max_replicas=8,
+            config_profile="enterprise",
+        ),
     ]
     return {p.name: p for p in profiles}
 
@@ -131,24 +175,54 @@ class DeploymentManager:
         """Validate a profile and return the (non-raising) result."""
         issues: list[ValidationIssue] = []
         if profile.replicas < 1:
-            issues.append(ValidationIssue(check="replicas", severity=CheckSeverity.CRITICAL,
-                                          message="replicas must be >= 1"))
+            issues.append(
+                ValidationIssue(
+                    check="replicas",
+                    severity=CheckSeverity.CRITICAL,
+                    message="replicas must be >= 1",
+                )
+            )
         if profile.autoscale:
             if profile.min_replicas > profile.max_replicas:
-                issues.append(ValidationIssue(check="autoscale", severity=CheckSeverity.CRITICAL,
-                                              message="min_replicas exceeds max_replicas"))
+                issues.append(
+                    ValidationIssue(
+                        check="autoscale",
+                        severity=CheckSeverity.CRITICAL,
+                        message="min_replicas exceeds max_replicas",
+                    )
+                )
             if profile.max_replicas < profile.replicas:
-                issues.append(ValidationIssue(check="autoscale", severity=CheckSeverity.WARNING,
-                                              message="max_replicas below desired replicas"))
+                issues.append(
+                    ValidationIssue(
+                        check="autoscale",
+                        severity=CheckSeverity.WARNING,
+                        message="max_replicas below desired replicas",
+                    )
+                )
         if profile.environment.is_production_like and profile.replicas < 2 and not profile.offline:
-            issues.append(ValidationIssue(check="ha", severity=CheckSeverity.WARNING,
-                                          message="production-like env should run >= 2 replicas"))
+            issues.append(
+                ValidationIssue(
+                    check="ha",
+                    severity=CheckSeverity.WARNING,
+                    message="production-like env should run >= 2 replicas",
+                )
+            )
         if profile.offline and profile.target.region:
-            issues.append(ValidationIssue(check="offline", severity=CheckSeverity.CRITICAL,
-                                          message="offline profile must not target a cloud region"))
+            issues.append(
+                ValidationIssue(
+                    check="offline",
+                    severity=CheckSeverity.CRITICAL,
+                    message="offline profile must not target a cloud region",
+                )
+            )
         if not profile.config_profile:
-            issues.append(ValidationIssue(check="config", severity=CheckSeverity.CRITICAL,
-                                          message="config_profile is required"))
+            issues.append(
+                ValidationIssue(
+                    check="config",
+                    severity=CheckSeverity.CRITICAL,
+                    message="config_profile is required",
+                )
+            )
         return DeploymentValidation(profile_name=profile.name, issues=issues)
 
     # -- planning -----------------------------------------------------------
@@ -156,30 +230,77 @@ class DeploymentManager:
     def create_plan(self, profile: DeploymentProfile) -> DeploymentPlan:
         """Build a deterministic, ordered deployment plan for a profile."""
         steps = [
-            DeploymentStep(order=1, name="validate", action="validate_profile",
-                           description="Validate profile and environment"),
-            DeploymentStep(order=2, name="load_config", action="load_configuration",
-                           description=f"Load '{profile.config_profile}' configuration profile"),
-            DeploymentStep(order=3, name="provision", action="provision_target",
-                           description=f"Provision {profile.target.target_type.value} target"),
+            DeploymentStep(
+                order=1,
+                name="validate",
+                action="validate_profile",
+                description="Validate profile and environment",
+            ),
+            DeploymentStep(
+                order=2,
+                name="load_config",
+                action="load_configuration",
+                description=f"Load '{profile.config_profile}' configuration profile",
+            ),
+            DeploymentStep(
+                order=3,
+                name="provision",
+                action="provision_target",
+                description=f"Provision {profile.target.target_type.value} target",
+            ),
         ]
         if profile.target.target_type == DeploymentTargetType.KUBERNETES:
-            steps.append(DeploymentStep(order=len(steps) + 1, name="apply_manifests",
-                                        action="kubectl_apply", description="Apply k8s manifests"))
+            steps.append(
+                DeploymentStep(
+                    order=len(steps) + 1,
+                    name="apply_manifests",
+                    action="kubectl_apply",
+                    description="Apply k8s manifests",
+                )
+            )
             if profile.autoscale:
-                steps.append(DeploymentStep(order=len(steps) + 1, name="hpa",
-                                            action="configure_hpa", description="Configure autoscaling"))
+                steps.append(
+                    DeploymentStep(
+                        order=len(steps) + 1,
+                        name="hpa",
+                        action="configure_hpa",
+                        description="Configure autoscaling",
+                    )
+                )
         elif profile.target.target_type == DeploymentTargetType.DOCKER:
-            steps.append(DeploymentStep(order=len(steps) + 1, name="compose_up",
-                                        action="docker_compose_up", description="Start containers"))
-        steps.append(DeploymentStep(order=len(steps) + 1, name="healthcheck",
-                                    action="verify_health", description="Verify deployment health"))
-        steps.append(DeploymentStep(order=len(steps) + 1, name="smoke_test",
-                                    action="smoke_test", description="Run smoke tests"))
+            steps.append(
+                DeploymentStep(
+                    order=len(steps) + 1,
+                    name="compose_up",
+                    action="docker_compose_up",
+                    description="Start containers",
+                )
+            )
+        steps.append(
+            DeploymentStep(
+                order=len(steps) + 1,
+                name="healthcheck",
+                action="verify_health",
+                description="Verify deployment health",
+            )
+        )
+        steps.append(
+            DeploymentStep(
+                order=len(steps) + 1,
+                name="smoke_test",
+                action="smoke_test",
+                description="Run smoke tests",
+            )
+        )
         now = self._clock.now()
-        return DeploymentPlan(id=generate_id("plan"), profile_name=profile.name,
-                              environment=profile.environment, steps=steps,
-                              created_at=now, updated_at=now)
+        return DeploymentPlan(
+            id=generate_id("plan"),
+            profile_name=profile.name,
+            environment=profile.environment,
+            steps=steps,
+            created_at=now,
+            updated_at=now,
+        )
 
     def create_rollback_plan(self, from_version: str, to_version: str) -> RollbackPlan:
         """Build a deterministic rollback plan between two versions."""
@@ -187,19 +308,42 @@ class DeploymentManager:
             raise RollbackError("rollback requires a target version")
         now = self._clock.now()
         steps = [
-            DeploymentStep(order=1, name="halt", action="halt_traffic",
-                           description="Stop routing new traffic"),
-            DeploymentStep(order=2, name="restore_version", action="deploy_version",
-                           description=f"Redeploy version {to_version}"),
-            DeploymentStep(order=3, name="restore_config", action="restore_configuration",
-                           description="Restore the previous configuration"),
-            DeploymentStep(order=4, name="verify", action="verify_health",
-                           description="Verify rolled-back deployment health"),
-            DeploymentStep(order=5, name="resume", action="resume_traffic",
-                           description="Resume traffic routing"),
+            DeploymentStep(
+                order=1, name="halt", action="halt_traffic", description="Stop routing new traffic"
+            ),
+            DeploymentStep(
+                order=2,
+                name="restore_version",
+                action="deploy_version",
+                description=f"Redeploy version {to_version}",
+            ),
+            DeploymentStep(
+                order=3,
+                name="restore_config",
+                action="restore_configuration",
+                description="Restore the previous configuration",
+            ),
+            DeploymentStep(
+                order=4,
+                name="verify",
+                action="verify_health",
+                description="Verify rolled-back deployment health",
+            ),
+            DeploymentStep(
+                order=5,
+                name="resume",
+                action="resume_traffic",
+                description="Resume traffic routing",
+            ),
         ]
-        return RollbackPlan(id=generate_id("rbk"), from_version=from_version,
-                            to_version=to_version, steps=steps, created_at=now, updated_at=now)
+        return RollbackPlan(
+            id=generate_id("rbk"),
+            from_version=from_version,
+            to_version=to_version,
+            steps=steps,
+            created_at=now,
+            updated_at=now,
+        )
 
     # -- lifecycle ----------------------------------------------------------
 
@@ -214,8 +358,12 @@ class DeploymentManager:
         now = self._clock.now()
         meta = metadata or DeploymentMetadata()
         deployment = Deployment(
-            id=generate_id("dep"), profile=profile, metadata=meta,
-            status=DeploymentStatus.PENDING, created_at=now, updated_at=now,
+            id=generate_id("dep"),
+            profile=profile,
+            metadata=meta,
+            status=DeploymentStatus.PENDING,
+            created_at=now,
+            updated_at=now,
         )
         self.repo.add(deployment)
 
@@ -225,7 +373,9 @@ class DeploymentManager:
             self._transition(deployment, DeploymentStatus.FAILED, "validation failed")
             raise DeploymentValidationError(
                 f"profile '{profile.name}' failed validation: "
-                + "; ".join(i.message for i in validation.issues if i.severity == CheckSeverity.CRITICAL)
+                + "; ".join(
+                    i.message for i in validation.issues if i.severity == CheckSeverity.CRITICAL
+                )
             )
 
         deployment.plan = self.create_plan(profile)
@@ -235,8 +385,10 @@ class DeploymentManager:
         self._transition(deployment, DeploymentStatus.DEPLOYING, "executing plan")
 
         deployment.health = DeploymentHealth(
-            state=HealthState.HEALTHY, message="deployment healthy",
-            ready_replicas=profile.replicas, desired_replicas=profile.replicas,
+            state=HealthState.HEALTHY,
+            message="deployment healthy",
+            ready_replicas=profile.replicas,
+            desired_replicas=profile.replicas,
         )
         deployment.deployed_at = self._clock.now()
         self._transition(deployment, DeploymentStatus.DEPLOYED, "deployment complete")
@@ -247,10 +399,14 @@ class DeploymentManager:
         deployment = self.repo.require(deployment_id)
         if deployment.rollback_plan is None:
             raise RollbackError(f"deployment '{deployment_id}' has no rollback plan")
-        self._transition(deployment, DeploymentStatus.ROLLED_BACK,
-                         f"rolled back to {deployment.rollback_plan.to_version}")
+        self._transition(
+            deployment,
+            DeploymentStatus.ROLLED_BACK,
+            f"rolled back to {deployment.rollback_plan.to_version}",
+        )
         deployment.health = DeploymentHealth(
-            state=HealthState.HEALTHY, message="rolled back",
+            state=HealthState.HEALTHY,
+            message="rolled back",
             ready_replicas=deployment.profile.replicas,
             desired_replicas=deployment.profile.replicas,
         )

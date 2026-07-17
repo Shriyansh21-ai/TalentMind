@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
-from typing import Any, List, Tuple
+from typing import Any
 
 from src.ai.core.response import TokenUsage
 from src.ai.providers._remote import RemoteProvider
@@ -41,8 +41,8 @@ class OllamaProvider(RemoteProvider):
         return ollama.Client(host=host)
 
     def _complete(
-        self, client: Any, messages: List[LLMMessage], json_mode: bool
-    ) -> Tuple[str, TokenUsage]:
+        self, client: Any, messages: list[LLMMessage], json_mode: bool
+    ) -> tuple[str, TokenUsage]:
         """Call chat and return ``(text, usage)``."""
         response = client.chat(
             model=self.model,

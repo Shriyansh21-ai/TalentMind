@@ -10,8 +10,8 @@ would take is exercised without real time passing.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable
 
 from pydantic import Field
 
@@ -111,9 +111,7 @@ class ResilienceEngine:
                 if circuit is not None:
                     circuit.record_success()
                     report.circuit_state = circuit.state.value
-                report.outcome = (
-                    Outcome.RECOVERED if attempt > 1 else Outcome.SUCCESS
-                )
+                report.outcome = Outcome.RECOVERED if attempt > 1 else Outcome.SUCCESS
                 return value, report
             except BaseException as exc:  # noqa: BLE001 — classify & decide
                 last_exc = exc
@@ -135,9 +133,7 @@ class ResilienceEngine:
                     )
                     continue
                 report.attempts.append(
-                    AttemptRecord(
-                        attempt=attempt, ok=False, category=category, error=str(exc)
-                    )
+                    AttemptRecord(attempt=attempt, ok=False, category=category, error=str(exc))
                 )
                 break
 

@@ -13,17 +13,23 @@ which consumes existing structured outputs and never re-ranks or fabricates.
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 import streamlit as st
 
-from src.ai.core.runner import AgentRunner
 from src.ai.agents.interview_studio.report import InterviewStudioEngine
 from src.ai.agents.interview_studio.schemas import InterviewStudioReport
-from src.ai.agents.interview_studio.templates import DEPTH_PROFILES, ROLE_PROFILES, get_depth, get_role
+from src.ai.agents.interview_studio.templates import (
+    DEPTH_PROFILES,
+    ROLE_PROFILES,
+    get_depth,
+    get_role,
+)
+from src.ai.core.runner import AgentRunner
 
-_runner: Optional[AgentRunner] = None
-_engine: Optional[InterviewStudioEngine] = None
+_runner: AgentRunner | None = None
+_engine: InterviewStudioEngine | None = None
 
 
 def _get_engine(insights_fn=None) -> InterviewStudioEngine:
@@ -97,27 +103,38 @@ def _render_report(report: InterviewStudioReport, *, key_prefix: str) -> None:
         st.caption(strategy.summary)
         c = st.columns(2)
         with c[0]:
-            st.markdown("**Objectives**"); _bullets(strategy.objectives, "")
-            st.markdown("**Priorities**"); _bullets(strategy.priorities, "None flagged by the engines.")
+            st.markdown("**Objectives**")
+            _bullets(strategy.objectives, "")
+            st.markdown("**Priorities**")
+            _bullets(strategy.priorities, "None flagged by the engines.")
         with c[1]:
-            st.markdown("**Decision checkpoints**"); _bullets(strategy.decision_checkpoints, "")
+            st.markdown("**Decision checkpoints**")
+            _bullets(strategy.decision_checkpoints, "")
             st.caption(f"**Difficulty:** {strategy.difficulty}")
-            st.caption(f"**Length:** {strategy.length_minutes} min across {strategy.stage_count} stages")
+            st.caption(
+                f"**Length:** {strategy.length_minutes} min across {strategy.stage_count} stages"
+            )
         c2 = st.columns(2)
         with c2[0]:
-            st.markdown("**Key probes**"); _bullets(narrative.key_probes, "Confirm role fit and depth.")
+            st.markdown("**Key probes**")
+            _bullets(narrative.key_probes, "Confirm role fit and depth.")
         with c2[1]:
-            st.markdown("**Watch areas**"); _bullets(narrative.watch_areas, "None surfaced.")
+            st.markdown("**Watch areas**")
+            _bullets(narrative.watch_areas, "None surfaced.")
         st.caption("📌 " + narrative.confidence_note)
         st.caption("🎯 " + narrative.personalization_note)
 
     with tabs[1]:
         st.caption(narrative.coverage_note)
         for i, stage in enumerate(report.roadmap, start=1):
-            with st.expander(f"{i}. {stage.name} · {stage.duration_minutes} min · {stage.interviewer}", expanded=(i <= 2)):
+            with st.expander(
+                f"{i}. {stage.name} · {stage.duration_minutes} min · {stage.interviewer}",
+                expanded=(i <= 2),
+            ):
                 st.write(stage.objective)
                 if stage.focus:
-                    st.markdown("**Focus:**"); _bullets(stage.focus, "")
+                    st.markdown("**Focus:**")
+                    _bullets(stage.focus, "")
                 if stage.checkpoint:
                     st.caption("✅ Checkpoint: " + stage.checkpoint)
 
@@ -146,7 +163,8 @@ def _render_report(report: InterviewStudioReport, *, key_prefix: str) -> None:
                 for level, descriptor in dim.levels.items():
                     st.markdown(f"- **{level}:** {descriptor}")
                 if dim.evidence_to_look_for:
-                    st.markdown("**Evidence to look for:**"); _bullets(dim.evidence_to_look_for, "")
+                    st.markdown("**Evidence to look for:**")
+                    _bullets(dim.evidence_to_look_for, "")
 
     with tabs[7]:
         matrix = report.decision_matrix
@@ -159,35 +177,49 @@ def _render_report(report: InterviewStudioReport, *, key_prefix: str) -> None:
                 _bullets(band.signals, "")
                 if band.escalation:
                     st.caption("➡ " + band.escalation)
-        st.markdown("**Escalation criteria**"); _bullets(matrix.escalation_criteria, "")
+        st.markdown("**Escalation criteria**")
+        _bullets(matrix.escalation_criteria, "")
 
     with tabs[8]:
         forms = report.feedback_forms
-        st.markdown("**Interviewer feedback form**"); _bullets(forms.interviewer_form, "")
-        st.markdown("**Hiring-manager feedback**"); _bullets(forms.hiring_manager_form, "")
-        st.markdown("**Panel feedback**"); _bullets(forms.panel_form, "")
-        st.markdown("**Candidate feedback summary (template)**"); _bullets(forms.candidate_summary_template, "")
+        st.markdown("**Interviewer feedback form**")
+        _bullets(forms.interviewer_form, "")
+        st.markdown("**Hiring-manager feedback**")
+        _bullets(forms.hiring_manager_form, "")
+        st.markdown("**Panel feedback**")
+        _bullets(forms.panel_form, "")
+        st.markdown("**Candidate feedback summary (template)**")
+        _bullets(forms.candidate_summary_template, "")
 
     with tabs[9]:
         la = report.live_assistant
-        st.caption("Real-time interviewer support. No voice/AI features yet — structured hooks only.")
+        st.caption(
+            "Real-time interviewer support. No voice/AI features yet — structured hooks only."
+        )
         c = st.columns(2)
         with c[0]:
-            st.markdown("**Notes template**"); _bullets(la.interviewer_notes_template, "")
-            st.markdown("**Question checklist**"); _bullets(la.question_checklist, "")
-            st.markdown("**Follow-up prompts**"); _bullets(la.followup_suggestions, "")
+            st.markdown("**Notes template**")
+            _bullets(la.interviewer_notes_template, "")
+            st.markdown("**Question checklist**")
+            _bullets(la.question_checklist, "")
+            st.markdown("**Follow-up prompts**")
+            _bullets(la.followup_suggestions, "")
         with c[1]:
-            st.markdown("**Evaluation checklist**"); _bullets(la.evaluation_checklist, "")
-            st.markdown("**Risk reminders**"); _bullets(la.risk_reminders, "None.")
+            st.markdown("**Evaluation checklist**")
+            _bullets(la.evaluation_checklist, "")
+            st.markdown("**Risk reminders**")
+            _bullets(la.risk_reminders, "None.")
             st.markdown("**Timer hooks**")
             for hook in la.timer_hooks:
-                st.caption(f"⏱ {hook['at_minute']} min — {hook['stage']} ({hook['duration_minutes']} min)")
+                st.caption(
+                    f"⏱ {hook['at_minute']} min — {hook['stage']} ({hook['duration_minutes']} min)"
+                )
 
     with tabs[10]:
         _render_dashboard(report)
 
 
-def _render_questions(questions: List[Any], empty: str) -> None:
+def _render_questions(questions: list[Any], empty: str) -> None:
     """Render a list of :class:`InterviewQuestion` grouped by difficulty."""
     if not questions:
         st.info(empty)
@@ -197,7 +229,8 @@ def _render_questions(questions: List[Any], empty: str) -> None:
             if q.expected_answer:
                 st.markdown(f"**Expected answer:** {q.expected_answer}")
             if q.evaluation_criteria:
-                st.markdown("**Evaluation criteria:**"); _bullets(q.evaluation_criteria, "")
+                st.markdown("**Evaluation criteria:**")
+                _bullets(q.evaluation_criteria, "")
             if q.signals:
                 st.caption("Signals: " + ", ".join(q.signals))
             st.caption("Source: " + q.source)
@@ -242,7 +275,7 @@ def _bar(data: dict) -> None:
         st.caption(f"{label}: {'▇' * int(round(value / peak * 12)) or '·'} {value}")
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         if empty_message:
@@ -259,7 +292,9 @@ def _bullets(items: List[str], empty_message: str) -> None:
 RepositoryFactory = Callable[[], Any]
 
 
-def render_interview_studio_workspace(repository_factory: RepositoryFactory, *, insights_fn=None) -> None:
+def render_interview_studio_workspace(
+    repository_factory: RepositoryFactory, *, insights_fn=None
+) -> None:
     """Render the Interview Studio workspace (pick candidate + role + depth → run)."""
     st.title("🎯 Enterprise AI Interview Studio")
     st.caption(
@@ -287,7 +322,9 @@ def render_interview_studio_workspace(repository_factory: RepositoryFactory, *, 
     role_choice = cols[1].selectbox(
         "Role path",
         role_keys,
-        format_func=lambda k: "Auto-detect from title + JD" if k == "(auto-detect)" else get_role(k).name,
+        format_func=lambda k: (
+            "Auto-detect from title + JD" if k == "(auto-detect)" else get_role(k).name
+        ),
         key="is_role",
     )
     depth_keys = ["(auto)"] + list(DEPTH_PROFILES)
@@ -297,7 +334,9 @@ def render_interview_studio_workspace(repository_factory: RepositoryFactory, *, 
         format_func=lambda k: "Auto (from seniority)" if k == "(auto)" else get_depth(k).name,
         key="is_depth",
     )
-    jd_text = st.text_area("Optional job description (sharpens role-fit + risk validation)", key="is_jd")
+    jd_text = st.text_area(
+        "Optional job description (sharpens role-fit + risk validation)", key="is_jd"
+    )
 
     if st.button("🎯 Generate interview plan", type="primary", key="is_run"):
         candidate = repository.get(chosen)

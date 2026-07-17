@@ -86,10 +86,7 @@ def _render_kpis(platform) -> None:
     catalog = platform.registry.definitions()
     installed = sum(len(platform.manager.list(t_id)) for _n, t_id in _TENANTS)
     connected = sum(
-        1
-        for _n, t_id in _TENANTS
-        for i in platform.manager.list(t_id)
-        if i.is_connected
+        1 for _n, t_id in _TENANTS for i in platform.manager.list(t_id) if i.is_connected
     )
     total_events = len(platform.events.history())
 
@@ -164,14 +161,11 @@ def _render_health(platform) -> None:
             detail = platform.marketplace.detail(tenant_id, integration.id)
             stats = detail.statistics
             with st.expander(
-                f"{name} · {integration.display_name} — "
-                f"{integration.health.state.value}"
+                f"{name} · {integration.display_name} — {integration.health.state.value}"
             ):
                 cols = st.columns(4)
                 cols[0].metric("Status", integration.status.value)
-                cols[1].metric(
-                    "Connect attempts", stats.connect_attempts if stats else 0
-                )
+                cols[1].metric("Connect attempts", stats.connect_attempts if stats else 0)
                 cols[2].metric(
                     "Success rate",
                     f"{(stats.success_rate * 100):.0f}%" if stats else "—",
@@ -200,9 +194,7 @@ def _render_health(platform) -> None:
                     for e in detail.logs
                 ]
                 if log_rows:
-                    st.dataframe(
-                        log_rows, use_container_width=True, hide_index=True
-                    )
+                    st.dataframe(log_rows, use_container_width=True, hide_index=True)
 
 
 def _render_webhooks_sync(platform) -> None:
@@ -211,9 +203,7 @@ def _render_webhooks_sync(platform) -> None:
     for name, tenant_id in _TENANTS:
         subs = platform.webhooks.subscriptions(tenant_id)
         deliveries = platform.webhooks.deliveries(tenant_id)
-        st.markdown(
-            f"**{name}** — {len(subs)} subscriptions · {len(deliveries)} deliveries"
-        )
+        st.markdown(f"**{name}** — {len(subs)} subscriptions · {len(deliveries)} deliveries")
         rows = [
             {
                 "url": s.url,

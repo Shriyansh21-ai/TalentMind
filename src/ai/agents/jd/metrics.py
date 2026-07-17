@@ -14,31 +14,218 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List
 
 from src.ai.agents.jd.extractors import JDDocument
 
 # -- technology taxonomy (local, transparent, editable) ---------------------
 
-LANGUAGES = {"python", "java", "javascript", "typescript", "go", "golang", "rust", "c++", "c#", "kotlin", "swift", "scala", "ruby", "php", "sql"}
-FRAMEWORKS = {"react", "angular", "vue", "next.js", "django", "flask", "fastapi", "spring", "spring boot", "node", "node.js", "express", ".net", "rails", "svelte"}
-CLOUD = {"aws", "gcp", "azure", "cloud", "lambda", "ec2", "s3", "cloudformation", "gke", "eks", "aks"}
-AI_ML = {"machine learning", "deep learning", "ml", "nlp", "llm", "rag", "pytorch", "tensorflow", "transformers", "computer vision", "scikit", "ai", "genai", "generative ai"}
-DEVOPS = {"docker", "kubernetes", "terraform", "ci/cd", "jenkins", "ansible", "helm", "prometheus", "grafana", "gitops", "argocd"}
-DATA = {"spark", "airflow", "kafka", "snowflake", "hadoop", "databricks", "dbt", "etl", "bigquery", "redshift", "warehouse"}
-SECURITY = {"security", "oauth", "iam", "encryption", "owasp", "penetration", "compliance", "soc2", "gdpr", "zero trust"}
-INFRA = {"microservices", "distributed systems", "high availability", "scalability", "load balancing", "message queue", "grpc", "graphql", "rest", "api gateway"}
-ARCHITECTURE = {"architecture", "system design", "design patterns", "event-driven", "domain-driven", "ddd", "cqrs", "monolith", "serverless"}
+LANGUAGES = {
+    "python",
+    "java",
+    "javascript",
+    "typescript",
+    "go",
+    "golang",
+    "rust",
+    "c++",
+    "c#",
+    "kotlin",
+    "swift",
+    "scala",
+    "ruby",
+    "php",
+    "sql",
+}
+FRAMEWORKS = {
+    "react",
+    "angular",
+    "vue",
+    "next.js",
+    "django",
+    "flask",
+    "fastapi",
+    "spring",
+    "spring boot",
+    "node",
+    "node.js",
+    "express",
+    ".net",
+    "rails",
+    "svelte",
+}
+CLOUD = {
+    "aws",
+    "gcp",
+    "azure",
+    "cloud",
+    "lambda",
+    "ec2",
+    "s3",
+    "cloudformation",
+    "gke",
+    "eks",
+    "aks",
+}
+AI_ML = {
+    "machine learning",
+    "deep learning",
+    "ml",
+    "nlp",
+    "llm",
+    "rag",
+    "pytorch",
+    "tensorflow",
+    "transformers",
+    "computer vision",
+    "scikit",
+    "ai",
+    "genai",
+    "generative ai",
+}
+DEVOPS = {
+    "docker",
+    "kubernetes",
+    "terraform",
+    "ci/cd",
+    "jenkins",
+    "ansible",
+    "helm",
+    "prometheus",
+    "grafana",
+    "gitops",
+    "argocd",
+}
+DATA = {
+    "spark",
+    "airflow",
+    "kafka",
+    "snowflake",
+    "hadoop",
+    "databricks",
+    "dbt",
+    "etl",
+    "bigquery",
+    "redshift",
+    "warehouse",
+}
+SECURITY = {
+    "security",
+    "oauth",
+    "iam",
+    "encryption",
+    "owasp",
+    "penetration",
+    "compliance",
+    "soc2",
+    "gdpr",
+    "zero trust",
+}
+INFRA = {
+    "microservices",
+    "distributed systems",
+    "high availability",
+    "scalability",
+    "load balancing",
+    "message queue",
+    "grpc",
+    "graphql",
+    "rest",
+    "api gateway",
+}
+ARCHITECTURE = {
+    "architecture",
+    "system design",
+    "design patterns",
+    "event-driven",
+    "domain-driven",
+    "ddd",
+    "cqrs",
+    "monolith",
+    "serverless",
+}
 
-MODERN_TECH = {"go", "rust", "typescript", "kubernetes", "terraform", "llm", "rag", "pytorch", "fastapi", "next.js", "graphql", "genai", "databricks", "grpc"}
-DATED_TECH = {"jquery", "perl", "cobol", "vb6", "flash", "silverlight", "soap", "coldfusion", "svn", "angularjs", "struts", "jsp"}
+MODERN_TECH = {
+    "go",
+    "rust",
+    "typescript",
+    "kubernetes",
+    "terraform",
+    "llm",
+    "rag",
+    "pytorch",
+    "fastapi",
+    "next.js",
+    "graphql",
+    "genai",
+    "databricks",
+    "grpc",
+}
+DATED_TECH = {
+    "jquery",
+    "perl",
+    "cobol",
+    "vb6",
+    "flash",
+    "silverlight",
+    "soap",
+    "coldfusion",
+    "svn",
+    "angularjs",
+    "struts",
+    "jsp",
+}
 
-BIAS_TERMS = {"young", "energetic", "recent graduate", "digital native", "native speaker", "cultural fit", "rockstar", "ninja", "guru", "he/him", "she/her", "aggressive", "fresh graduate"}
-VAGUE_TERMS = {"etc", "and more", "various", "other duties", "as needed", "wear many hats", "fast-paced", "self-starter", "wears many hats"}
+BIAS_TERMS = {
+    "young",
+    "energetic",
+    "recent graduate",
+    "digital native",
+    "native speaker",
+    "cultural fit",
+    "rockstar",
+    "ninja",
+    "guru",
+    "he/him",
+    "she/her",
+    "aggressive",
+    "fresh graduate",
+}
+VAGUE_TERMS = {
+    "etc",
+    "and more",
+    "various",
+    "other duties",
+    "as needed",
+    "wear many hats",
+    "fast-paced",
+    "self-starter",
+    "wears many hats",
+}
 
 # Coarse demand/scarcity heuristics for market intelligence (offline only).
-HIGH_DEMAND = {"llm", "rag", "genai", "kubernetes", "rust", "go", "ml", "machine learning", "pytorch", "terraform", "distributed systems"}
-SCARCE = {"llm", "rag", "genai", "rust", "distributed systems", "kubernetes", "compiler", "cryptography"}
+HIGH_DEMAND = {
+    "llm",
+    "rag",
+    "genai",
+    "kubernetes",
+    "rust",
+    "go",
+    "ml",
+    "machine learning",
+    "pytorch",
+    "terraform",
+    "distributed systems",
+}
+SCARCE = {
+    "llm",
+    "rag",
+    "genai",
+    "rust",
+    "distributed systems",
+    "kubernetes",
+    "compiler",
+    "cryptography",
+}
 
 _WORD_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9+#.\-/]*")
 
@@ -47,26 +234,26 @@ _WORD_RE = re.compile(r"[a-zA-Z][a-zA-Z0-9+#.\-/]*")
 class JDMetrics:
     """A bundle of deterministic JD measurements + quality dimensions."""
 
-    languages: List[str] = field(default_factory=list)
-    frameworks: List[str] = field(default_factory=list)
-    cloud: List[str] = field(default_factory=list)
-    ai_ml: List[str] = field(default_factory=list)
-    devops: List[str] = field(default_factory=list)
-    data: List[str] = field(default_factory=list)
-    security: List[str] = field(default_factory=list)
-    infrastructure: List[str] = field(default_factory=list)
-    architecture: List[str] = field(default_factory=list)
-    all_technologies: List[str] = field(default_factory=list)
-    modern_tech: List[str] = field(default_factory=list)
-    dated_tech: List[str] = field(default_factory=list)
+    languages: list[str] = field(default_factory=list)
+    frameworks: list[str] = field(default_factory=list)
+    cloud: list[str] = field(default_factory=list)
+    ai_ml: list[str] = field(default_factory=list)
+    devops: list[str] = field(default_factory=list)
+    data: list[str] = field(default_factory=list)
+    security: list[str] = field(default_factory=list)
+    infrastructure: list[str] = field(default_factory=list)
+    architecture: list[str] = field(default_factory=list)
+    all_technologies: list[str] = field(default_factory=list)
+    modern_tech: list[str] = field(default_factory=list)
+    dated_tech: list[str] = field(default_factory=list)
     tech_count: int = 0
     requirement_count: int = 0
     responsibility_count: int = 0
-    bias_terms: List[str] = field(default_factory=list)
-    vague_terms: List[str] = field(default_factory=list)
-    dimensions: Dict[str, float] = field(default_factory=dict)
+    bias_terms: list[str] = field(default_factory=list)
+    vague_terms: list[str] = field(default_factory=list)
+    dimensions: dict[str, float] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, object]:
+    def to_dict(self) -> dict[str, object]:
         """Return a JSON-serializable dict of the metrics."""
         return {
             "languages": self.languages,
@@ -95,7 +282,7 @@ def _clamp(value: float, low: float = 0.0, high: float = 100.0) -> float:
     return max(low, min(high, value))
 
 
-def _present(blob: str, vocab: set, tokens: set) -> List[str]:
+def _present(blob: str, vocab: set, tokens: set) -> list[str]:
     """Return the vocab terms present in ``blob`` (sorted, deduped).
 
     Single-word alphanumeric technologies are matched against the tokenized blob
@@ -131,7 +318,17 @@ def compute_metrics(doc: JDDocument) -> JDMetrics:
     m.architecture = _present(blob, ARCHITECTURE, tokens)
 
     all_tech = set()
-    for group in (m.languages, m.frameworks, m.cloud, m.ai_ml, m.devops, m.data, m.security, m.infrastructure, m.architecture):
+    for group in (
+        m.languages,
+        m.frameworks,
+        m.cloud,
+        m.ai_ml,
+        m.devops,
+        m.data,
+        m.security,
+        m.infrastructure,
+        m.architecture,
+    ):
         all_tech.update(group)
     m.all_technologies = sorted(all_tech)
     m.modern_tech = _present(blob, MODERN_TECH, tokens)
@@ -147,18 +344,23 @@ def compute_metrics(doc: JDDocument) -> JDMetrics:
     return m
 
 
-def _dimensions(doc: JDDocument, m: JDMetrics, blob: str) -> Dict[str, float]:
+def _dimensions(doc: JDDocument, m: JDMetrics, blob: str) -> dict[str, float]:
     """Compute the JD-quality dimensions (0-100). JD quality ONLY."""
     present = len(doc.sections_present)
     structure = _clamp(35 + present * 6)
 
     # Technical clarity: some tech named, categorized, not a giant undifferentiated dump.
-    categories = sum(bool(g) for g in (m.languages, m.frameworks, m.cloud, m.ai_ml, m.devops, m.data))
-    technical_clarity = _clamp(30 + categories * 10 + min(m.tech_count, 8) * 2 - max(0, m.tech_count - 15) * 3)
+    categories = sum(
+        bool(g) for g in (m.languages, m.frameworks, m.cloud, m.ai_ml, m.devops, m.data)
+    )
+    technical_clarity = _clamp(
+        30 + categories * 10 + min(m.tech_count, 8) * 2 - max(0, m.tech_count - 15) * 3
+    )
 
     # Role clarity: responsibilities present + seniority/title signal + low vagueness.
     role_clarity = _clamp(
-        35 + min(m.responsibility_count, 6) * 7
+        35
+        + min(m.responsibility_count, 6) * 7
         + (10 if doc.years_experience is not None else 0)
         - len(m.vague_terms) * 5
     )
@@ -170,7 +372,11 @@ def _dimensions(doc: JDDocument, m: JDMetrics, blob: str) -> Dict[str, float]:
     )
 
     # Business context: company info + why-the-role signal words.
-    context_words = sum(1 for w in ("mission", "growth", "scale", "customers", "team", "build", "launch") if w in blob)
+    context_words = sum(
+        1
+        for w in ("mission", "growth", "scale", "customers", "team", "build", "launch")
+        if w in blob
+    )
     business_context = _clamp(25 + (25 if doc.company_info else 0) + context_words * 6)
 
     # Hiring readiness: compensation + benefits + responsibilities + requirements all present.
@@ -188,7 +394,10 @@ def _dimensions(doc: JDDocument, m: JDMetrics, blob: str) -> Dict[str, float]:
 
     # Organization clarity: department + company info + employment type.
     organization_clarity = _clamp(
-        30 + (25 if doc.company_info else 0) + (20 if doc.department else 0) + (15 if doc.employment_type else 0)
+        30
+        + (25 if doc.company_info else 0)
+        + (20 if doc.department else 0)
+        + (15 if doc.employment_type else 0)
     )
 
     overall = _clamp(
@@ -220,7 +429,7 @@ def _dimensions(doc: JDDocument, m: JDMetrics, blob: str) -> Dict[str, float]:
 # ---------------------------------------------------------------------------
 
 
-def market_estimates(doc: JDDocument, m: JDMetrics) -> List[Dict[str, object]]:
+def market_estimates(doc: JDDocument, m: JDMetrics) -> list[dict[str, object]]:
     """Return deterministic market estimates, each with a confidence."""
     blob = doc.all_text()
     tokens = set(_WORD_RE.findall(blob))
@@ -228,18 +437,32 @@ def market_estimates(doc: JDDocument, m: JDMetrics) -> List[Dict[str, object]]:
     scarce = _present(blob, SCARCE, tokens)
     years = doc.years_experience or 0
 
-    def est(dimension: str, assessment: str, confidence: float) -> Dict[str, object]:
-        return {"dimension": dimension, "assessment": assessment, "confidence": round(confidence, 1)}
+    def est(dimension: str, assessment: str, confidence: float) -> dict[str, object]:
+        return {
+            "dimension": dimension,
+            "assessment": assessment,
+            "confidence": round(confidence, 1),
+        }
 
-    estimates: List[Dict[str, object]] = []
+    estimates: list[dict[str, object]] = []
 
     demand = "High" if len(high_demand) >= 2 else ("Moderate" if high_demand else "Standard")
-    estimates.append(est("skill_demand", f"{demand} (drivers: {', '.join(high_demand) or 'none'})", 65 if high_demand else 45))
+    estimates.append(
+        est(
+            "skill_demand",
+            f"{demand} (drivers: {', '.join(high_demand) or 'none'})",
+            65 if high_demand else 45,
+        )
+    )
 
     scarcity = "High" if len(scarce) >= 2 else ("Moderate" if scarce else "Low")
     estimates.append(est("talent_scarcity", scarcity, 60 if scarce else 45))
 
-    difficulty = "Hard" if (len(scarce) >= 2 or years >= 8 or m.tech_count >= 12) else ("Moderate" if m.tech_count >= 6 else "Manageable")
+    difficulty = (
+        "Hard"
+        if (len(scarce) >= 2 or years >= 8 or m.tech_count >= 12)
+        else ("Moderate" if m.tech_count >= 6 else "Manageable")
+    )
     estimates.append(est("hiring_difficulty", difficulty, 55))
 
     availability = "Limited" if scarcity in ("High", "Moderate") else "Healthy"
@@ -250,11 +473,25 @@ def market_estimates(doc: JDDocument, m: JDMetrics) -> List[Dict[str, object]]:
 
     # Salary competitiveness is only stated when the JD provides comp — never invented.
     if doc.compensation:
-        estimates.append(est("salary_competitiveness", "Comp disclosed in JD; benchmark against market bands", 40))
+        estimates.append(
+            est(
+                "salary_competitiveness", "Comp disclosed in JD; benchmark against market bands", 40
+            )
+        )
     else:
-        estimates.append(est("salary_competitiveness", "No compensation disclosed — cannot assess", 30))
+        estimates.append(
+            est("salary_competitiveness", "No compensation disclosed — cannot assess", 30)
+        )
 
-    popularity = "Trending" if m.modern_tech else ("Mainstream" if m.all_technologies else "Unclear")
-    estimates.append(est("technology_popularity", f"{popularity} ({', '.join(m.modern_tech[:5]) or 'n/a'})", 60 if m.modern_tech else 40))
+    popularity = (
+        "Trending" if m.modern_tech else ("Mainstream" if m.all_technologies else "Unclear")
+    )
+    estimates.append(
+        est(
+            "technology_popularity",
+            f"{popularity} ({', '.join(m.modern_tech[:5]) or 'n/a'})",
+            60 if m.modern_tech else 40,
+        )
+    )
 
     return estimates

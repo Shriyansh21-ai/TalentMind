@@ -35,7 +35,7 @@ class IdentityProviderRegistry:
             raise IdentityError(f"no identity provider for '{provider_type.value}'")
         return provider
 
-    def register_future_providers(self) -> "IdentityProviderRegistry":
+    def register_future_providers(self) -> IdentityProviderRegistry:
         """Register every interface-only future IdP placeholder for discovery."""
         for provider in future_providers():
             self.register(provider)

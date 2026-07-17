@@ -9,7 +9,7 @@ for review — never a legal conclusion (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from src.ai.agents.pay_equity.schemas import (
     CompressionAssessment,
@@ -27,7 +27,13 @@ _TRIGGER_TEXT = {
 }
 
 
-def _fires(trigger: str, *, outside_band: bool, compression: CompressionAssessment, inversion: InversionAssessment) -> bool:
+def _fires(
+    trigger: str,
+    *,
+    outside_band: bool,
+    compression: CompressionAssessment,
+    inversion: InversionAssessment,
+) -> bool:
     """Return whether a policy ``review_trigger`` condition is met."""
     if trigger == "outside_band":
         return outside_band
@@ -42,7 +48,7 @@ def _fires(trigger: str, *, outside_band: bool, compression: CompressionAssessme
 
 def evaluate_policy(
     policy: PayPolicy,
-    context: Dict[str, Any],
+    context: dict[str, Any],
     compression: CompressionAssessment,
     inversion: InversionAssessment,
 ) -> PolicyAlignment:
@@ -63,12 +69,18 @@ def evaluate_policy(
             review_requirements=["Connect an HRIS / payroll source to evaluate policy alignment."],
         )
 
-    fired = [t for t in policy.review_triggers if _fires(t, outside_band=outside_band, compression=compression, inversion=inversion)]
+    fired = [
+        t
+        for t in policy.review_triggers
+        if _fires(t, outside_band=outside_band, compression=compression, inversion=inversion)
+    ]
     violations = [_TRIGGER_TEXT.get(t, t) for t in fired]
 
     if not fired:
         alignment = "Aligned"
-        rationale = f"No '{policy.name}' review triggers fired; the offer is consistent with the policy."
+        rationale = (
+            f"No '{policy.name}' review triggers fired; the offer is consistent with the policy."
+        )
     elif "outside_band" in fired and "pay_band_consistency" in policy.priority_factors[:1]:
         alignment = "Violation"
         rationale = f"Under '{policy.name}' (pay-band leading), an out-of-band offer is a policy exception requiring review."

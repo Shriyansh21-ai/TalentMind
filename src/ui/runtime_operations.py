@@ -197,8 +197,7 @@ def _render_cache(rt) -> None:
     hit = getattr(rt.cache.provider, "hit_rate", 0.0)
     cols[3].metric("Hit rate", f"{hit * 100:.0f}%")
     st.caption(
-        "Namespaces: tenant · session · config · analytics · provider = "
-        f"{rt.cache.provider.name}"
+        f"Namespaces: tenant · session · config · analytics · provider = {rt.cache.provider.name}"
     )
 
 

@@ -5,7 +5,7 @@ cards, meters, and badges are rendered consistently (and without duplicated
 code) everywhere. No business logic.
 """
 
-from typing import Iterable, Optional
+from collections.abc import Iterable
 
 import streamlit as st
 
@@ -28,7 +28,7 @@ _LEVEL_STYLE = {
 def render_cards(
     items: Iterable[str],
     style: str = "info",
-    empty_message: Optional[str] = None,
+    empty_message: str | None = None,
 ) -> None:
     """Render an iterable of strings as a stack of colored status cards.
 
@@ -50,7 +50,7 @@ def render_meter(
     label: str,
     value: float,
     max_value: float = 100.0,
-    help_text: Optional[str] = None,
+    help_text: str | None = None,
 ) -> None:
     """Render a labelled metric with a normalized progress bar underneath.
 

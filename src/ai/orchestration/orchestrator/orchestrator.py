@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.ai.orchestration.context.context import SharedContext
 from src.ai.orchestration.events.emitter import EventEmitter, TelemetryEventBridge
@@ -67,22 +67,22 @@ class OrchestrationResult:
     goal: Goal
     status: WorkflowStatus
     answer: str = ""
-    outputs: Dict[str, AgentOutput] = field(default_factory=dict)
+    outputs: dict[str, AgentOutput] = field(default_factory=dict)
     task_count: int = 0
-    evidence_sources: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    evidence_sources: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     latency_ms: float = 0.0
     workflow_id: str = ""
-    state: Optional[WorkflowState] = None
-    graph: Optional[TaskGraph] = None
-    error: Optional[str] = None
+    state: WorkflowState | None = None
+    graph: TaskGraph | None = None
+    error: str | None = None
 
     @property
     def ok(self) -> bool:
         """Return ``True`` when the run completed fully or partially."""
         return self.status in {WorkflowStatus.COMPLETED, WorkflowStatus.PARTIAL}
 
-    def merged_data(self) -> Dict[str, Any]:
+    def merged_data(self) -> dict[str, Any]:
         """Return ``{task_id: output.data}`` for successful tasks (unified view)."""
         return {tid: o.data for tid, o in self.outputs.items() if o.ok}
 
@@ -93,19 +93,17 @@ class AgentOrchestrator:
     def __init__(
         self,
         *,
-        registry: Optional[OrchestrationRegistry] = None,
-        planner: Optional[TaskPlanner] = None,
-        engine: Optional[WorkflowEngine] = None,
-        monitor: Optional[WorkflowMonitor] = None,
+        registry: OrchestrationRegistry | None = None,
+        planner: TaskPlanner | None = None,
+        engine: WorkflowEngine | None = None,
+        monitor: WorkflowMonitor | None = None,
         telemetry_bridge: bool = True,
     ) -> None:
         """Wire the orchestrator's collaborators (all optional; sane defaults)."""
         self.registry = registry or orchestration_registry
         self.planner = planner or CapabilityTaskPlanner(default_plan_templates())
         self.events = EventEmitter()
-        self.engine = engine or WorkflowEngine(
-            registry=self.registry, events=self.events
-        )
+        self.engine = engine or WorkflowEngine(registry=self.registry, events=self.events)
         # Ensure the monitor + telemetry observe the engine's emitter.
         self.events = self.engine.events
         self.monitor = monitor or WorkflowMonitor()
@@ -120,8 +118,8 @@ class AgentOrchestrator:
         self,
         goal: Goal,
         *,
-        context: Optional[SharedContext] = None,
-        cancellation: Optional[CancellationToken] = None,
+        context: SharedContext | None = None,
+        cancellation: CancellationToken | None = None,
     ) -> OrchestrationResult:
         """Orchestrate ``goal`` end-to-end and return a unified result."""
         start = time.perf_counter()
@@ -167,7 +165,7 @@ class AgentOrchestrator:
         one-line summary in topological order.
         """
         outputs = result.outputs
-        sources: List[str] = []
+        sources: list[str] = []
         for output in outputs.values():
             for src in output.evidence_sources:
                 if src not in sources:
@@ -180,7 +178,7 @@ class AgentOrchestrator:
                 headline = str(output.data["synthesis"])
                 break
 
-        lines: List[str] = []
+        lines: list[str] = []
         for tid, output in outputs.items():
             marker = "•" if output.ok else "✗"
             summary = output.summary or (output.error or "(no summary)")

@@ -8,18 +8,18 @@ implementing this interface.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 class BaseCache(ABC):
     """Abstract key/value cache for JSON-serializable payloads."""
 
     @abstractmethod
-    def get(self, key: str) -> Optional[Dict[str, Any]]:
+    def get(self, key: str) -> dict[str, Any] | None:
         """Return the cached payload for ``key`` (or ``None`` if absent)."""
 
     @abstractmethod
-    def set(self, key: str, value: Dict[str, Any]) -> None:
+    def set(self, key: str, value: dict[str, Any]) -> None:
         """Store ``value`` under ``key``."""
 
     @abstractmethod
@@ -34,11 +34,11 @@ class BaseCache(ABC):
 class NullCache(BaseCache):
     """A no-op cache (used when caching is disabled)."""
 
-    def get(self, key: str) -> Optional[Dict[str, Any]]:
+    def get(self, key: str) -> dict[str, Any] | None:
         """Always miss."""
         return None
 
-    def set(self, key: str, value: Dict[str, Any]) -> None:
+    def set(self, key: str, value: dict[str, Any]) -> None:
         """Discard writes."""
 
     def delete(self, key: str) -> None:

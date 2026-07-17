@@ -12,7 +12,6 @@ import os
 import re
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Dict, List, Set
 
 from src.ai.core.exceptions import PromptNotFoundError, PromptRenderError
 
@@ -35,7 +34,7 @@ class PromptTemplate:
     name: str
     version: str
     text: str
-    placeholders: Set[str] = field(default_factory=set)
+    placeholders: set[str] = field(default_factory=set)
 
     def render(self, **values: object) -> str:
         """Render the template, substituting every ``{{placeholder}}``.
@@ -52,11 +51,10 @@ class PromptTemplate:
         missing = self.placeholders - set(values.keys())
         if missing:
             raise PromptRenderError(
-                f"Missing placeholder(s) for prompt {self.name}.{self.version}: "
-                f"{sorted(missing)}"
+                f"Missing placeholder(s) for prompt {self.name}.{self.version}: {sorted(missing)}"
             )
 
-        def _replace(match: "re.Match[str]") -> str:
+        def _replace(match: re.Match[str]) -> str:
             return str(values[match.group(1)])
 
         return _PLACEHOLDER_RE.sub(_replace, self.text)
@@ -83,22 +81,20 @@ class PromptLoader:
             raise PromptNotFoundError(
                 f"Prompt template not found: {name}.{version} (looked in {path})"
             )
-        with open(path, "r", encoding="utf-8") as handle:
+        with open(path, encoding="utf-8") as handle:
             text = handle.read()
         placeholders = set(_PLACEHOLDER_RE.findall(text))
-        return PromptTemplate(
-            name=name, version=version, text=text, placeholders=placeholders
-        )
+        return PromptTemplate(name=name, version=version, text=text, placeholders=placeholders)
 
     def render(self, name: str, version: str = "v1", **values: object) -> str:
         """Convenience: load ``name.version`` and render it with ``values``."""
         return self.load(name, version).render(**values)
 
-    def list_versions(self, name: str) -> List[str]:
+    def list_versions(self, name: str) -> list[str]:
         """Return the available versions of ``name`` (sorted)."""
         if not os.path.isdir(self.templates_dir):
             return []
-        versions: List[str] = []
+        versions: list[str] = []
         prefix = f"{name}."
         for filename in os.listdir(self.templates_dir):
             if filename.startswith(prefix) and filename.endswith(".md"):
@@ -107,9 +103,9 @@ class PromptLoader:
                     versions.append(middle)
         return sorted(versions)
 
-    def available(self) -> Dict[str, List[str]]:
+    def available(self) -> dict[str, list[str]]:
         """Return ``{name: [versions]}`` for every template on disk."""
-        result: Dict[str, List[str]] = {}
+        result: dict[str, list[str]] = {}
         if not os.path.isdir(self.templates_dir):
             return result
         for filename in os.listdir(self.templates_dir):

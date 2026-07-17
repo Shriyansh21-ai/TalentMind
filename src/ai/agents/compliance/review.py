@@ -8,8 +8,6 @@ never itself a legal opinion (Module 14).
 
 from __future__ import annotations
 
-from typing import List
-
 from src.ai.agents.compliance.schemas import (
     ComplianceException,
     ComplianceReview,
@@ -20,19 +18,21 @@ from src.ai.agents.compliance.schemas import (
 
 def determine_review(
     governance_risk: GovernanceRisk,
-    exceptions: List[ComplianceException],
-    policy_checks: List[PolicyCheck],
+    exceptions: list[ComplianceException],
+    policy_checks: list[PolicyCheck],
 ) -> ComplianceReview:
     """Determine whether Legal / Compliance should review (governance-only)."""
     real_exceptions = [e for e in exceptions if e.kind != "No exceptions detected"]
     high = [e for e in real_exceptions if e.severity == "High"]
     policy_violations = [c for c in policy_checks if c.status == "Violation"]
-    pay_equity_flag = any("Pay-equity" in e.kind or "Compensation governance" in e.kind for e in real_exceptions)
+    pay_equity_flag = any(
+        "Pay-equity" in e.kind or "Compensation governance" in e.kind for e in real_exceptions
+    )
 
     legal = bool(high or policy_violations or pay_equity_flag or governance_risk.level == "High")
     compliance = bool(real_exceptions or governance_risk.level in ("Medium", "High"))
 
-    reviewers: List[str] = []
+    reviewers: list[str] = []
     if compliance:
         reviewers.append("Compliance")
     if legal:

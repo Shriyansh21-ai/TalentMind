@@ -11,8 +11,8 @@ up alongside agent runs with zero new observability infrastructure — satisfyin
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable
 from threading import RLock
-from typing import Callable, Deque, Dict, List
 
 from src.ai.orchestration.events.events import EventType, OrchestrationEvent
 from src.ai.telemetry.logger import TelemetryLogger, get_default_logger
@@ -27,8 +27,8 @@ class EventEmitter:
 
     def __init__(self, history_size: int = 500) -> None:
         """Create an emitter retaining the last ``history_size`` events."""
-        self._listeners: Dict[str, List[Listener]] = {}
-        self._history: Deque[OrchestrationEvent] = deque(maxlen=history_size)
+        self._listeners: dict[str, list[Listener]] = {}
+        self._history: deque[OrchestrationEvent] = deque(maxlen=history_size)
         self._lock = RLock()
 
     def on(self, event_type, listener: Listener) -> Callable[[], None]:
@@ -58,7 +58,7 @@ class EventEmitter:
                 pass
         return event
 
-    def history(self, limit: int = 200) -> List[OrchestrationEvent]:
+    def history(self, limit: int = 200) -> list[OrchestrationEvent]:
         """Return the most recent events (newest last), up to ``limit``."""
         with self._lock:
             return list(self._history)[-limit:]

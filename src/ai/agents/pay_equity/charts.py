@@ -8,7 +8,7 @@ qualitative level or a coverage count — never a fabricated payroll figure.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.pay_equity.schemas import (
     CompressionAssessment,
@@ -29,9 +29,9 @@ def build_chart_data(
     inversion: InversionAssessment,
     policy_alignment: PolicyAlignment,
     executive_review: ExecutiveReview,
-    scenarios: List[EquityScenario],
-    offer: Dict[str, Any],
-) -> Dict[str, Any]:
+    scenarios: list[EquityScenario],
+    offer: dict[str, Any],
+) -> dict[str, Any]:
     """Build every chart structure for the pay-equity dashboard (Module 10)."""
     return {
         "equity_risk_gauge": {
@@ -63,7 +63,5 @@ def build_chart_data(
         "scenario_comparison": {
             s.name: {"target": s.offer_target, "equity_impact": s.equity_impact} for s in scenarios
         },
-        "executive_review_pipeline": [
-            a.approver for a in executive_review.approvals if a.required
-        ],
+        "executive_review_pipeline": [a.approver for a in executive_review.approvals if a.required],
     }

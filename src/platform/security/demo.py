@@ -37,11 +37,19 @@ def build_security_demo() -> SecurityPlatform:
 
     # -- identity + authorization --
     sp.identity.register_identity(
-        _TENANT, _ORG, "admin", secret="Adm1n!!secret", roles=["organization_admin"],
+        _TENANT,
+        _ORG,
+        "admin",
+        secret="Adm1n!!secret",
+        roles=["organization_admin"],
         email="admin@acme.com",
     )
     sp.identity.register_identity(
-        _TENANT, _ORG, "recruiter", secret="Recr!!secret", roles=["recruiter"],
+        _TENANT,
+        _ORG,
+        "recruiter",
+        secret="Recr!!secret",
+        roles=["recruiter"],
         email="recruiter@acme.com",
     )
     sp.authorization.hierarchy.define_group(
@@ -49,11 +57,17 @@ def build_security_demo() -> SecurityPlatform:
     )
     sp.authorization.hierarchy.define_role(_TENANT, _ORG, "recruiter", groups=["recruiting"])
     sp.authorization.add_policy(
-        _TENANT, _ORG, "no-offhours-writes", effect=PolicyEffect.DENY,
-        resource="candidate", action="update",
-        conditions=[AttributeCondition(
-            attribute="environment.after_hours", operator=AttributeOperator.EQ, value=True
-        )],
+        _TENANT,
+        _ORG,
+        "no-offhours-writes",
+        effect=PolicyEffect.DENY,
+        resource="candidate",
+        action="update",
+        conditions=[
+            AttributeCondition(
+                attribute="environment.after_hours", operator=AttributeOperator.EQ, value=True
+            )
+        ],
         priority=10,
     )
 
@@ -72,22 +86,33 @@ def build_security_demo() -> SecurityPlatform:
 
     # -- monitoring --
     sp.monitoring.add_rule(
-        _TENANT, _ORG, "High error rate", "error_rate",
-        domain=MonitorDomain.RUNTIME, comparison=Comparison.GT, threshold=0.05,
+        _TENANT,
+        _ORG,
+        "High error rate",
+        "error_rate",
+        domain=MonitorDomain.RUNTIME,
+        comparison=Comparison.GT,
+        threshold=0.05,
         severity=Severity.HIGH,
     )
     sp.monitoring.evaluate(_TENANT, _ORG, {"error_rate": 0.12})
 
     # -- governance --
     sp.governance.register_policy(
-        _TENANT, _ORG, "MFA required", domain=GovernanceDomain.SECURITY,
+        _TENANT,
+        _ORG,
+        "MFA required",
+        domain=GovernanceDomain.SECURITY,
         enforcement=Enforcement.ENFORCE,
-        rules=[GovernanceRule(
-            key="mfa", description="MFA must be enabled",
-            condition=AttributeCondition(
-                attribute="identity.mfa", operator=AttributeOperator.EQ, value=True
-            ),
-        )],
+        rules=[
+            GovernanceRule(
+                key="mfa",
+                description="MFA must be enabled",
+                condition=AttributeCondition(
+                    attribute="identity.mfa", operator=AttributeOperator.EQ, value=True
+                ),
+            )
+        ],
     )
 
     # -- compliance --

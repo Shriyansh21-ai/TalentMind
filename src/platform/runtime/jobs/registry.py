@@ -8,7 +8,7 @@ holds business logic itself, and a job can be *defined* without a handler bound
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from src.platform.common.errors import ConflictError
 from src.platform.runtime.common.errors import JobNotFoundError

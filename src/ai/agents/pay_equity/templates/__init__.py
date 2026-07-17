@@ -37,11 +37,11 @@ class PayPolicy:
     key: str
     name: str
     summary: str
-    priority_factors: List[str] = field(default_factory=list)
-    review_triggers: List[str] = field(default_factory=list)
+    priority_factors: list[str] = field(default_factory=list)
+    review_triggers: list[str] = field(default_factory=list)
 
 
-PAY_POLICIES: Dict[str, PayPolicy] = {
+PAY_POLICIES: dict[str, PayPolicy] = {
     "pay_band_first": PayPolicy(
         key="pay_band_first",
         name="Pay-Band First",
@@ -68,7 +68,12 @@ PAY_POLICIES: Dict[str, PayPolicy] = {
         name="Strategic Hire",
         summary="Strategic value can justify a premium; equity impact must be documented.",
         priority_factors=["strategic_value", "market", "internal_equity"],
-        review_triggers=["compression_medium", "compression_high", "inversion_detected", "outside_band"],
+        review_triggers=[
+            "compression_medium",
+            "compression_high",
+            "inversion_detected",
+            "outside_band",
+        ],
     ),
     "critical_talent": PayPolicy(
         key="critical_talent",
@@ -87,14 +92,14 @@ def get_policy(key: str) -> PayPolicy:
     return PAY_POLICIES.get((key or "").strip().lower(), PAY_POLICIES[DEFAULT_POLICY])
 
 
-def list_policies() -> List[PayPolicy]:
+def list_policies() -> list[PayPolicy]:
     """Return every registered pay policy (stable order)."""
     return list(PAY_POLICIES.values())
 
 
 # Module 12 — extension-point registry. The systems the data-provider interface is
 # DESIGNED for; none is implemented (no payroll connectors ship).
-HRIS_PROVIDERS: List[str] = [
+HRIS_PROVIDERS: list[str] = [
     "Workday",
     "SAP SuccessFactors",
     "Oracle HCM",
@@ -106,7 +111,7 @@ HRIS_PROVIDERS: List[str] = [
 ]
 
 # Module 7 — ordered approver ladder for the executive-review engine.
-APPROVAL_LADDER: List[str] = [
+APPROVAL_LADDER: list[str] = [
     "Recruiter",
     "Hiring Manager",
     "HR",

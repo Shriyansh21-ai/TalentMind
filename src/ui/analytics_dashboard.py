@@ -12,20 +12,20 @@ intelligence or re-reads the dataset.
 
 from __future__ import annotations
 
-from typing import Dict, List, Sequence
+from collections.abc import Sequence
 
 import streamlit as st
 
-from src.models.candidates import Candidate
-from src.insights.models import CandidateInsights
-from src.pipeline.models import CandidatePipelineStatus
 from src.dashboard import analytics, charts
+from src.insights.models import CandidateInsights
+from src.models.candidates import Candidate
+from src.pipeline.models import CandidatePipelineStatus
 
 
 def render_enterprise_dashboard(
     candidates: Sequence[Candidate],
     insights: Sequence[CandidateInsights],
-    pipeline_states: Dict[str, CandidatePipelineStatus],
+    pipeline_states: dict[str, CandidatePipelineStatus],
 ) -> None:
     """Render the full enterprise analytics dashboard.
 
@@ -41,7 +41,7 @@ def render_enterprise_dashboard(
         f"pipeline analytics over {len(pipeline_states):,} tracked."
     )
 
-    states: List[CandidatePipelineStatus] = list(pipeline_states.values())
+    states: list[CandidatePipelineStatus] = list(pipeline_states.values())
 
     # -- Pipeline row -------------------------------------------------------
     stage_counts = analytics.stage_distribution(states)
@@ -50,13 +50,9 @@ def render_enterprise_dashboard(
         charts.hiring_funnel(analytics.funnel_counts(states)),
         use_container_width=True,
     )
-    row1[1].plotly_chart(
-        charts.pipeline_chart(stage_counts), use_container_width=True
-    )
+    row1[1].plotly_chart(charts.pipeline_chart(stage_counts), use_container_width=True)
 
-    st.plotly_chart(
-        charts.stage_distribution_chart(stage_counts), use_container_width=True
-    )
+    st.plotly_chart(charts.stage_distribution_chart(stage_counts), use_container_width=True)
 
     # -- Intelligence row ---------------------------------------------------
     row2 = st.columns(2)
@@ -70,18 +66,14 @@ def render_enterprise_dashboard(
     )
 
     st.plotly_chart(
-        charts.recommendation_distribution_chart(
-            analytics.recommendation_distribution(insights)
-        ),
+        charts.recommendation_distribution_chart(analytics.recommendation_distribution(insights)),
         use_container_width=True,
     )
 
     # -- Cohort composition row --------------------------------------------
     row3 = st.columns(2)
     row3[0].plotly_chart(
-        charts.experience_distribution_chart(
-            analytics.experience_distribution(candidates)
-        ),
+        charts.experience_distribution_chart(analytics.experience_distribution(candidates)),
         use_container_width=True,
     )
     row3[1].plotly_chart(
@@ -91,14 +83,10 @@ def render_enterprise_dashboard(
 
     row4 = st.columns(2)
     row4[0].plotly_chart(
-        charts.location_distribution_chart(
-            analytics.location_distribution(candidates)
-        ),
+        charts.location_distribution_chart(analytics.location_distribution(candidates)),
         use_container_width=True,
     )
     row4[1].plotly_chart(
-        charts.company_distribution_chart(
-            analytics.company_distribution(candidates)
-        ),
+        charts.company_distribution_chart(analytics.company_distribution(candidates)),
         use_container_width=True,
     )

@@ -12,9 +12,9 @@ share one computation per candidate. No scoring or ranking logic runs here.
 
 import streamlit as st
 
+from src.interview.planner import build_interview_plan
 from src.models.candidates import Candidate
 from src.recruiter.pipeline import get_status
-from src.interview.planner import build_interview_plan
 from src.ui.helpers import calculate_badge, get_insights
 from src.ui.pipeline_controls import render_pipeline_controls
 from src.ui.profile_tabs import render_profile_tabs

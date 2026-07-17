@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import re
 from datetime import date
-from typing import List, Optional, Tuple
 
 from src.models.candidates import Candidate, CareerHistory
 
@@ -23,7 +22,7 @@ from src.models.candidates import Candidate, CareerHistory
 # ---------------------------------------------------------------------------
 
 # Ordered by seniority so the *highest* matching rank wins.
-_SENIORITY_KEYWORDS: List[Tuple[int, Tuple[str, ...]]] = [
+_SENIORITY_KEYWORDS: list[tuple[int, tuple[str, ...]]] = [
     (6, ("chief", "cto", "ceo", "cio", "vp", "vice president")),
     (5, ("director", "head of", "head,", " head", "manager", "engineering manager")),
     (4, ("principal", "staff", "architect", "lead")),
@@ -31,7 +30,7 @@ _SENIORITY_KEYWORDS: List[Tuple[int, Tuple[str, ...]]] = [
     (1, ("junior", "jr.", "jr ", "associate", "trainee", "intern")),
 ]
 
-_MANAGEMENT_KEYWORDS: Tuple[str, ...] = (
+_MANAGEMENT_KEYWORDS: tuple[str, ...] = (
     "manager",
     "head",
     "director",
@@ -42,20 +41,20 @@ _MANAGEMENT_KEYWORDS: Tuple[str, ...] = (
     "ceo",
 )
 
-_LEADERSHIP_KEYWORDS: Tuple[str, ...] = _MANAGEMENT_KEYWORDS + (
+_LEADERSHIP_KEYWORDS: tuple[str, ...] = _MANAGEMENT_KEYWORDS + (
     "lead",
     "principal",
     "staff",
     "architect",
 )
 
-_CONSULTING_KEYWORDS: Tuple[str, ...] = (
+_CONSULTING_KEYWORDS: tuple[str, ...] = (
     "consult",
     "advisory",
     "it services",
 )
 
-_LEADERSHIP_VERBS: Tuple[str, ...] = (
+_LEADERSHIP_VERBS: tuple[str, ...] = (
     "led",
     "managed",
     "mentored",
@@ -69,7 +68,7 @@ _LEADERSHIP_VERBS: Tuple[str, ...] = (
 
 # Technologies commonly treated as legacy / declining in modern hiring.
 # Public: consumed by the risk engine's skill-stagnation heuristic.
-OUTDATED_TECHNOLOGIES: Tuple[str, ...] = (
+OUTDATED_TECHNOLOGIES: tuple[str, ...] = (
     "jquery",
     "angularjs",
     "flash",
@@ -91,7 +90,7 @@ OUTDATED_TECHNOLOGIES: Tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 
-def parse_date(value: Optional[str]) -> Optional[date]:
+def parse_date(value: str | None) -> date | None:
     """Parse an ISO ``YYYY-MM-DD`` date string, returning ``None`` on failure.
 
     Gracefully tolerates ``None`` (open-ended / current roles) and malformed
@@ -106,8 +105,8 @@ def parse_date(value: Optional[str]) -> Optional[date]:
 
 
 def sort_career_chronologically(
-    career: List[CareerHistory],
-) -> List[CareerHistory]:
+    career: list[CareerHistory],
+) -> list[CareerHistory]:
     """Return career history ordered oldest-first by start date.
 
     Entries with unparseable start dates are pushed to the end while keeping a
@@ -115,11 +114,11 @@ def sort_career_chronologically(
     """
     return sorted(
         career,
-        key=lambda job: (parse_date(job.start_date) or date.max),
+        key=lambda job: parse_date(job.start_date) or date.max,
     )
 
 
-def months_between(earlier: Optional[date], later: Optional[date]) -> Optional[int]:
+def months_between(earlier: date | None, later: date | None) -> int | None:
     """Whole-month distance between two dates (``later - earlier``).
 
     Returns ``None`` if either date is missing.
@@ -129,7 +128,7 @@ def months_between(earlier: Optional[date], later: Optional[date]) -> Optional[i
     return (later.year - earlier.year) * 12 + (later.month - earlier.month)
 
 
-def average_job_duration_months(career: List[CareerHistory]) -> float:
+def average_job_duration_months(career: list[CareerHistory]) -> float:
     """Mean tenure (in months) across all roles; ``0.0`` when empty."""
     if not career:
         return 0.0
@@ -151,9 +150,9 @@ def total_experience_years(candidate: Candidate) -> float:
 
 
 def employment_gaps(
-    career: List[CareerHistory],
+    career: list[CareerHistory],
     min_gap_months: int = 3,
-) -> List[Tuple[str, str, int]]:
+) -> list[tuple[str, str, int]]:
     """Detect employment gaps between consecutive roles.
 
     Args:
@@ -165,7 +164,7 @@ def employment_gaps(
         every gap at or above ``min_gap_months``.
     """
     ordered = sort_career_chronologically(career)
-    gaps: List[Tuple[str, str, int]] = []
+    gaps: list[tuple[str, str, int]] = []
 
     for previous, following in zip(ordered, ordered[1:]):
         prev_end = parse_date(previous.end_date)
@@ -207,7 +206,7 @@ def is_leadership_title(title: str) -> bool:
     return any(keyword in text for keyword in _LEADERSHIP_KEYWORDS)
 
 
-def has_leadership_evidence(career: List[CareerHistory]) -> bool:
+def has_leadership_evidence(career: list[CareerHistory]) -> bool:
     """True when any title or role description shows leadership evidence."""
     for job in career:
         if is_leadership_title(job.title):
@@ -223,7 +222,7 @@ def has_leadership_evidence(career: List[CareerHistory]) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def company_size_tier(company_size: Optional[str]) -> int:
+def company_size_tier(company_size: str | None) -> int:
     """Classify a company-size band into a tier.
 
     Tiers: 1 startup (<=50), 2 growth (51-500), 3 large (501-5000),
@@ -255,17 +254,17 @@ def _tier_from_headcount(headcount: int) -> int:
     return 4
 
 
-def has_startup_experience(career: List[CareerHistory]) -> bool:
+def has_startup_experience(career: list[CareerHistory]) -> bool:
     """True when the candidate worked at a startup-sized company (<=50)."""
     return any(company_size_tier(job.company_size) == 1 for job in career)
 
 
-def has_enterprise_experience(career: List[CareerHistory]) -> bool:
+def has_enterprise_experience(career: list[CareerHistory]) -> bool:
     """True when the candidate worked at an enterprise-sized company (>5000)."""
     return any(company_size_tier(job.company_size) == 4 for job in career)
 
 
-def has_consulting_background(career: List[CareerHistory]) -> bool:
+def has_consulting_background(career: list[CareerHistory]) -> bool:
     """True when any company or industry indicates consulting/services work."""
     for job in career:
         haystack = f"{job.company} {job.industry}".lower()
@@ -274,7 +273,7 @@ def has_consulting_background(career: List[CareerHistory]) -> bool:
     return False
 
 
-def domain_consistency(career: List[CareerHistory]) -> float:
+def domain_consistency(career: list[CareerHistory]) -> float:
     """Fraction (0-1) of roles in the most common industry.
 
     A proxy for domain specialization vs. domain hopping. Returns ``1.0`` for
@@ -294,7 +293,7 @@ def domain_consistency(career: List[CareerHistory]) -> float:
     return round(dominant / len(career), 2)
 
 
-def count_promotions(career: List[CareerHistory]) -> int:
+def count_promotions(career: list[CareerHistory]) -> int:
     """Count upward seniority transitions across the chronological timeline."""
     ordered = sort_career_chronologically(career)
     promotions = 0

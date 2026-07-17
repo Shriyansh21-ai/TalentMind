@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Canonical résumé sections we look for (Module 1).
 CANONICAL_SECTIONS = [
@@ -40,7 +40,17 @@ _SECTION_CUES = {
     "links": ("links", "portfolio", "github", "linkedin", "website"),
 }
 
-_PROJECT_CUES = ("built", "designed", "developed", "architected", "created", "led", "launched", "implemented", "shipped")
+_PROJECT_CUES = (
+    "built",
+    "designed",
+    "developed",
+    "architected",
+    "created",
+    "led",
+    "launched",
+    "implemented",
+    "shipped",
+)
 
 
 @dataclass
@@ -50,12 +60,12 @@ class ResumeExperience:
     company: str = ""
     title: str = ""
     start_date: str = ""
-    end_date: Optional[str] = None
+    end_date: str | None = None
     duration_months: int = 0
     is_current: bool = False
     industry: str = ""
     description: str = ""
-    bullets: List[str] = field(default_factory=list)
+    bullets: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -65,7 +75,7 @@ class ResumeProject:
     name: str = ""
     text: str = ""
     source: str = ""  # where it came from (e.g. "work_experience:Acme")
-    technologies: List[str] = field(default_factory=list)
+    technologies: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -80,17 +90,17 @@ class ResumeDocument:
     summary: str = ""
     headline: str = ""
     years_of_experience: float = 0.0
-    experiences: List[ResumeExperience] = field(default_factory=list)
-    projects: List[ResumeProject] = field(default_factory=list)
-    skills: List[str] = field(default_factory=list)
-    skill_endorsements: Dict[str, int] = field(default_factory=dict)
-    education: List[Dict[str, Any]] = field(default_factory=list)
-    certifications: List[str] = field(default_factory=list)
-    languages: List[str] = field(default_factory=list)
-    links: Dict[str, bool] = field(default_factory=dict)
-    sections_present: List[str] = field(default_factory=list)
-    sections_empty: List[str] = field(default_factory=list)
-    bullets: List[str] = field(default_factory=list)
+    experiences: list[ResumeExperience] = field(default_factory=list)
+    projects: list[ResumeProject] = field(default_factory=list)
+    skills: list[str] = field(default_factory=list)
+    skill_endorsements: dict[str, int] = field(default_factory=dict)
+    education: list[dict[str, Any]] = field(default_factory=list)
+    certifications: list[str] = field(default_factory=list)
+    languages: list[str] = field(default_factory=list)
+    links: dict[str, bool] = field(default_factory=dict)
+    sections_present: list[str] = field(default_factory=list)
+    sections_empty: list[str] = field(default_factory=list)
+    bullets: list[str] = field(default_factory=list)
     raw_text: str = ""
 
     def all_text(self) -> str:
@@ -100,7 +110,7 @@ class ResumeDocument:
         parts += [p.text for p in self.projects]
         return " ".join(p for p in parts if p).lower()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the document."""
         return {
             "candidate_id": self.candidate_id,
@@ -121,7 +131,7 @@ class ResumeDocument:
         }
 
 
-def _split_bullets(text: str) -> List[str]:
+def _split_bullets(text: str) -> list[str]:
     """Split a free-text description into bullet-like statements."""
     if not text:
         return []
@@ -130,9 +140,9 @@ def _split_bullets(text: str) -> List[str]:
     return [p.strip(" -\t") for p in pieces if p and len(p.strip(" -\t")) > 2]
 
 
-def _detect_projects(experiences: List[ResumeExperience], summary: str) -> List[ResumeProject]:
+def _detect_projects(experiences: list[ResumeExperience], summary: str) -> list[ResumeProject]:
     """Detect project-like statements from experience bullets + summary."""
-    projects: List[ResumeProject] = []
+    projects: list[ResumeProject] = []
     pool = [("professional_summary", b) for b in _split_bullets(summary)]
     for exp in experiences:
         pool += [(f"work_experience:{exp.company}", b) for b in exp.bullets]
@@ -203,8 +213,8 @@ def from_candidate(candidate: Any, *, resume_text: str = "") -> ResumeDocument:
 
 def _mark_sections(doc: ResumeDocument) -> None:
     """Populate ``sections_present`` / ``sections_empty`` from the document."""
-    present: List[str] = []
-    empty: List[str] = []
+    present: list[str] = []
+    empty: list[str] = []
 
     checks = {
         "contact_information": bool(doc.links.get("verified_email") or doc.links.get("linkedin")),
@@ -238,7 +248,9 @@ def _mentions(doc: ResumeDocument, cues) -> bool:
     return any(cue in blob for cue in cues)
 
 
-def extract(candidate: Any = None, *, resume_text: str = "", candidate_id: str = "") -> ResumeDocument:
+def extract(
+    candidate: Any = None, *, resume_text: str = "", candidate_id: str = ""
+) -> ResumeDocument:
     """Public entry: build a document from a candidate and/or raw text."""
     if candidate is not None:
         return from_candidate(candidate, resume_text=resume_text)

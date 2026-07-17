@@ -8,18 +8,16 @@ falls back to the always-available :class:`LocalHeuristicProvider`.
 
 from __future__ import annotations
 
-from typing import Dict, Tuple, Type
-
 from src.ai.config.settings import AISettings
 from src.ai.core.exceptions import ProviderUnavailableError
 from src.ai.providers.base import BaseLLMProvider
-from src.ai.providers.local import LocalHeuristicProvider
-from src.ai.providers.openai_provider import OpenAIProvider
 from src.ai.providers.claude_provider import ClaudeProvider
 from src.ai.providers.gemini_provider import GeminiProvider
+from src.ai.providers.local import LocalHeuristicProvider
 from src.ai.providers.ollama_provider import OllamaProvider
+from src.ai.providers.openai_provider import OpenAIProvider
 
-_REGISTRY: Dict[str, Type[BaseLLMProvider]] = {
+_REGISTRY: dict[str, type[BaseLLMProvider]] = {
     "local": LocalHeuristicProvider,
     "openai": OpenAIProvider,
     "claude": ClaudeProvider,
@@ -28,7 +26,7 @@ _REGISTRY: Dict[str, Type[BaseLLMProvider]] = {
 }
 
 
-def register_provider(key: str, provider_cls: Type[BaseLLMProvider]) -> None:
+def register_provider(key: str, provider_cls: type[BaseLLMProvider]) -> None:
     """Register a custom provider class under ``key`` (extension point)."""
     _REGISTRY[key] = provider_cls
 
@@ -45,7 +43,7 @@ def build_provider(key: str, settings: AISettings) -> BaseLLMProvider:
     return provider_cls(settings)
 
 
-def get_provider(settings: AISettings) -> Tuple[BaseLLMProvider, list]:
+def get_provider(settings: AISettings) -> tuple[BaseLLMProvider, list]:
     """Return ``(provider, warnings)`` for the configured provider.
 
     If the configured provider is unhealthy and the platform is not strict, a
@@ -69,20 +67,18 @@ def get_provider(settings: AISettings) -> Tuple[BaseLLMProvider, list]:
 
     if settings.strict:
         raise ProviderUnavailableError(
-            f"Configured provider {settings.provider!r} is unavailable and "
-            "strict mode is enabled."
+            f"Configured provider {settings.provider!r} is unavailable and strict mode is enabled."
         )
 
     warnings.append(
-        f"Provider {settings.provider!r} unavailable; using deterministic "
-        "local provider instead."
+        f"Provider {settings.provider!r} unavailable; using deterministic local provider instead."
     )
     return LocalHeuristicProvider(settings), warnings
 
 
-def available_providers(settings: AISettings) -> Dict[str, bool]:
+def available_providers(settings: AISettings) -> dict[str, bool]:
     """Return ``{provider_key: healthy}`` for every registered provider."""
-    status: Dict[str, bool] = {}
+    status: dict[str, bool] = {}
     for key, provider_cls in _REGISTRY.items():
         try:
             status[key] = provider_cls(settings).health_check()

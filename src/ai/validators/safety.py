@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from src.ai.core.exceptions import SafetyViolationError
 from src.ai.schemas.base import BaseAIResponse
@@ -48,7 +48,7 @@ class SafetyReport:
     """
 
     ok: bool = True
-    warnings: List[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
 
 class SafetyGuard:
@@ -74,8 +74,8 @@ class SafetyGuard:
     def review(
         self,
         response: BaseAIResponse,
-        evidence: Dict[str, Any],
-    ) -> Tuple[BaseAIResponse, SafetyReport]:
+        evidence: dict[str, Any],
+    ) -> tuple[BaseAIResponse, SafetyReport]:
         """Run soft safety checks and return ``(response, report)``.
 
         Checks (all non-fatal):
@@ -118,7 +118,7 @@ class SafetyGuard:
 
 def _stringify(value: Any) -> str:
     """Flatten a nested evidence structure into a single searchable string."""
-    parts: List[str] = []
+    parts: list[str] = []
     if isinstance(value, dict):
         for key, sub in value.items():
             parts.append(str(key))
@@ -131,7 +131,7 @@ def _stringify(value: Any) -> str:
     return " ".join(parts)
 
 
-def _low_confidence(evidence: Dict[str, Any]) -> bool:
+def _low_confidence(evidence: dict[str, Any]) -> bool:
     """Best-effort read of whether the evidence implies low confidence."""
     intelligence = evidence.get("intelligence", {}) if isinstance(evidence, dict) else {}
     confidence = intelligence.get("confidence")

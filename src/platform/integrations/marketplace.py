@@ -67,9 +67,7 @@ class MarketplaceService:
 
     # -- catalogue ----------------------------------------------------------
 
-    def catalog(
-        self, *, category: ProviderCategory | None = None
-    ) -> list[IntegrationDefinition]:
+    def catalog(self, *, category: ProviderCategory | None = None) -> list[IntegrationDefinition]:
         """Return the available-provider catalogue, optionally by category."""
         return self._manager.available_providers(category=category)
 
@@ -114,9 +112,7 @@ class MarketplaceService:
         integration = self._manager.get(tenant_id, integration_id)
         definition = self._manager.registry.definition(integration.definition_key)
         statistics = self._observability.stats_for(tenant_id, integration_id)
-        logs = self._observability.logs(
-            tenant_id=tenant_id, integration_id=integration_id
-        )
+        logs = self._observability.logs(tenant_id=tenant_id, integration_id=integration_id)
         sync_health: dict[str, object] = {}
         if self._sync is not None:
             sync_health = self._sync.health(tenant_id, integration_id)

@@ -9,13 +9,13 @@ Policy conclusions are governance findings — never legal opinions (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compliance.schemas import ApprovalMatrix, PolicyCheck
 from src.ai.agents.compliance.templates import CompliancePolicy
 
 
-def _applies(policy: CompliancePolicy, context: Dict[str, Any]) -> bool:
+def _applies(policy: CompliancePolicy, context: dict[str, Any]) -> bool:
     """Return whether a policy's ``applies_when`` condition holds in the context."""
     cond = policy.applies_when
     if cond == "always":
@@ -31,7 +31,9 @@ def _applies(policy: CompliancePolicy, context: Dict[str, Any]) -> bool:
     return False
 
 
-def _control_state(policy: CompliancePolicy, context: Dict[str, Any], approvals: ApprovalMatrix) -> tuple:
+def _control_state(
+    policy: CompliancePolicy, context: dict[str, Any], approvals: ApprovalMatrix
+) -> tuple:
     """Return ``(status, rationale, actions)`` for a policy's required control."""
     sources = set(context.get("evidence_sources", []))
     req = policy.requires
@@ -39,7 +41,11 @@ def _control_state(policy: CompliancePolicy, context: Dict[str, Any], approvals:
     if req == "committee_complete":
         if "AI Hiring Committee" in sources:
             return "Compliant", "A completed committee decision is on file.", []
-        return "Violation", "Policy requires a committee decision, which is not evidenced.", ["Convene the hiring committee before proceeding."]
+        return (
+            "Violation",
+            "Policy requires a committee decision, which is not evidenced.",
+            ["Convene the hiring committee before proceeding."],
+        )
 
     approval_map = {a.approver: a for a in approvals.approvals}
     if req in ("executive_approval", "finance_approval"):
@@ -48,22 +54,34 @@ def _control_state(policy: CompliancePolicy, context: Dict[str, Any], approvals:
         if status_obj and status_obj.state == "Complete":
             return "Compliant", f"{role} approval is complete.", []
         if status_obj and status_obj.state == "Requires Review":
-            return "Requires Review", f"{role} approval cannot be confirmed without an approval system.", [f"Confirm {role} approval."]
-        return "Violation", f"Policy requires {role} approval, which is missing.", [f"Obtain {role} approval."]
+            return (
+                "Requires Review",
+                f"{role} approval cannot be confirmed without an approval system.",
+                [f"Confirm {role} approval."],
+            )
+        return (
+            "Violation",
+            f"Policy requires {role} approval, which is missing.",
+            [f"Obtain {role} approval."],
+        )
 
     if req == "extra_documentation":
-        return "Requires Review", "Remote hire requires additional documentation; presence cannot be confirmed without a document source.", ["Confirm remote-hire documentation is filed."]
+        return (
+            "Requires Review",
+            "Remote hire requires additional documentation; presence cannot be confirmed without a document source.",
+            ["Confirm remote-hire documentation is filed."],
+        )
 
     return "Not Evaluable", "No evaluable control mapped to this policy.", []
 
 
 def evaluate_policies(
-    policies: List[CompliancePolicy],
-    context: Dict[str, Any],
+    policies: list[CompliancePolicy],
+    context: dict[str, Any],
     approvals: ApprovalMatrix,
-) -> List[PolicyCheck]:
+) -> list[PolicyCheck]:
     """Evaluate each configured policy against the context (Module 3)."""
-    checks: List[PolicyCheck] = []
+    checks: list[PolicyCheck] = []
     for policy in policies:
         if not _applies(policy, context):
             checks.append(

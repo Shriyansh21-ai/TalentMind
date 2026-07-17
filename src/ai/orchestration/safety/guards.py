@@ -17,9 +17,8 @@ gracefully rather than crash — "Graceful degradation."
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from threading import RLock
-from typing import Dict, List, Set
 
 from src.ai.orchestration.models import Task, TaskGraph
 from src.ai.orchestration.registry.agent_registry import (
@@ -54,9 +53,9 @@ class OrchestrationSafetyGuard:
         """Bind the guard to a set of :class:`SafetyLimits`."""
         self.limits = limits or SafetyLimits()
         self._executions = 0
-        self._signatures: Set[str] = set()
-        self._output_owner: Dict[str, str] = {}
-        self._warnings: List[str] = []
+        self._signatures: set[str] = set()
+        self._output_owner: dict[str, str] = {}
+        self._warnings: list[str] = []
         self._lock = RLock()
 
     # -- graph-level checks -------------------------------------------------
@@ -75,7 +74,7 @@ class OrchestrationSafetyGuard:
 
     def _check_output_conflicts(self, graph: TaskGraph) -> None:
         """Warn when two tasks declare the same output slot (conflicting outputs)."""
-        owners: Dict[str, str] = {}
+        owners: dict[str, str] = {}
         for task in graph:
             slot = task.metadata.get("output_slot")
             if not slot:
@@ -140,7 +139,7 @@ class OrchestrationSafetyGuard:
             self._warnings.append(message)
 
     @property
-    def warnings(self) -> List[str]:
+    def warnings(self) -> list[str]:
         """Return the accumulated soft warnings."""
         with self._lock:
             return list(self._warnings)

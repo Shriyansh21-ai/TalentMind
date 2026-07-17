@@ -5,10 +5,7 @@ def get_skill_gap(candidate, jd_text):
     candidate_skills = set()
 
     for skill in candidate.skills:
-
-        candidate_skills.add(
-            skill.name.lower()
-        )
+        candidate_skills.add(skill.name.lower())
 
     important_skills = [
         "python",
@@ -29,13 +26,12 @@ def get_skill_gap(candidate, jd_text):
         "docker",
         "kubernetes",
         "tensorflow",
-        "pytorch"
+        "pytorch",
     ]
 
     required_skills = []
 
     for skill in important_skills:
-
         if skill in jd_text:
             required_skills.append(skill)
 
@@ -44,24 +40,14 @@ def get_skill_gap(candidate, jd_text):
     missing_skills = []
 
     for skill in required_skills:
-
         if skill in candidate_skills:
-
             matched_skills.append(skill)
 
         else:
-
             missing_skills.append(skill)
 
     return {
         "matched": matched_skills,
         "missing": missing_skills,
-        "match_percent": round(
-            (
-                len(matched_skills)
-                /
-                max(len(required_skills), 1)
-            ) * 100,
-            2
-        )
+        "match_percent": round((len(matched_skills) / max(len(required_skills), 1)) * 100, 2),
     }

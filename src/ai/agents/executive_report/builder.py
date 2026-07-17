@@ -14,9 +14,7 @@ so the builder is fully testable and swappable — SOLID / DI by construction.
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
-
-from src.ai.core.runner import AgentRunner
+from typing import Any
 
 from src.ai.agents.executive_report import charts as charts_mod
 from src.ai.agents.executive_report import validators
@@ -36,6 +34,7 @@ from src.ai.agents.executive_report.schemas import (
 )
 from src.ai.committee.committee import HiringCommitteeEngine, gather_evidence
 from src.ai.committee.schemas import CommitteeMode
+from src.ai.core.runner import AgentRunner
 
 # Map any upstream recommendation label -> an executive action disposition (M8).
 _ACTION_MAP = {
@@ -70,9 +69,9 @@ class ExecutiveReportBuilder:
     def __init__(
         self,
         *,
-        ai_runner: Optional[AgentRunner] = None,
-        committee_engine: Optional[HiringCommitteeEngine] = None,
-        insights_fn: Optional[Any] = None,
+        ai_runner: AgentRunner | None = None,
+        committee_engine: HiringCommitteeEngine | None = None,
+        insights_fn: Any | None = None,
     ) -> None:
         """Wire the builder's collaborators (all optional; sane defaults used)."""
         self.ai_runner = ai_runner or AgentRunner()
@@ -85,7 +84,7 @@ class ExecutiveReportBuilder:
         self,
         candidate: Any = None,
         *,
-        candidate_id: Optional[str] = None,
+        candidate_id: str | None = None,
         repository: Any = None,
         jd: str = "",
         template: str = "executive",
@@ -109,7 +108,7 @@ class ExecutiveReportBuilder:
         )
 
         # 2) Committee decision (reuses the same cached outputs).
-        committee_dict: Dict[str, Any] = {}
+        committee_dict: dict[str, Any] = {}
         if run_committee:
             engine = self.committee_engine or HiringCommitteeEngine(
                 insights_fn=self.insights_fn, ai_runner=self.ai_runner
@@ -151,10 +150,16 @@ class ExecutiveReportBuilder:
         # 5) Synthesized presentation layers (all derived from the evidence).
         interview_strategy = self._interview_strategy(interview, recommendation, committee_dict)
         action_plan = self._action_plan(narrative, recommendation, interview, risk)
-        business_intelligence = self._business_intelligence(intelligence, recommendation, risk, timeline, committee_dict)
+        business_intelligence = self._business_intelligence(
+            intelligence, recommendation, risk, timeline, committee_dict
+        )
         chart_data = charts_mod.build_chart_data(
-            intelligence=intelligence, timeline=timeline, risk=risk,
-            committee=committee_dict, interview=interview, resume=resume,
+            intelligence=intelligence,
+            timeline=timeline,
+            risk=risk,
+            committee=committee_dict,
+            interview=interview,
+            resume=resume,
         )
         provenance = validators.build_provenance(narrative, evidence)
 
@@ -172,7 +177,8 @@ class ExecutiveReportBuilder:
             candidate_overview=overview,
             narrative=narrative,
             resume_summary=resume.get("executive_summary", "") or "No resume analysis available.",
-            jd_summary=jd_norm.get("executive_summary", "") or "No job description was analysed for this report.",
+            jd_summary=jd_norm.get("executive_summary", "")
+            or "No job description was analysed for this report.",
             role_intelligence=role_intel,
             candidate_intelligence=intelligence,
             committee=committee_dict,
@@ -189,7 +195,7 @@ class ExecutiveReportBuilder:
     # -- normalization helpers ---------------------------------------------
 
     @staticmethod
-    def _overview(bundle: Any) -> Dict[str, Any]:
+    def _overview(bundle: Any) -> dict[str, Any]:
         return {
             "candidate_id": bundle.candidate_id,
             "title": bundle.title,
@@ -199,7 +205,7 @@ class ExecutiveReportBuilder:
         }
 
     @staticmethod
-    def _model_dict(model: Any) -> Dict[str, Any]:
+    def _model_dict(model: Any) -> dict[str, Any]:
         """Return a plain dict for a pydantic model / dataclass / dict / None."""
         if model is None:
             return {}
@@ -212,7 +218,7 @@ class ExecutiveReportBuilder:
         except TypeError:
             return dict(model) if isinstance(model, dict) else {}
 
-    def _resume(self, resume_analysis: Any) -> Dict[str, Any]:
+    def _resume(self, resume_analysis: Any) -> dict[str, Any]:
         if resume_analysis is None:
             return {}
         quality = self._model_dict(getattr(resume_analysis, "resume_quality", None))
@@ -223,7 +229,7 @@ class ExecutiveReportBuilder:
             "weaknesses": list(getattr(resume_analysis, "weaknesses", []) or []),
         }
 
-    def _jd(self, jd_analysis: Any) -> Dict[str, Any]:
+    def _jd(self, jd_analysis: Any) -> dict[str, Any]:
         if jd_analysis is None:
             return {}
         return {
@@ -232,10 +238,14 @@ class ExecutiveReportBuilder:
         }
 
     def _role_intelligence(
-        self, jd_analysis: Any, jd_norm: Dict[str, Any], timeline: Dict[str, Any], resume: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self,
+        jd_analysis: Any,
+        jd_norm: dict[str, Any],
+        timeline: dict[str, Any],
+        resume: dict[str, Any],
+    ) -> dict[str, Any]:
         """Build the role-intelligence display dict from the JD analysis."""
-        role: Dict[str, Any] = {"_timeline": timeline, "_resume_quality": resume.get("quality", {})}
+        role: dict[str, Any] = {"_timeline": timeline, "_resume_quality": resume.get("quality", {})}
         if jd_analysis is None:
             return role
         ri = self._model_dict(getattr(jd_analysis, "role_intelligence", None))
@@ -246,7 +256,7 @@ class ExecutiveReportBuilder:
         mi = self._model_dict(getattr(jd_analysis, "market_intelligence", None))
         quality = jd_norm.get("quality", {})
 
-        stack: List[str] = []
+        stack: list[str] = []
         for key in ("languages", "frameworks", "cloud", "ai_ml", "devops", "data"):
             stack.extend(ti.get(key, []) or [])
 
@@ -256,7 +266,8 @@ class ExecutiveReportBuilder:
                 "seniority": ri.get("seniority", ""),
                 "technical_level": ri.get("technical_level", ""),
                 "primary_intent": hi.get("primary_intent", ""),
-                "organization_maturity": org.get("engineering_maturity") or org.get("company_type", ""),
+                "organization_maturity": org.get("engineering_maturity")
+                or org.get("company_type", ""),
                 "market_competitiveness": mi.get("summary", ""),
                 "role_clarity": f"{clarity:.0f}/100" if isinstance(clarity, (int, float)) else "",
                 "mandatory": list(rh.get("mandatory", []) or []),
@@ -268,7 +279,9 @@ class ExecutiveReportBuilder:
 
     # -- narrative ----------------------------------------------------------
 
-    def _narrative(self, payload: ExecutiveReportInput, evidence: Dict[str, Any]) -> ExecutiveNarrative:
+    def _narrative(
+        self, payload: ExecutiveReportInput, evidence: dict[str, Any]
+    ) -> ExecutiveNarrative:
         """Run the agent; fall back to the deterministic composer on any failure."""
         try:
             result = self.ai_runner.run(executive_report_agent, payload)
@@ -282,7 +295,7 @@ class ExecutiveReportBuilder:
 
     @staticmethod
     def _interview_strategy(
-        interview: Dict[str, Any], recommendation: Dict[str, Any], committee: Dict[str, Any]
+        interview: dict[str, Any], recommendation: dict[str, Any], committee: dict[str, Any]
     ) -> InterviewStrategy:
         priorities = list((committee.get("decision") or {}).get("interview_priorities", []) or [])
         focus = list(recommendation.get("interview_focus", []) or [])
@@ -325,9 +338,9 @@ class ExecutiveReportBuilder:
     @staticmethod
     def _action_plan(
         narrative: ExecutiveNarrative,
-        recommendation: Dict[str, Any],
-        interview: Dict[str, Any],
-        risk: Dict[str, Any],
+        recommendation: dict[str, Any],
+        interview: dict[str, Any],
+        risk: dict[str, Any],
     ) -> ExecutiveActionPlan:
         label = narrative.overall_recommendation
         primary = _ACTION_MAP.get(label, "Further Assessment")
@@ -335,7 +348,9 @@ class ExecutiveReportBuilder:
             f"Recommended disposition '{primary}' follows the '{label}' recommendation "
             "synthesized from the committee and the engines; it introduces no new ranking."
         )
-        alternatives = [v for v in ("Proceed to Interview", "Further Assessment", "Talent Pool") if v != primary][:2]
+        alternatives = [
+            v for v in ("Proceed to Interview", "Further Assessment", "Talent Pool") if v != primary
+        ][:2]
         onboarding = [
             "Assign an onboarding buddy and a 30-day ramp plan",
             "Align first project with the candidate's proven strengths",
@@ -346,7 +361,10 @@ class ExecutiveReportBuilder:
             [f"Validate in practice: {val[0]}"] if val else []
         )
         plan_60 = ["Own a feature end-to-end", "Establish collaboration cadence with the team"]
-        plan_90 = ["Take ownership of a meaningful component", "First performance calibration against role expectations"]
+        plan_90 = [
+            "Take ownership of a meaningful component",
+            "First performance calibration against role expectations",
+        ]
         return ExecutiveActionPlan(
             primary_action=primary,
             rationale=rationale,
@@ -359,20 +377,24 @@ class ExecutiveReportBuilder:
 
     @staticmethod
     def _business_intelligence(
-        intelligence: Dict[str, Any],
-        recommendation: Dict[str, Any],
-        risk: Dict[str, Any],
-        timeline: Dict[str, Any],
-        committee: Dict[str, Any],
+        intelligence: dict[str, Any],
+        recommendation: dict[str, Any],
+        risk: dict[str, Any],
+        timeline: dict[str, Any],
+        committee: dict[str, Any],
     ) -> BusinessIntelligence:
-        def _num(source: Dict[str, Any], key: str) -> float:
+        def _num(source: dict[str, Any], key: str) -> float:
             try:
                 return float(source.get(key, 0.0))
             except (TypeError, ValueError):
                 return 0.0
 
         # A single evidence-confidence figure drives every estimate's confidence.
-        base_conf = _num(committee.get("confidence", {}), "overall") or _num(intelligence, "confidence") or 50.0
+        base_conf = (
+            _num(committee.get("confidence", {}), "overall")
+            or _num(intelligence, "confidence")
+            or 50.0
+        )
 
         overall = _num(intelligence, "overall_score")
         tech = _num(intelligence, "technical_score")
@@ -381,7 +403,9 @@ class ExecutiveReportBuilder:
         learning = _num(intelligence, "learning_velocity")
         risk_score = _num(risk, "risk_score")
 
-        def _est(value: float, rationale: str, basis: List[str], *, invert: bool = False) -> Estimate:
+        def _est(
+            value: float, rationale: str, basis: list[str], *, invert: bool = False
+        ) -> Estimate:
             signal = (100.0 - value) if invert else value
             return Estimate(
                 level=_level(signal),
@@ -400,8 +424,14 @@ class ExecutiveReportBuilder:
             productivity=_est(overall, "Ramp/throughput proxy from overall capability.", ci),
             technical_contribution=_est(tech, "From the technical capability signal.", ci),
             leadership_contribution=_est(lead, "From the leadership signal.", ci),
-            innovation_potential=_est(learning, "From learning velocity and trajectory.", ci + ["Career Timeline Intelligence"]),
-            growth_potential=_est(growth, "From career-growth trajectory.", ci + ["Career Timeline Intelligence"]),
+            innovation_potential=_est(
+                learning,
+                "From learning velocity and trajectory.",
+                ci + ["Career Timeline Intelligence"],
+            ),
+            growth_potential=_est(
+                growth, "From career-growth trajectory.", ci + ["Career Timeline Intelligence"]
+            ),
             knowledge_risk=_est(
                 risk_score,
                 "Higher risk score implies higher knowledge/attrition risk.",

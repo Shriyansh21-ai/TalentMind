@@ -39,9 +39,7 @@ class JobQueue:
     def enqueue(self, job: Job) -> None:
         """Add a job to the queue, or raise :class:`QueueOverflowError`."""
         if self.is_full:
-            raise QueueOverflowError(
-                f"job queue full (capacity={self._capacity})"
-            )
+            raise QueueOverflowError(f"job queue full (capacity={self._capacity})")
         self._sequence += 1
         priority = int(job.priority)
         self._entries.append((priority, self._sequence, job.id, job.tenant_id))

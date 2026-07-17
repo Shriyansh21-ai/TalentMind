@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum, IntEnum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class Priority(IntEnum):
@@ -27,12 +27,12 @@ class Priority(IntEnum):
 class TaskStatus(str, Enum):
     """Lifecycle status of a single task."""
 
-    PENDING = "pending"      # created, dependencies not yet satisfied
-    READY = "ready"          # dependencies satisfied, awaiting execution
-    RUNNING = "running"      # currently executing on an agent
+    PENDING = "pending"  # created, dependencies not yet satisfied
+    READY = "ready"  # dependencies satisfied, awaiting execution
+    RUNNING = "running"  # currently executing on an agent
     COMPLETED = "completed"  # finished successfully
-    FAILED = "failed"        # exhausted retries / hard error
-    SKIPPED = "skipped"      # conditional guard or a failed dependency
+    FAILED = "failed"  # exhausted retries / hard error
+    SKIPPED = "skipped"  # conditional guard or a failed dependency
     CANCELLED = "cancelled"  # workflow was cancelled before it ran
 
     @property
@@ -59,8 +59,8 @@ class Goal:
 
     description: str
     subject_id: str = "global"
-    constraints: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    constraints: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -90,13 +90,13 @@ class Task:
     goal: str
     capability: str
     priority: Priority = Priority.NORMAL
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     expected_output: str = ""
     confidence: float = 100.0
-    payload: Dict[str, Any] = field(default_factory=dict)
+    payload: dict[str, Any] = field(default_factory=dict)
     optional: bool = False
-    condition: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    condition: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def signature(self) -> str:
         """Return a stable identity used to detect duplicate work.
@@ -133,12 +133,12 @@ class AgentOutput:
     task_id: str
     agent: str
     ok: bool = True
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
     summary: str = ""
     confidence: float = 100.0
-    evidence_sources: List[str] = field(default_factory=list)
+    evidence_sources: list[str] = field(default_factory=list)
     latency_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class GraphError(Exception):
@@ -154,8 +154,8 @@ class TaskGraph:
     no downstream module has to.
     """
 
-    tasks: Dict[str, Task] = field(default_factory=dict)
-    goal: Optional[Goal] = None
+    tasks: dict[str, Task] = field(default_factory=dict)
+    goal: Goal | None = None
 
     def add(self, task: Task) -> Task:
         """Add ``task`` to the graph (last write wins on duplicate id)."""
@@ -185,12 +185,10 @@ class TaskGraph:
         for task in self.tasks.values():
             for dep in task.dependencies:
                 if dep not in self.tasks:
-                    raise GraphError(
-                        f"Task {task.id!r} depends on unknown task {dep!r}."
-                    )
+                    raise GraphError(f"Task {task.id!r} depends on unknown task {dep!r}.")
         self.topological_order()  # raises on a cycle
 
-    def topological_order(self) -> List[Task]:
+    def topological_order(self) -> list[Task]:
         """Return tasks in a dependency-respecting order.
 
         Uses Kahn's algorithm; ties are broken by descending priority then id so
@@ -205,7 +203,7 @@ class TaskGraph:
                 indegree[task.id] += 1
 
         ready = [tid for tid, deg in indegree.items() if deg == 0]
-        order: List[Task] = []
+        order: list[Task] = []
         while ready:
             ready.sort(key=lambda tid: (-int(self.tasks[tid].priority), tid))
             current = ready.pop(0)
@@ -220,7 +218,7 @@ class TaskGraph:
             raise GraphError("Task graph contains a dependency cycle.")
         return order
 
-    def execution_layers(self) -> List[List[Task]]:
+    def execution_layers(self) -> list[list[Task]]:
         """Group tasks into parallel-executable layers (topological levels).
 
         Every task in layer *n* depends only on tasks in layers ``< n``, so a
@@ -228,9 +226,9 @@ class TaskGraph:
         descending priority.
         """
         self.validate()
-        depth: Dict[str, int] = {}
+        depth: dict[str, int] = {}
 
-        def _depth(tid: str, seen: Optional[set] = None) -> int:
+        def _depth(tid: str, seen: set | None = None) -> int:
             seen = seen or set()
             if tid in seen:
                 raise GraphError("Task graph contains a dependency cycle.")
@@ -244,14 +242,12 @@ class TaskGraph:
         for tid in self.tasks:
             _depth(tid)
 
-        layers: Dict[int, List[Task]] = {}
+        layers: dict[int, list[Task]] = {}
         for tid, level in depth.items():
             layers.setdefault(level, []).append(self.tasks[tid])
 
-        ordered: List[List[Task]] = []
+        ordered: list[list[Task]] = []
         for level in sorted(layers):
-            group = sorted(
-                layers[level], key=lambda t: (-int(t.priority), t.id)
-            )
+            group = sorted(layers[level], key=lambda t: (-int(t.priority), t.id))
             ordered.append(group)
         return ordered

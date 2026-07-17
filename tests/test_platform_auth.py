@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import faiss  # noqa: F401
-
 import pytest
 
 from src.platform.auth import AuthenticationManager, SessionStatus, UserStatus

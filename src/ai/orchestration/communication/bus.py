@@ -14,8 +14,8 @@ The bus keeps a bounded history for the visualization / monitoring layers.
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable
 from threading import RLock
-from typing import Callable, Deque, Dict, List
 
 from src.ai.orchestration.communication.messages import MessageType, SharedMessage
 
@@ -28,8 +28,8 @@ class MessageBus:
 
     def __init__(self, history_size: int = 500) -> None:
         """Create a bus retaining the last ``history_size`` messages."""
-        self._subscribers: Dict[str, List[Handler]] = {}
-        self._history: Deque[SharedMessage] = deque(maxlen=history_size)
+        self._subscribers: dict[str, list[Handler]] = {}
+        self._history: deque[SharedMessage] = deque(maxlen=history_size)
         self._delivery_errors = 0
         self._lock = RLock()
 
@@ -99,7 +99,7 @@ class MessageBus:
 
     # -- introspection ------------------------------------------------------
 
-    def history(self, limit: int = 100) -> List[SharedMessage]:
+    def history(self, limit: int = 100) -> list[SharedMessage]:
         """Return the most recent messages (newest last), up to ``limit``."""
         with self._lock:
             return list(self._history)[-limit:]

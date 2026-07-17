@@ -13,7 +13,8 @@ entity owned by a different tenant, raising :class:`TenantIsolationError`.
 
 from __future__ import annotations
 
-from typing import Callable, Generic, Iterable, Protocol, TypeVar
+from collections.abc import Callable, Iterable
+from typing import Generic, Protocol, TypeVar
 
 from src.platform.common.errors import (
     ConflictError,

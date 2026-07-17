@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Tuple, Type
+from typing import Any
 
 from src.ai.core.metadata import AgentMetadata
 from src.ai.prompts.loader import PromptLoader
@@ -31,12 +31,12 @@ class BaseAgent(ABC):
     #: Static identity of the agent.
     metadata: AgentMetadata
     #: Validated response schema produced by the agent.
-    output_schema: Type[BaseAIResponse]
+    output_schema: type[BaseAIResponse]
 
     # -- required hooks -----------------------------------------------------
 
     @abstractmethod
-    def build_evidence(self, payload: Any) -> Dict[str, Any]:
+    def build_evidence(self, payload: Any) -> dict[str, Any]:
         """Return the structured, authoritative evidence for ``payload``.
 
         This is the *only* factual input to the reasoning: it is embedded in the
@@ -45,7 +45,7 @@ class BaseAgent(ABC):
         """
 
     @abstractmethod
-    def prompt_values(self, payload: Any, evidence: Dict[str, Any]) -> Dict[str, str]:
+    def prompt_values(self, payload: Any, evidence: dict[str, Any]) -> dict[str, str]:
         """Return agent-specific placeholder values for the user prompt.
 
         The runner automatically supplies the derived ``evidence_json`` and
@@ -54,7 +54,7 @@ class BaseAgent(ABC):
         """
 
     @abstractmethod
-    def cache_dimensions(self, payload: Any) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: Any) -> tuple[str, str]:
         """Return ``(subject_id, scope)`` used for the cache key and telemetry.
 
         Typically ``(candidate_id, job_description)``.
@@ -67,8 +67,8 @@ class BaseAgent(ABC):
         return "\n".join(f"- {name}" for name in self.output_schema.field_names())
 
     def build_messages(
-        self, payload: Any, loader: PromptLoader, evidence: Dict[str, Any]
-    ) -> List[LLMMessage]:
+        self, payload: Any, loader: PromptLoader, evidence: dict[str, Any]
+    ) -> list[LLMMessage]:
         """Render the system + user messages from templates on disk.
 
         Loads ``{prompt_id}_system`` and ``{prompt_id}_user`` at the agent's
@@ -80,7 +80,7 @@ class BaseAgent(ABC):
 
         system_text = loader.render(f"{prompt_id}_system", version)
 
-        values: Dict[str, str] = {
+        values: dict[str, str] = {
             "evidence_json": json.dumps(evidence, ensure_ascii=False, indent=2),
             "schema_fields": self.schema_fields_description(),
         }

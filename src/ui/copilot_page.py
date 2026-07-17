@@ -11,14 +11,14 @@ page renders instantly and never loads the dataset just to show the chat.
 
 from __future__ import annotations
 
-from typing import Callable, List, Optional
+from collections.abc import Callable
 
 import streamlit as st
 
-from src.ai.tools.base import CandidateRepository
 from src.ai.copilot.controller import RecruiterCopilot, build_recruiter_copilot
 from src.ai.copilot.models import CopilotAction, CopilotTurn
 from src.ai.services.hiring_analyst_service import get_platform_status
+from src.ai.tools.base import CandidateRepository
 
 RepositoryFactory = Callable[[], CandidateRepository]
 
@@ -84,9 +84,7 @@ def _ensure_state() -> None:
     st.session_state.setdefault(_INSTANCE_KEY, None)
 
 
-def _get_copilot(
-    repository_factory: RepositoryFactory, insights_fn
-) -> Optional[RecruiterCopilot]:
+def _get_copilot(repository_factory: RepositoryFactory, insights_fn) -> RecruiterCopilot | None:
     """Return (building lazily) the copilot instance, or ``None`` on failure."""
     if st.session_state.get(_INSTANCE_KEY) is None:
         try:
@@ -158,7 +156,7 @@ def _render_context_panel(jd: str) -> None:
 
 def _render_history() -> None:
     """Render the full conversation."""
-    history: List[CopilotTurn] = st.session_state.get(_HISTORY_KEY, [])
+    history: list[CopilotTurn] = st.session_state.get(_HISTORY_KEY, [])
     for index, turn in enumerate(history):
         with st.chat_message("user"):
             st.write(turn.message)
@@ -187,7 +185,9 @@ def _render_turn(turn: CopilotTurn, index: int) -> None:
         with st.expander(f"🔧 Tools used ({len(turn.tools_used)})"):
             for tool in turn.tools_used:
                 icon = "✅" if tool.get("ok") else "⚠"
-                st.markdown(f"{icon} **{tool.get('name')}** — {tool.get('summary') or tool.get('error', '')}")
+                st.markdown(
+                    f"{icon} **{tool.get('name')}** — {tool.get('summary') or tool.get('error', '')}"
+                )
                 meta = (
                     f"confidence {tool.get('confidence', 0):.0f} · "
                     f"{tool.get('latency_ms', 0):.0f} ms"
@@ -252,10 +252,7 @@ def _execute_action(action: CopilotAction) -> None:
         return
 
     if action_type == "open_profile":
-        st.info(
-            "Open this candidate in the Recruiter Console to view the full "
-            "profile tabs."
-        )
+        st.info("Open this candidate in the Recruiter Console to view the full profile tabs.")
         return
 
     # Everything else becomes a natural-language follow-up to the copilot.

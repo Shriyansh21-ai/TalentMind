@@ -37,9 +37,7 @@ class ConcurrencyManager:
     def acquire(self) -> None:
         """Take a slot, or raise :class:`ConcurrencyLimitError` if full."""
         if self._active >= self._max:
-            raise ConcurrencyLimitError(
-                f"concurrency limit reached ({self._max})"
-            )
+            raise ConcurrencyLimitError(f"concurrency limit reached ({self._max})")
         self._active += 1
 
     def release(self) -> None:
@@ -92,9 +90,7 @@ class Bulkhead:
 class RateControl:
     """A thin wrapper over the platform token-bucket rate limiter."""
 
-    def __init__(
-        self, *, requests_per_minute: int = 600, clock: Clock | None = None
-    ) -> None:
+    def __init__(self, *, requests_per_minute: int = 600, clock: Clock | None = None) -> None:
         self._limiter: RateLimiter = TokenBucketRateLimiter(
             requests_per_minute=requests_per_minute, clock=clock or SystemClock()
         )
@@ -112,9 +108,7 @@ class RateControl:
 class BackpressureController:
     """Maps a queue's fullness to an accept / throttle / reject decision."""
 
-    def __init__(
-        self, *, capacity: int, throttle_ratio: float = 0.75
-    ) -> None:
+    def __init__(self, *, capacity: int, throttle_ratio: float = 0.75) -> None:
         self._capacity = max(1, capacity)
         self._throttle_at = int(self._capacity * throttle_ratio)
 
@@ -134,9 +128,7 @@ class AdaptiveThrottle:
     the limit toward ``max_limit``; errors halve it toward ``min_limit``.
     """
 
-    def __init__(
-        self, *, initial: int = 10, min_limit: int = 1, max_limit: int = 100
-    ) -> None:
+    def __init__(self, *, initial: int = 10, min_limit: int = 1, max_limit: int = 100) -> None:
         self._limit = initial
         self._min = min_limit
         self._max = max_limit

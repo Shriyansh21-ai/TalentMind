@@ -11,7 +11,7 @@ randomness — so segmentation is reproducible and unit-testable.
 from __future__ import annotations
 
 import re
-from typing import Dict, List, Sequence
+from collections.abc import Sequence
 
 from src.insights.models import CandidateInsights
 from src.talent_pool.models import PoolAssignment, TalentPool
@@ -37,27 +37,72 @@ FUTURE_PIPELINE_MAX_YEARS = 3.0
 # title and headline). Intentionally small and explicit for auditability.
 # ---------------------------------------------------------------------------
 
-_DOMAIN_KEYWORDS: Dict[TalentPool, Sequence[str]] = {
+_DOMAIN_KEYWORDS: dict[TalentPool, Sequence[str]] = {
     TalentPool.ML_SPECIALISTS: (
-        "machine learning", "deep learning", "ml", "nlp", "llm", "pytorch",
-        "tensorflow", "transformers", "rag", "computer vision", "data scientist",
+        "machine learning",
+        "deep learning",
+        "ml",
+        "nlp",
+        "llm",
+        "pytorch",
+        "tensorflow",
+        "transformers",
+        "rag",
+        "computer vision",
+        "data scientist",
         "ml engineer",
     ),
     TalentPool.FRONTEND: (
-        "frontend", "front-end", "react", "angular", "vue", "javascript",
-        "typescript", "css", "html", "ui engineer", "next.js",
+        "frontend",
+        "front-end",
+        "react",
+        "angular",
+        "vue",
+        "javascript",
+        "typescript",
+        "css",
+        "html",
+        "ui engineer",
+        "next.js",
     ),
     TalentPool.BACKEND: (
-        "backend", "back-end", "java", "golang", "node", "django", "spring",
-        "microservice", "api", "python", "c++", "rust",
+        "backend",
+        "back-end",
+        "java",
+        "golang",
+        "node",
+        "django",
+        "spring",
+        "microservice",
+        "api",
+        "python",
+        "c++",
+        "rust",
     ),
     TalentPool.CLOUD: (
-        "aws", "azure", "gcp", "kubernetes", "docker", "terraform", "devops",
-        "cloud", "sre", "infrastructure",
+        "aws",
+        "azure",
+        "gcp",
+        "kubernetes",
+        "docker",
+        "terraform",
+        "devops",
+        "cloud",
+        "sre",
+        "infrastructure",
     ),
     TalentPool.DATA: (
-        "data engineer", "spark", "airflow", "etl", "sql", "warehouse", "hadoop",
-        "kafka", "snowflake", "bigquery", "data pipeline",
+        "data engineer",
+        "spark",
+        "airflow",
+        "etl",
+        "sql",
+        "warehouse",
+        "hadoop",
+        "kafka",
+        "snowflake",
+        "bigquery",
+        "data pipeline",
     ),
 }
 
@@ -65,7 +110,7 @@ _DOMAIN_KEYWORDS: Dict[TalentPool, Sequence[str]] = {
 def _candidate_corpus(insights: CandidateInsights) -> str:
     """Build a single lower-cased haystack of skills + title + headline."""
     candidate = insights.candidate
-    parts: List[str] = [candidate.profile.current_title, candidate.profile.headline]
+    parts: list[str] = [candidate.profile.current_title, candidate.profile.headline]
     parts.extend(skill.name for skill in candidate.skills)
     return " ".join(part.lower() for part in parts if part)
 
@@ -81,9 +126,9 @@ def _keyword_present(keyword: str, corpus: str) -> bool:
     return re.search(pattern, corpus) is not None
 
 
-def _matched_domains(corpus: str) -> List[TalentPool]:
+def _matched_domains(corpus: str) -> list[TalentPool]:
     """Return the domain pools whose vocabulary appears in ``corpus``."""
-    matched: List[TalentPool] = []
+    matched: list[TalentPool] = []
     for pool, keywords in _DOMAIN_KEYWORDS.items():
         if any(_keyword_present(keyword, corpus) for keyword in keywords):
             matched.append(pool)
@@ -104,8 +149,8 @@ def segment_candidate(insights: CandidateInsights) -> PoolAssignment:
     timeline = insights.timeline
     risk = insights.risk
 
-    pools: List[TalentPool] = []
-    rationale: List[str] = []
+    pools: list[TalentPool] = []
+    rationale: list[str] = []
 
     def add(pool: TalentPool, reason: str) -> None:
         if pool not in pools:
@@ -113,14 +158,10 @@ def segment_candidate(insights: CandidateInsights) -> PoolAssignment:
             rationale.append(f"{pool.value}: {reason}")
 
     # -- Readiness axis -----------------------------------------------------
-    if (
-        intel.overall_score >= IMMEDIATE_HIRE_SCORE
-        and risk.risk_score <= IMMEDIATE_HIRE_MAX_RISK
-    ):
+    if intel.overall_score >= IMMEDIATE_HIRE_SCORE and risk.risk_score <= IMMEDIATE_HIRE_MAX_RISK:
         add(
             TalentPool.IMMEDIATE_HIRE,
-            f"overall {intel.overall_score:.0f} with low risk "
-            f"({risk.risk_score:.0f})",
+            f"overall {intel.overall_score:.0f} with low risk ({risk.risk_score:.0f})",
         )
 
     if (
@@ -145,8 +186,7 @@ def segment_candidate(insights: CandidateInsights) -> PoolAssignment:
     ):
         add(
             TalentPool.NEEDS_UPSKILLING,
-            f"technical {intel.technical_score:.0f} / JD match "
-            f"{insights.skill_match_percent:.0f}%",
+            f"technical {intel.technical_score:.0f} / JD match {insights.skill_match_percent:.0f}%",
         )
 
     # -- Shape axis ---------------------------------------------------------
@@ -187,18 +227,15 @@ def segment_candidate(insights: CandidateInsights) -> PoolAssignment:
 
 def segment_pool(
     insights_list: Sequence[CandidateInsights],
-) -> Dict[str, PoolAssignment]:
+) -> dict[str, PoolAssignment]:
     """Segment a cohort, returning ``{candidate_id: PoolAssignment}``."""
-    return {
-        insights.candidate_id: segment_candidate(insights)
-        for insights in insights_list
-    }
+    return {insights.candidate_id: segment_candidate(insights) for insights in insights_list}
 
 
 def filter_by_pool(
-    assignments: Dict[str, PoolAssignment],
+    assignments: dict[str, PoolAssignment],
     pool: TalentPool,
-) -> List[str]:
+) -> list[str]:
     """Return the ids of candidates assigned to ``pool``.
 
     Args:
@@ -209,17 +246,15 @@ def filter_by_pool(
         Candidate ids belonging to ``pool`` (order follows ``assignments``).
     """
     return [
-        candidate_id
-        for candidate_id, assignment in assignments.items()
-        if assignment.in_pool(pool)
+        candidate_id for candidate_id, assignment in assignments.items() if assignment.in_pool(pool)
     ]
 
 
 def pool_counts(
-    assignments: Dict[str, PoolAssignment],
-) -> Dict[str, int]:
+    assignments: dict[str, PoolAssignment],
+) -> dict[str, int]:
     """Return ``{pool_value: candidate_count}`` across all pools (0s included)."""
-    counts: Dict[str, int] = {pool.value: 0 for pool in TalentPool}
+    counts: dict[str, int] = {pool.value: 0 for pool in TalentPool}
     for assignment in assignments.values():
         for pool in assignment.pools:
             counts[pool.value] += 1

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
 
 
 @dataclass
@@ -28,12 +27,12 @@ class InterviewPlan:
         risk_followups: Direct follow-ups on detected red flags / concerns.
     """
 
-    technical_topics: List[str] = field(default_factory=list)
-    system_design_topics: List[str] = field(default_factory=list)
-    behavioral_questions: List[str] = field(default_factory=list)
-    leadership_questions: List[str] = field(default_factory=list)
-    validation_questions: List[str] = field(default_factory=list)
-    deep_dive_topics: List[str] = field(default_factory=list)
-    coding_focus: List[str] = field(default_factory=list)
-    communication_focus: List[str] = field(default_factory=list)
-    risk_followups: List[str] = field(default_factory=list)
+    technical_topics: list[str] = field(default_factory=list)
+    system_design_topics: list[str] = field(default_factory=list)
+    behavioral_questions: list[str] = field(default_factory=list)
+    leadership_questions: list[str] = field(default_factory=list)
+    validation_questions: list[str] = field(default_factory=list)
+    deep_dive_topics: list[str] = field(default_factory=list)
+    coding_focus: list[str] = field(default_factory=list)
+    communication_focus: list[str] = field(default_factory=list)
+    risk_followups: list[str] = field(default_factory=list)

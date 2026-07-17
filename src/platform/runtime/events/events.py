@@ -68,7 +68,10 @@ class RuntimeEventPublisher:
         """Publish a ``runtime.job.<action>`` event."""
         tenant_id = payload.pop("tenant_id", None)  # type: ignore[assignment]
         return self.publish(
-            RuntimeEventType.JOB, action, payload=payload, tenant_id=tenant_id  # type: ignore[arg-type]
+            RuntimeEventType.JOB,
+            action,
+            payload=payload,
+            tenant_id=tenant_id,  # type: ignore[arg-type]
         )
 
     def worker(self, action: str, **payload: object) -> EnterpriseEvent:

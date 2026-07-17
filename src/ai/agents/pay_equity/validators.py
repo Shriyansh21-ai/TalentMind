@@ -9,7 +9,7 @@ contain no legal-conclusion or discrimination language, and the equity risk must
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.pay_equity.schemas import (
     CompressionAssessment,
@@ -46,18 +46,18 @@ _FORBIDDEN_PHRASES = (
 )
 
 
-def available_sources(evidence: Dict[str, Any]) -> List[str]:
+def available_sources(evidence: dict[str, Any]) -> list[str]:
     """Return the labels of the evidence sources actually present + non-empty."""
-    sources: List[str] = []
+    sources: list[str] = []
     for key, label in _SOURCE_LABELS.items():
         if evidence.get(key):
             sources.append(label)
     return list(dict.fromkeys(sources))
 
 
-def evidence_coverage_warnings(evidence: Dict[str, Any]) -> List[str]:
+def evidence_coverage_warnings(evidence: dict[str, Any]) -> list[str]:
     """Return warnings when key evidence sources are missing (Module 14)."""
-    warnings: List[str] = []
+    warnings: list[str] = []
     if not evidence.get("data_available"):
         warnings.append(
             "No internal compensation data connected — compression, inversion and "
@@ -74,9 +74,9 @@ def validate_safety(
     inversion: InversionAssessment,
     equity_risk: EquityRisk,
     data_available: bool,
-) -> List[str]:
+) -> list[str]:
     """Assert the no-fabrication / no-legal-conclusion guarantees (Module 14)."""
-    warnings: List[str] = []
+    warnings: list[str] = []
 
     if not data_available:
         if compression.data_available or compression.risk_level != "Unavailable":
@@ -87,11 +87,11 @@ def validate_safety(
             warnings.append("Equity risk scored without internal data; must be 'Unknown'.")
 
     # No legal / discrimination conclusions anywhere in the narrative.
-    blob = " ".join(
-        str(v) for v in narrative.to_dict().values() if isinstance(v, str)
-    ).lower()
+    blob = " ".join(str(v) for v in narrative.to_dict().values() if isinstance(v, str)).lower()
     for phrase in _FORBIDDEN_PHRASES:
         if phrase in blob:
-            warnings.append(f"Narrative contains unsupported legal/discrimination language ({phrase!r}); flagged.")
+            warnings.append(
+                f"Narrative contains unsupported legal/discrimination language ({phrase!r}); flagged."
+            )
 
     return warnings

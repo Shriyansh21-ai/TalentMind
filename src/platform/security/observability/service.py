@@ -8,8 +8,9 @@ defaults — no vendor implementation ships. Deterministic and clock-driven.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id

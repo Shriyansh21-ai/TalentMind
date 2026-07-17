@@ -12,7 +12,7 @@ packages until :meth:`discover_builtins` is called, keeping module import light.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from src.platform.common.errors import ConflictError
 from src.platform.integrations.common.errors import ProviderNotFoundError
@@ -43,9 +43,7 @@ class IntegrationRegistry:
         self._definition_cache.pop(key, None)  # invalidate cache for this key
         return provider
 
-    def register_all(
-        self, providers: list[IntegrationProvider]
-    ) -> list[IntegrationProvider]:
+    def register_all(self, providers: list[IntegrationProvider]) -> list[IntegrationProvider]:
         """Register a batch of providers."""
         return [self.register(p) for p in providers]
 
@@ -77,9 +75,7 @@ class IntegrationRegistry:
             defs = [d for d in defs if d.category == category]
         return sorted(defs, key=lambda d: d.metadata.display_name.lower())
 
-    def providers(
-        self, *, category: ProviderCategory | None = None
-    ) -> list[IntegrationProvider]:
+    def providers(self, *, category: ProviderCategory | None = None) -> list[IntegrationProvider]:
         """Return all registered providers, optionally filtered by category."""
         result = list(self._providers.values())
         if category is not None:
@@ -99,7 +95,7 @@ class IntegrationRegistry:
 
     # -- discovery (lazy) ---------------------------------------------------
 
-    def discover_builtins(self) -> "IntegrationRegistry":
+    def discover_builtins(self) -> IntegrationRegistry:
         """Lazily import and register every built-in provider package.
 
         Import happens here (not at module load) so pulling in the registry
@@ -109,7 +105,6 @@ class IntegrationRegistry:
             return self
         loaders: list[Callable[[], list[IntegrationProvider]]] = []
 
-        from src.platform.integrations.hris.providers import all_providers as _hris
         from src.platform.integrations.ats.providers import all_providers as _ats
         from src.platform.integrations.calendar.providers import (
             all_providers as _cal,
@@ -120,6 +115,7 @@ class IntegrationRegistry:
         from src.platform.integrations.documents.providers import (
             all_providers as _docs,
         )
+        from src.platform.integrations.hris.providers import all_providers as _hris
 
         loaders.extend([_hris, _ats, _cal, _comm, _docs])
         for loader in loaders:

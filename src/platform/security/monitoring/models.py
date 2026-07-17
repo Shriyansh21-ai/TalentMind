@@ -11,8 +11,6 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 
-from pydantic import Field
-
 from src.platform.common.models import TenantScopedEntity
 from src.platform.security.common.models import Severity
 
@@ -78,8 +76,12 @@ class AlertRule(TenantScopedEntity):
     def triggered_by(self, value: float) -> bool:
         """Return whether ``value`` triggers this rule."""
         condition = AlertCondition(
-            id="_c", tenant_id=self.tenant_id, organization_id=self.organization_id,
-            metric=self.metric, comparison=self.comparison, threshold=self.threshold,
+            id="_c",
+            tenant_id=self.tenant_id,
+            organization_id=self.organization_id,
+            metric=self.metric,
+            comparison=self.comparison,
+            threshold=self.threshold,
         )
         return self.enabled and condition.is_triggered(value)
 

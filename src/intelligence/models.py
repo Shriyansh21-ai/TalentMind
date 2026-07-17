@@ -1,9 +1,7 @@
 from pydantic import BaseModel
-from typing import List
 
 
 class JobProfile(BaseModel):
-
     role: str
 
     department: str
@@ -20,19 +18,19 @@ class JobProfile(BaseModel):
 
     education: str
 
-    mandatory_skills: List[str]
+    mandatory_skills: list[str]
 
-    preferred_skills: List[str]
+    preferred_skills: list[str]
 
-    soft_skills: List[str]
+    soft_skills: list[str]
 
-    technologies: List[str]
+    technologies: list[str]
 
-    responsibilities: List[str]
+    responsibilities: list[str]
 
-    interview_focus: List[str]
+    interview_focus: list[str]
 
-    keywords: List[str]
+    keywords: list[str]
 
     leadership_required: bool
 
@@ -48,11 +46,11 @@ class JobProfile(BaseModel):
         Experience: {self.experience}
 
         Mandatory Skills:
-        {' '.join(self.mandatory_skills)}
+        {" ".join(self.mandatory_skills)}
 
         Preferred Skills:
-        {' '.join(self.preferred_skills)}
+        {" ".join(self.preferred_skills)}
 
         Technologies:
-        {' '.join(self.technologies)}
+        {" ".join(self.technologies)}
         """

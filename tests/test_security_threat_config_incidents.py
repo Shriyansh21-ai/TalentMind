@@ -13,8 +13,8 @@ from src.platform.common.clock import FrozenClock
 from src.platform.security.common.errors import ConfigurationGovernanceError
 from src.platform.security.common.models import RiskLevel, Severity
 from src.platform.security.configuration import (
-    ConfigurationGovernanceService,
     ConfigStatus,
+    ConfigurationGovernanceService,
 )
 from src.platform.security.incidents import IncidentService, IncidentStatus
 from src.platform.security.threat import (
@@ -22,7 +22,6 @@ from src.platform.security.threat import (
     ThreatType,
     ThresholdAnomalyDetector,
 )
-
 
 # -- threat -----------------------------------------------------------------
 

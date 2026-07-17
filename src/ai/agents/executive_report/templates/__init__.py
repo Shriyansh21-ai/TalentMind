@@ -43,11 +43,11 @@ class ReportTemplate:
     key: str
     name: str
     audience: str
-    section_ids: List[str]
+    section_ids: list[str]
     summary: str = ""
 
 
-TEMPLATES: Dict[str, ReportTemplate] = {
+TEMPLATES: dict[str, ReportTemplate] = {
     "executive": ReportTemplate(
         key="executive",
         name="Executive Briefing",
@@ -148,6 +148,6 @@ def get_template(key: str) -> ReportTemplate:
     return TEMPLATES.get((key or "").strip().lower(), TEMPLATES[DEFAULT_TEMPLATE])
 
 
-def list_templates() -> List[ReportTemplate]:
+def list_templates() -> list[ReportTemplate]:
     """Return every registered template (stable order)."""
     return list(TEMPLATES.values())

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime
 from enum import Enum
 from typing import Protocol, runtime_checkable
 
@@ -126,10 +125,14 @@ class BackupManager:
         key = f"{backup_type.value}/{manifest_id}"
         self.provider.put(key, payload)
         manifest = BackupManifest(
-            id=manifest_id, backup_type=backup_type, location=key,
-            size_bytes=len(payload), checksum=checksum,
+            id=manifest_id,
+            backup_type=backup_type,
+            location=key,
+            size_bytes=len(payload),
+            checksum=checksum,
             item_count=len(data) if hasattr(data, "__len__") else 1,
-            created_at=now, updated_at=now,
+            created_at=now,
+            updated_at=now,
         )
         self._manifests[manifest_id] = manifest
         return manifest
@@ -147,13 +150,17 @@ class BackupManager:
         """Verify a stored backup matches its manifest checksum."""
         manifest = self._manifests.get(manifest_id)
         if manifest is None:
-            return RestoreValidation(manifest_id=manifest_id, valid=False, reason="unknown manifest")
+            return RestoreValidation(
+                manifest_id=manifest_id, valid=False, reason="unknown manifest"
+            )
         payload = self.provider.get(manifest.location)
         if payload is None:
             return RestoreValidation(manifest_id=manifest_id, valid=False, reason="backup missing")
         actual = hashlib.sha256(payload).hexdigest()
         if actual != manifest.checksum:
-            return RestoreValidation(manifest_id=manifest_id, valid=False, reason="checksum mismatch")
+            return RestoreValidation(
+                manifest_id=manifest_id, valid=False, reason="checksum mismatch"
+            )
         return RestoreValidation(manifest_id=manifest_id, valid=True, reason="ok")
 
     def restore(self, manifest_id: str) -> object:
@@ -172,7 +179,10 @@ class BackupManager:
         """Return a standard recovery plan (RTO/RPO + ordered steps)."""
         now = self._clock.now()
         return RecoveryPlan(
-            id=generate_id("rec"), name=name, rto_minutes=60, rpo_minutes=15,
+            id=generate_id("rec"),
+            name=name,
+            rto_minutes=60,
+            rpo_minutes=15,
             steps=[
                 "Declare incident and assemble recovery team",
                 "Restore latest configuration backup",
@@ -182,7 +192,8 @@ class BackupManager:
                 "Run production readiness validation",
                 "Resume traffic and monitor",
             ],
-            created_at=now, updated_at=now,
+            created_at=now,
+            updated_at=now,
         )
 
     def recovery_report(self, plan_name: str = "default") -> RecoveryReport:

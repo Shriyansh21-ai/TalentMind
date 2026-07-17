@@ -18,18 +18,18 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
+from src.ai.agents.resume import extractors, validators
+from src.ai.agents.resume import metrics as metrics_mod
+from src.ai.agents.resume.composer import compose_resume_analysis
+from src.ai.agents.resume.schemas import ResumeAnalysis
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.prompts.loader import PromptLoader
 from src.ai.providers.base import LLMMessage
 from src.ai.providers.composers import register_composer
-
-from src.ai.agents.resume import extractors, metrics as metrics_mod, validators
-from src.ai.agents.resume.composer import compose_resume_analysis
-from src.ai.agents.resume.schemas import ResumeAnalysis
 
 # The agent's prompts live with the agent (Module architecture). A dedicated
 # loader points at this package's ``prompts/`` dir; the shared prompt library is
@@ -60,7 +60,7 @@ class ResumeAnalystInput:
     jd: str = ""
 
 
-def build_resume_evidence(payload: ResumeAnalystInput) -> Dict[str, Any]:
+def build_resume_evidence(payload: ResumeAnalystInput) -> dict[str, Any]:
     """Run the deterministic pipeline and return the evidence dict.
 
     This is the sole factual input to the analysis: extracted document + computed
@@ -102,7 +102,7 @@ class ResumeAnalystAgent(BaseAgent):
     )
     output_schema = ResumeAnalysis
 
-    def build_messages(self, payload, loader, evidence: Dict[str, Any]) -> List[LLMMessage]:
+    def build_messages(self, payload, loader, evidence: dict[str, Any]) -> list[LLMMessage]:
         """Render prompts from the agent's own ``prompts/`` directory.
 
         Overrides the base to use this agent's dedicated loader instead of the
@@ -111,20 +111,20 @@ class ResumeAnalystAgent(BaseAgent):
         """
         return super().build_messages(payload, _prompt_loader, evidence)
 
-    def build_evidence(self, payload: ResumeAnalystInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: ResumeAnalystInput) -> dict[str, Any]:
         """Return the deterministic resume evidence for ``payload``."""
         return build_resume_evidence(payload)
 
     def prompt_values(
-        self, payload: ResumeAnalystInput, evidence: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, payload: ResumeAnalystInput, evidence: dict[str, Any]
+    ) -> dict[str, str]:
         """Supply the candidate id + JD-context placeholders for the prompt."""
         return {
             "candidate_id": payload.candidate_id or "unknown",
             "jd_context": (payload.jd or "").strip() or "(no job description provided)",
         }
 
-    def cache_dimensions(self, payload: ResumeAnalystInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: ResumeAnalystInput) -> tuple[str, str]:
         """Cache by candidate id (subject) + a resume-content signature (scope)."""
         doc = evidence_signature(payload)
         return payload.candidate_id or "resume", doc
@@ -132,7 +132,6 @@ class ResumeAnalystAgent(BaseAgent):
 
 def evidence_signature(payload: ResumeAnalystInput) -> str:
     """Return a stable scope signature for caching a resume analysis."""
-    import json
 
     doc = extractors.extract(
         payload.candidate, resume_text=payload.resume_text, candidate_id=payload.candidate_id
@@ -154,14 +153,16 @@ def _orchestration_payload_builder(task, context) -> ResumeAnalystInput:
         candidate = getattr(context, "candidate", None)
     jd = payload.get("jd") or (getattr(context, "jd", "") if context is not None else "")
     return ResumeAnalystInput(
-        candidate_id=str(payload.get("candidate_id", "") or getattr(candidate, "candidate_id", "") or "resume"),
+        candidate_id=str(
+            payload.get("candidate_id", "") or getattr(candidate, "candidate_id", "") or "resume"
+        ),
         candidate=candidate,
         resume_text=payload.get("resume_text", ""),
         jd=jd,
     )
 
 
-def _register_with_orchestration(agent: "ResumeAnalystAgent") -> None:
+def _register_with_orchestration(agent: ResumeAnalystAgent) -> None:
     """Register the agent with the Multi-Agent Orchestration platform (best-effort).
 
     Uses the ``RunnerAgent`` adapter so orchestration runs the agent through the

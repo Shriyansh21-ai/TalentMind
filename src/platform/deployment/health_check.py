@@ -87,18 +87,14 @@ class RepositoryHealthCheck:
         import src.platform as platform_pkg
 
         scanned = 0
-        for module in pkgutil.walk_packages(
-            platform_pkg.__path__, prefix="src.platform."
-        ):
+        for module in pkgutil.walk_packages(platform_pkg.__path__, prefix="src.platform."):
             name = module.name
             # Demo/UI-free: skip nothing — platform layer is dependency-light.
             try:
                 importlib.import_module(name)
                 scanned += 1
             except Exception as exc:  # broken or circular import
-                summary.import_errors.append(
-                    HealthIssue(check="import", detail=f"{name}: {exc}")
-                )
+                summary.import_errors.append(HealthIssue(check="import", detail=f"{name}: {exc}"))
         summary.modules_scanned = scanned
 
     def _check_additive_rule(self, summary: HealthSummary) -> None:
@@ -121,18 +117,14 @@ class RepositoryHealthCheck:
             if path.is_dir() and path.name != "__pycache__":
                 if not _PACKAGE_NAME.match(path.name):
                     summary.naming_issues.append(
-                        HealthIssue(
-                            check="naming", detail=str(path.relative_to(self._root))
-                        )
+                        HealthIssue(check="naming", detail=str(path.relative_to(self._root)))
                     )
 
     def _check_orphans(self, summary: HealthSummary) -> None:
         for path in self._platform_dir.rglob("*"):
             if path.is_file() and _ORPHAN_PATTERNS.match(path.name):
                 summary.orphan_files.append(
-                    HealthIssue(
-                        check="orphan_file", detail=str(path.relative_to(self._root))
-                    )
+                    HealthIssue(check="orphan_file", detail=str(path.relative_to(self._root)))
                 )
 
     # -- reporting ----------------------------------------------------------

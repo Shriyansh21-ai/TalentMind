@@ -25,7 +25,7 @@ Forecast, Recommendation or Human Review (Module 15).
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import Field, field_validator
 
@@ -56,9 +56,9 @@ class WorkforceNarrative(BaseAIResponse):
     forecast_note: str = ""
     optimization_note: str = ""
     data_availability_note: str = ""
-    key_insights: List[str] = Field(default_factory=list)
-    assumptions: List[str] = Field(default_factory=list)
-    strategic_recommendations: List[str] = Field(default_factory=list)
+    key_insights: list[str] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+    strategic_recommendations: list[str] = Field(default_factory=list)
     confidence_note: str = ""
 
     @field_validator("executive_summary")
@@ -81,12 +81,12 @@ class Distribution:
     """A counted distribution over the analyzed cohort (Module 1)."""
 
     name: str
-    counts: Dict[str, int] = field(default_factory=dict)
+    counts: dict[str, int] = field(default_factory=dict)
     total: int = 0
     register: str = "Observed"
     note: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -100,13 +100,13 @@ class KPI:
     """An evidence-backed executive KPI (Module 5). Value is None when Unavailable."""
 
     name: str
-    value: Optional[float] = None
+    value: float | None = None
     label: str = "n/a"  # qualitative band (High/Medium/Low) or "Unavailable"
     register: str = "Observed"
     confidence: float = 0.0
     basis: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "value": round(self.value, 1) if isinstance(self.value, (int, float)) else None,
@@ -134,7 +134,7 @@ class Bottleneck:
     improvement: str = ""
     register: str = "Unavailable"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -154,7 +154,7 @@ class TeamMetric:
     register: str = "Observed"
     detail: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -174,7 +174,7 @@ class Trend:
     interpretation: str = ""
     register: str = "Unavailable"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -193,7 +193,7 @@ class CapacityEstimate:
     recommendation: str = ""
     register: str = "Unavailable"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -208,12 +208,12 @@ class ForecastScenario:
 
     name: str
     growth_label: str = ""
-    demand: Dict[str, str] = field(default_factory=dict)
+    demand: dict[str, str] = field(default_factory=dict)
     confidence: float = 0.0
-    assumptions: List[str] = field(default_factory=list)
+    assumptions: list[str] = field(default_factory=list)
     register: str = "Forecast"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -227,11 +227,11 @@ class Benchmark:
     """An internal benchmark comparison (Module 8). Internal data only."""
 
     dimension: str
-    comparisons: List[Dict[str, Any]] = field(default_factory=list)
+    comparisons: list[dict[str, Any]] = field(default_factory=list)
     register: str = "Observed"
     note: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -251,7 +251,7 @@ class Optimization:
     priority: str = "Medium"  # computed from impact vs effort
     register: str = "Recommendation"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -275,21 +275,21 @@ class HiringIntelligenceReport:
     generated_on: str
     cohort_size: int
     data_available: bool
-    distributions: List[Distribution]
-    kpis: List[KPI]
-    bottlenecks: List[Bottleneck]
-    team_metrics: List[TeamMetric]
-    trends: List[Trend]
-    capacity: List[CapacityEstimate]
-    forecast: List[ForecastScenario]
-    benchmarks: List[Benchmark]
-    optimizations: List[Optimization]
+    distributions: list[Distribution]
+    kpis: list[KPI]
+    bottlenecks: list[Bottleneck]
+    team_metrics: list[TeamMetric]
+    trends: list[Trend]
+    capacity: list[CapacityEstimate]
+    forecast: list[ForecastScenario]
+    benchmarks: list[Benchmark]
+    optimizations: list[Optimization]
     narrative: WorkforceNarrative
-    charts: Dict[str, Any] = field(default_factory=dict)
-    evidence_sources: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    charts: dict[str, Any] = field(default_factory=dict)
+    evidence_sources: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the whole report."""
         return {
             "report_id": self.report_id,

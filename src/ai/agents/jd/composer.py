@@ -9,13 +9,13 @@ evidence is embedded in the prompt for real providers.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.jd import report
 from src.ai.agents.jd.report import band
 
 
-def _executive_summary(ev: Dict[str, Any], quality: Dict[str, float], role: Dict[str, Any]) -> str:
+def _executive_summary(ev: dict[str, Any], quality: dict[str, float], role: dict[str, Any]) -> str:
     """Compose the executive summary from evidence + dimensions + role."""
     doc = ev.get("document", {})
     overall = quality.get("overall", 0.0)
@@ -29,14 +29,18 @@ def _executive_summary(ev: Dict[str, Any], quality: Dict[str, float], role: Dict
     )
 
 
-def _strengths(ev: Dict[str, Any], quality: Dict[str, float]) -> List[str]:
+def _strengths(ev: dict[str, Any], quality: dict[str, float]) -> list[str]:
     """Derive strengths from the highest-scoring dimensions + concrete signals."""
     doc = ev.get("document", {})
-    strengths: List[str] = []
-    top = sorted(((k, v) for k, v in quality.items() if k != "overall"), key=lambda kv: kv[1], reverse=True)
+    strengths: list[str] = []
+    top = sorted(
+        ((k, v) for k, v in quality.items() if k != "overall"), key=lambda kv: kv[1], reverse=True
+    )
     for name, value in top[:3]:
         if value >= 60:
-            strengths.append(f"{name.replace('_', ' ').title()} is {band(value).lower()} ({value:.0f}/100).")
+            strengths.append(
+                f"{name.replace('_', ' ').title()} is {band(value).lower()} ({value:.0f}/100)."
+            )
     if doc.get("compensation"):
         strengths.append("Compensation is disclosed.")
     if doc.get("preferred"):
@@ -44,20 +48,22 @@ def _strengths(ev: Dict[str, Any], quality: Dict[str, float]) -> List[str]:
     return strengths or ["Baseline JD structure is present."]
 
 
-def _weaknesses(ev: Dict[str, Any], quality: Dict[str, float]) -> List[str]:
+def _weaknesses(ev: dict[str, Any], quality: dict[str, float]) -> list[str]:
     """Derive weaknesses from the lowest-scoring dimensions + gaps."""
-    weaknesses: List[str] = []
+    weaknesses: list[str] = []
     low = sorted(((k, v) for k, v in quality.items() if k != "overall"), key=lambda kv: kv[1])
     for name, value in low[:3]:
         if value < 55:
-            weaknesses.append(f"{name.replace('_', ' ').title()} is {band(value).lower()} ({value:.0f}/100).")
+            weaknesses.append(
+                f"{name.replace('_', ' ').title()} is {band(value).lower()} ({value:.0f}/100)."
+            )
     doc = ev.get("document", {})
     if not doc.get("compensation"):
         weaknesses.append("No compensation disclosed.")
     return weaknesses or ["No major weaknesses detected in the JD structure."]
 
 
-def _confidence_note(ev: Dict[str, Any]) -> str:
+def _confidence_note(ev: dict[str, Any]) -> str:
     """State confidence + uncertainty based on how much evidence exists."""
     doc = ev.get("document", {})
     present = len(doc.get("sections_present", []))
@@ -74,7 +80,7 @@ def _confidence_note(ev: Dict[str, Any]) -> str:
     )
 
 
-def _evidence_list(ev: Dict[str, Any]) -> List[str]:
+def _evidence_list(ev: dict[str, Any]) -> list[str]:
     """Return a compact list of the concrete evidence the analysis relied on."""
     doc = ev.get("document", {})
     m = ev.get("metrics", {})
@@ -82,7 +88,7 @@ def _evidence_list(ev: Dict[str, Any]) -> List[str]:
         f"{len(doc.get('requirements', []))} requirement line(s), "
         f"{len(doc.get('responsibilities', []))} responsibility line(s).",
         f"{m.get('tech_count', 0)} technologies across "
-        f"{sum(bool(m.get(k)) for k in ('languages','frameworks','cloud','ai_ml','devops','data'))} categories.",
+        f"{sum(bool(m.get(k)) for k in ('languages', 'frameworks', 'cloud', 'ai_ml', 'devops', 'data'))} categories.",
         f"Sections present: {', '.join(doc.get('sections_present', [])) or 'none'}.",
     ]
     if doc.get("compensation"):
@@ -90,7 +96,7 @@ def _evidence_list(ev: Dict[str, Any]) -> List[str]:
     return items
 
 
-def compose_jd_analysis(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_jd_analysis(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose a :class:`JDAnalysis` dict from evidence."""
     ev = evidence or {}
     m = ev.get("metrics", {})
@@ -126,7 +132,7 @@ def compose_jd_analysis(evidence: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _market_summary(ev: Dict[str, Any]) -> str:
+def _market_summary(ev: dict[str, Any]) -> str:
     """One-line summary of the market posture from the estimates."""
     estimates = ev.get("market_estimates", [])
     by_dim = {e["dimension"]: e["assessment"] for e in estimates}

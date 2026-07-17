@@ -25,9 +25,7 @@ class AbacEngine:
         pattern = f"{policy.resource}:{policy.action}"
         return matches(pattern, permission)
 
-    def _conditions_hold(
-        self, policy: AbacPolicy, attributes: dict[str, object]
-    ) -> bool:
+    def _conditions_hold(self, policy: AbacPolicy, attributes: dict[str, object]) -> bool:
         return all(cond.evaluate(attributes) for cond in policy.conditions)
 
     def evaluate(

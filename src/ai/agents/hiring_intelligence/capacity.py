@@ -9,7 +9,7 @@ unless an analytics provider is connected. Never fabricates workload figures
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.hiring_intelligence.schemas import CapacityEstimate
 
@@ -22,20 +22,26 @@ _AREAS = [
 ]
 
 
-def build_capacity(cohort: List[Dict[str, Any]], provider: Any, data_available: bool) -> List[CapacityEstimate]:
+def build_capacity(
+    cohort: list[dict[str, Any]], provider: Any, data_available: bool
+) -> list[CapacityEstimate]:
     """Estimate hiring capacity (Module 6)."""
-    provider_capacity: Dict[str, Any] = {}
+    provider_capacity: dict[str, Any] = {}
     if data_available and provider is not None and hasattr(provider, "get_capacity"):
         provider_capacity = provider.get_capacity() or {}
 
-    estimates: List[CapacityEstimate] = []
+    estimates: list[CapacityEstimate] = []
     for area, desc in _AREAS:
         if area in provider_capacity:
             info = provider_capacity[area]
             estimates.append(
-                CapacityEstimate(area=area, workload_level=info.get("level", "Moderate"),
-                                 risk=info.get("risk", ""), recommendation=info.get("recommendation", ""),
-                                 register="Observed")
+                CapacityEstimate(
+                    area=area,
+                    workload_level=info.get("level", "Moderate"),
+                    risk=info.get("risk", ""),
+                    recommendation=info.get("recommendation", ""),
+                    register="Observed",
+                )
             )
         else:
             estimates.append(

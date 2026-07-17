@@ -9,7 +9,7 @@ seam.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from enum import Enum
 
 from pydantic import Field
@@ -46,7 +46,7 @@ def convert_timezone(moment: datetime, offset_minutes: int) -> datetime:
     callers.
     """
     if moment.tzinfo is None:
-        moment = moment.replace(tzinfo=timezone.utc)
+        moment = moment.replace(tzinfo=UTC)
     target = timezone(timedelta(minutes=offset_minutes))
     return moment.astimezone(target)
 
@@ -62,7 +62,7 @@ class TimeWindow(PlatformModel):
         """Return the window length in whole minutes."""
         return int((self.end - self.start).total_seconds() // 60)
 
-    def overlaps(self, other: "TimeWindow") -> bool:
+    def overlaps(self, other: TimeWindow) -> bool:
         """Return whether this window overlaps ``other``."""
         return self.start < other.end and other.start < self.end
 
@@ -80,10 +80,7 @@ class Availability(PlatformModel):
 
     def is_free_at(self, window: TimeWindow) -> bool:
         """Return whether ``window`` fits entirely inside a free window."""
-        return any(
-            fw.start <= window.start and window.end <= fw.end
-            for fw in self.free_windows
-        )
+        return any(fw.start <= window.start and window.end <= fw.end for fw in self.free_windows)
 
 
 class MeetingMetadata(PlatformModel):

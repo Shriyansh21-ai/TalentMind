@@ -92,9 +92,7 @@ class ObservabilityRegistry:
             )
         return self._stats[key]
 
-    def record_connect(
-        self, tenant_id: str, integration_id: str, *, ok: bool
-    ) -> None:
+    def record_connect(self, tenant_id: str, integration_id: str, *, ok: bool) -> None:
         """Record a connection attempt and its outcome."""
         stats = self.stats_for(tenant_id, integration_id)
         stats.connect_attempts += 1
@@ -123,9 +121,7 @@ class ObservabilityRegistry:
         stats.total_latency_ms += latency_ms
         stats.max_latency_ms = max(stats.max_latency_ms, latency_ms)
 
-    def all_stats(
-        self, *, tenant_id: str | None = None
-    ) -> list[ConnectionStatistics]:
+    def all_stats(self, *, tenant_id: str | None = None) -> list[ConnectionStatistics]:
         """Return all statistics, optionally filtered to one tenant."""
         values = list(self._stats.values())
         if tenant_id is not None:

@@ -11,7 +11,7 @@ import pytest
 from src.platform.common.clock import FrozenClock
 from src.platform.runtime.common.errors import WorkerError
 from src.platform.runtime.common.models import HealthState
-from src.platform.runtime.workers import WorkerContext, WorkerPool, WorkerStatus
+from src.platform.runtime.workers import WorkerPool, WorkerStatus
 
 
 def test_register_becomes_idle():

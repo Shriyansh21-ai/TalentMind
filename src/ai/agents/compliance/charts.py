@@ -8,7 +8,7 @@ qualitative status or a coverage count — never a fabricated compliance figure.
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from src.ai.agents.compliance.schemas import (
     ApprovalMatrix,
@@ -29,7 +29,7 @@ def build_chart_data(
     documentation: DocumentationReview,
     audit: AuditTrailValidation,
     governance_risk: GovernanceRisk,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Build every chart structure for the compliance dashboard (Module 10)."""
     return {
         "compliance_status": {
@@ -44,7 +44,8 @@ def build_chart_data(
             "steps": {s.name: s.status for s in workflow.steps},
         },
         "approval_flow": [
-            {"approver": a.approver, "required": a.required, "state": a.state} for a in approvals.approvals
+            {"approver": a.approver, "required": a.required, "state": a.state}
+            for a in approvals.approvals
         ],
         "executive_approval_matrix": {
             a.approver: a.state for a in approvals.approvals if a.required

@@ -14,19 +14,16 @@ from __future__ import annotations
 import json
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-from src.ai.providers.composers import has_composer
-
+from src.ai.agents.compliance import approval_engine as approval_mod
+from src.ai.agents.compliance import documentation as documentation_mod
+from src.ai.agents.compliance import policy_engine as policy_mod
+from src.ai.agents.compliance import validators
+from src.ai.agents.compliance import workflow as workflow_mod
 from src.ai.agents.compliance.agent import (
     ComplianceInput,
     build_compliance_evidence,
-    compliance_agent,
 )
 from src.ai.agents.compliance.compliance_report import (
     HiringComplianceEngine,
@@ -34,18 +31,16 @@ from src.ai.agents.compliance.compliance_report import (
 )
 from src.ai.agents.compliance.composer import compose_compliance_narrative
 from src.ai.agents.compliance.schemas import (
-    ApprovalMatrix,
     ComplianceNarrative,
     HiringComplianceReport,
 )
-from src.ai.agents.compliance import approval_engine as approval_mod
-from src.ai.agents.compliance import documentation as documentation_mod
-from src.ai.agents.compliance import policy_engine as policy_mod
-from src.ai.agents.compliance import workflow as workflow_mod
-from src.ai.agents.compliance import validators
 from src.ai.agents.compliance.templates import get_policy, list_policies
-
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 JD = "Senior Machine Learning Engineer. Python, PyTorch, AWS, Kubernetes, LLMs. 8+ years. Lead and mentor."
 
@@ -57,8 +52,10 @@ class _FullProvider:
         return True
 
     def get_approvals(self, candidate_id):
-        return {role: {"approved": True, "by": "Approver"} for role in
-                ["Recruiter", "Hiring Manager", "HR", "Finance", "Legal", "Executive"]}
+        return {
+            role: {"approved": True, "by": "Approver"}
+            for role in ["Recruiter", "Hiring Manager", "HR", "Finance", "Legal", "Executive"]
+        }
 
     def get_documents(self, candidate_id):
         return {"executive_report": True, "interview_packet": True}
@@ -85,8 +82,12 @@ def _ctx(**over):
     base = {
         "candidate_id": "CAND_1",
         "evidence_sources": [
-            "Resume Analyst Agent", "JD Analyst Agent", "Interview Intelligence",
-            "AI Hiring Committee", "Compensation Governance Agent", "Pay Equity Guardian",
+            "Resume Analyst Agent",
+            "JD Analyst Agent",
+            "Interview Intelligence",
+            "AI Hiring Committee",
+            "Compensation Governance Agent",
+            "Pay Equity Guardian",
         ],
         "required_approvers": ["Recruiter", "Hiring Manager", "HR"],
         "approval_reasons": {},
@@ -126,8 +127,8 @@ def test_narrative_schema_is_score_free():
 
 
 def test_tool_registered_in_builtin():
-    from src.ai.tools.registry import registry as tool_registry
     import src.ai.tools.builtin  # noqa: F401
+    from src.ai.tools.registry import registry as tool_registry
 
     assert tool_registry.has("hiring_compliance")
 
@@ -150,8 +151,17 @@ def test_composer_states_not_legal_advice():
 
 def test_build_evidence_packs_all_sections():
     ev = build_compliance_evidence(ComplianceInput(candidate_id="C1"))
-    for key in ("workflow", "approvals", "policy_checks", "documentation", "audit",
-                "governance_risk", "exceptions", "review", "data_available"):
+    for key in (
+        "workflow",
+        "approvals",
+        "policy_checks",
+        "documentation",
+        "audit",
+        "governance_risk",
+        "exceptions",
+        "review",
+        "data_available",
+    ):
         assert key in ev
 
 
@@ -250,8 +260,12 @@ def test_policy_not_applicable_for_standard_hire():
 
 
 def test_policy_committee_satisfied_for_executive_hire():
-    ctx = _ctx(executive_hire=True, critical_hire=True, hire_type="Critical Hire",
-               salary_above_threshold=True)
+    ctx = _ctx(
+        executive_hire=True,
+        critical_hire=True,
+        hire_type="Critical Hire",
+        salary_above_threshold=True,
+    )
     matrix = approval_mod.build_approval_matrix(ctx, _FullProvider())
     checks = {c.policy_key: c for c in policy_mod.evaluate_policies(list_policies(), ctx, matrix)}
     # Committee is in evidence -> exec-hire-committee compliant.
@@ -321,8 +335,15 @@ def test_report_to_dict_is_serializable():
 
 def test_charts_present():
     report = _report()
-    for key in ("compliance_status", "workflow_completion", "approval_flow",
-                "executive_approval_matrix", "audit_readiness", "governance_health", "missing_documentation"):
+    for key in (
+        "compliance_status",
+        "workflow_completion",
+        "approval_flow",
+        "executive_approval_matrix",
+        "audit_readiness",
+        "governance_health",
+        "missing_documentation",
+    ):
         assert key in report.charts
 
 
@@ -350,9 +371,9 @@ def test_approvals_never_complete_without_system():
 
 
 def test_copilot_routes_compliance_questions():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -367,16 +388,16 @@ def test_copilot_routes_compliance_questions():
 
 
 def test_copilot_compliance_intent_selects_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.HIRING_COMPLIANCE) == ["hiring_compliance"]
 
 
 def test_copilot_existing_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -395,9 +416,9 @@ def test_copilot_existing_intents_unchanged():
 
 
 def test_copilot_delegates_to_compliance_end_to_end():
-    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository(
         [make_candidate(candidate_id="CAND_0000001", title="Senior ML Engineer")]

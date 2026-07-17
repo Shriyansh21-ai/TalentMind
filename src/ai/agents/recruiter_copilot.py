@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
@@ -58,10 +58,10 @@ class RecruiterCopilotInput:
 
     intent: str
     message: str
-    tool_outputs: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    tool_outputs: dict[str, dict[str, Any]] = field(default_factory=dict)
 
 
-def build_evidence(payload: RecruiterCopilotInput) -> Dict[str, Any]:
+def build_evidence(payload: RecruiterCopilotInput) -> dict[str, Any]:
     """Return the structured evidence for the agent/composer."""
     return {
         "intent": payload.intent,
@@ -75,7 +75,7 @@ def build_evidence(payload: RecruiterCopilotInput) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def _summarize_search(output: Dict[str, Any]) -> str:
+def _summarize_search(output: dict[str, Any]) -> str:
     rows = output.get("results", [])
     if not rows:
         return "No candidates matched the query."
@@ -87,7 +87,7 @@ def _summarize_search(output: Dict[str, Any]) -> str:
     return "Top matches:\n" + "\n".join(lines)
 
 
-def _summarize_intelligence(output: Dict[str, Any]) -> str:
+def _summarize_intelligence(output: dict[str, Any]) -> str:
     return (
         f"Intelligence: overall {output.get('overall', 0):.0f}/100, technical "
         f"{output.get('technical', 0):.0f}, leadership {output.get('leadership', 0):.0f}, "
@@ -95,7 +95,7 @@ def _summarize_intelligence(output: Dict[str, Any]) -> str:
     )
 
 
-def _summarize_timeline(output: Dict[str, Any]) -> str:
+def _summarize_timeline(output: dict[str, Any]) -> str:
     return (
         f"Career: {output.get('summary', 'trajectory analysed')} "
         f"(timeline {output.get('timeline_score', 0):.0f}/100, "
@@ -103,7 +103,7 @@ def _summarize_timeline(output: Dict[str, Any]) -> str:
     )
 
 
-def _summarize_risk(output: Dict[str, Any]) -> str:
+def _summarize_risk(output: dict[str, Any]) -> str:
     flags = output.get("red_flags", [])
     tail = f" Red flags: {', '.join(flags)}." if flags else " No red flags."
     return (
@@ -112,7 +112,7 @@ def _summarize_risk(output: Dict[str, Any]) -> str:
     )
 
 
-def _summarize_recommendation(output: Dict[str, Any]) -> str:
+def _summarize_recommendation(output: dict[str, Any]) -> str:
     reasons = output.get("reasons", [])
     tail = f" Reasons: {'; '.join(reasons)}." if reasons else ""
     return (
@@ -121,18 +121,18 @@ def _summarize_recommendation(output: Dict[str, Any]) -> str:
     )
 
 
-def _summarize_interview(output: Dict[str, Any]) -> str:
+def _summarize_interview(output: dict[str, Any]) -> str:
     topics = output.get("technical_topics", []) + output.get("system_design_topics", [])
     return "Interview focus: " + ("; ".join(topics[:5]) if topics else "standard rounds") + "."
 
 
-def _summarize_skill_gap(output: Dict[str, Any]) -> str:
+def _summarize_skill_gap(output: dict[str, Any]) -> str:
     missing = output.get("missing", [])
     tail = f" Missing: {', '.join(missing)}." if missing else " No JD skill gaps."
     return f"Skill match: {output.get('match_percent', 0)}%.{tail}"
 
 
-def _summarize_comparison(output: Dict[str, Any]) -> str:
+def _summarize_comparison(output: dict[str, Any]) -> str:
     rows = output.get("rows", [])
     best = output.get("best_by_metric", {})
     if not rows:
@@ -148,7 +148,7 @@ def _summarize_comparison(output: Dict[str, Any]) -> str:
     return "Comparison:\n" + "\n".join(lines) + tail
 
 
-def _summarize_pipeline(output: Dict[str, Any]) -> str:
+def _summarize_pipeline(output: dict[str, Any]) -> str:
     if output.get("tracked") is False:
         return "Pipeline: candidate is not yet tracked."
     if "current_stage" in output:
@@ -161,7 +161,7 @@ def _summarize_pipeline(output: Dict[str, Any]) -> str:
     return f"Pipeline distribution: {active or 'no candidates tracked'}."
 
 
-def _summarize_dashboard(output: Dict[str, Any]) -> str:
+def _summarize_dashboard(output: dict[str, Any]) -> str:
     skills = output.get("top_skills", [])[:5]
     skill_str = ", ".join(f"{s}({c})" for s, c in skills) if skills else "n/a"
     return (
@@ -170,13 +170,13 @@ def _summarize_dashboard(output: Dict[str, Any]) -> str:
     )
 
 
-def _summarize_explainability(output: Dict[str, Any]) -> str:
+def _summarize_explainability(output: dict[str, Any]) -> str:
     reasons = output.get("reasons", [])
     tail = f" Reasons: {'; '.join(reasons)}." if reasons else ""
     return f"Rule-based ranking total {output.get('total_score', 'n/a')}.{tail}"
 
 
-def _summarize_resume_analysis(output: Dict[str, Any]) -> str:
+def _summarize_resume_analysis(output: dict[str, Any]) -> str:
     dims = output.get("dimensions", {})
     strengths = output.get("strengths", [])
     weaknesses = output.get("weaknesses", [])
@@ -192,14 +192,16 @@ def _summarize_resume_analysis(output: Dict[str, Any]) -> str:
     if weaknesses:
         lines.append("Weaknesses: " + "; ".join(weaknesses[:3]) + ".")
     if output.get("risk_findings"):
-        lines.append(f"Resume risk: {output.get('risk_level')} ({len(output['risk_findings'])} finding(s)).")
+        lines.append(
+            f"Resume risk: {output.get('risk_level')} ({len(output['risk_findings'])} finding(s))."
+        )
     if improvements:
         tops = ", ".join(f"{i['title']} ({i['priority']})" for i in improvements[:3])
         lines.append("Top improvements: " + tops + ".")
     return "\n".join(lines)
 
 
-def _summarize_jd_analysis(output: Dict[str, Any]) -> str:
+def _summarize_jd_analysis(output: dict[str, Any]) -> str:
     dims = output.get("dimensions", {})
     lines = [
         f"JD quality {output.get('overall_quality', 0):.0f}/100 "
@@ -215,7 +217,9 @@ def _summarize_jd_analysis(output: Dict[str, Any]) -> str:
     if mandatory:
         lines.append("Mandatory: " + "; ".join(mandatory[:3]) + ".")
     if output.get("risk_findings"):
-        lines.append(f"JD risk: {output.get('risk_level')} ({len(output['risk_findings'])} finding(s)).")
+        lines.append(
+            f"JD risk: {output.get('risk_level')} ({len(output['risk_findings'])} finding(s))."
+        )
     improvements = output.get("top_improvements", [])
     if improvements:
         tops = ", ".join(f"{i['title']} ({i['priority']})" for i in improvements[:3])
@@ -223,7 +227,7 @@ def _summarize_jd_analysis(output: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _summarize_committee(output: Dict[str, Any]) -> str:
+def _summarize_committee(output: dict[str, Any]) -> str:
     lines = [
         f"**Committee decision: {output.get('recommendation', 'n/a')}** "
         f"({output.get('consensus_level', 'n/a')}, confidence "
@@ -238,11 +242,7 @@ def _summarize_committee(output: Dict[str, Any]) -> str:
         lines.append("Disagreement: " + " ".join(disagreements))
     conflicts = output.get("conflicts", [])
     if conflicts:
-        lines.append(
-            "Key conflict(s): "
-            + "; ".join(c["between"] for c in conflicts[:3])
-            + "."
-        )
+        lines.append("Key conflict(s): " + "; ".join(c["between"] for c in conflicts[:3]) + ".")
     risks = output.get("hiring_risks", [])
     if risks:
         lines.append("Risks: " + "; ".join(risks[:3]) + ".")
@@ -255,7 +255,7 @@ def _summarize_committee(output: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _summarize_executive_report(output: Dict[str, Any]) -> str:
+def _summarize_executive_report(output: dict[str, Any]) -> str:
     lines = [
         f"**{output.get('template_name', 'Executive')} report for {output.get('candidate_id', '?')}** — "
         f"recommends **{output.get('overall_recommendation', 'n/a')}** → action "
@@ -277,11 +277,13 @@ def _summarize_executive_report(output: Dict[str, Any]) -> str:
             "This report synthesizes existing intelligence — it introduces no new ranking."
         )
     elif output.get("export_error"):
-        lines.append(f"(The {str(fmt).upper()} export could not be generated: {output['export_error']}.)")
+        lines.append(
+            f"(The {str(fmt).upper()} export could not be generated: {output['export_error']}.)"
+        )
     return "\n".join(lines)
 
 
-def _summarize_interview_studio(output: Dict[str, Any]) -> str:
+def _summarize_interview_studio(output: dict[str, Any]) -> str:
     lines = [
         f"**{output.get('role_name', 'Interview')} interview plan for {output.get('candidate_id', '?')}** "
         f"({output.get('depth', 'standard')} loop, {output.get('stage_count', 0)} stages, "
@@ -308,11 +310,13 @@ def _summarize_interview_studio(output: Dict[str, Any]) -> str:
     bands = output.get("decision_bands", [])
     if bands:
         lines.append("Decision matrix bands: " + ", ".join(bands) + ".")
-    lines.append("Every question traces back to existing intelligence; this plans the interview, it does not run it.")
+    lines.append(
+        "Every question traces back to existing intelligence; this plans the interview, it does not run it."
+    )
     return "\n".join(lines)
 
 
-def _summarize_compensation(output: Dict[str, Any]) -> str:
+def _summarize_compensation(output: dict[str, Any]) -> str:
     lines = [
         f"**Compensation governance for {output.get('candidate_id', '?')}** — recommends "
         f"**{output.get('recommended_range', 'n/a')}** ({output.get('market_position', 'n/a')}, "
@@ -323,7 +327,9 @@ def _summarize_compensation(output: Dict[str, Any]) -> str:
         lines.append(output["executive_summary"])
     scenarios = output.get("scenarios", [])
     if scenarios:
-        lines.append("Scenarios: " + "; ".join(f"{s['name']} {s['range']}" for s in scenarios[:4]) + ".")
+        lines.append(
+            "Scenarios: " + "; ".join(f"{s['name']} {s['range']}" for s in scenarios[:4]) + "."
+        )
     lines.append(
         f"Negotiation: acceptance {output.get('acceptance_likelihood', 'n/a')}, "
         f"probability {output.get('negotiation_probability', 'n/a')}."
@@ -347,7 +353,7 @@ def _summarize_compensation(output: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _summarize_pay_equity(output: Dict[str, Any]) -> str:
+def _summarize_pay_equity(output: dict[str, Any]) -> str:
     lines = [
         f"**Pay-equity review for {output.get('candidate_id', '?')}** — equity risk "
         f"**{output.get('equity_risk', 'n/a')}**"
@@ -360,18 +366,24 @@ def _summarize_pay_equity(output: Dict[str, Any]) -> str:
     lines.append(output.get("data_availability_note", ""))
     lines.append(
         f"Policy '{output.get('policy', 'n/a')}': {output.get('policy_alignment', 'n/a')}."
-        + (" Violations: " + "; ".join(output.get("policy_violations", [])) if output.get("policy_violations") else "")
+        + (
+            " Violations: " + "; ".join(output.get("policy_violations", []))
+            if output.get("policy_violations")
+            else ""
+        )
     )
     approvers = output.get("required_approvers", [])
     if approvers:
-        lines.append(f"{output.get('review_level', 'Standard')} review — approvers: {', '.join(approvers)}.")
+        lines.append(
+            f"{output.get('review_level', 'Standard')} review — approvers: {', '.join(approvers)}."
+        )
     recs = output.get("human_review_recommendations", [])
     if recs:
         lines.append("Human review: " + "; ".join(recs[:3]) + ".")
     return "\n".join(l for l in lines if l)
 
 
-def _summarize_compliance(output: Dict[str, Any]) -> str:
+def _summarize_compliance(output: dict[str, Any]) -> str:
     lines = [
         f"**Hiring compliance for {output.get('candidate_id', '?')}** — workflow "
         f"**{output.get('workflow_status', 'n/a')}** "
@@ -390,10 +402,16 @@ def _summarize_compliance(output: Dict[str, Any]) -> str:
     exceptions = output.get("exceptions", [])
     real = [e for e in exceptions if e.get("kind") != "No exceptions detected"]
     if real:
-        lines.append("Exceptions: " + "; ".join(f"{e['kind']} ({e['severity']})" for e in real[:4]) + ".")
-    policies = [p for p in output.get("policy_checks", []) if p.get("status") not in ("Not Applicable",)]
+        lines.append(
+            "Exceptions: " + "; ".join(f"{e['kind']} ({e['severity']})" for e in real[:4]) + "."
+        )
+    policies = [
+        p for p in output.get("policy_checks", []) if p.get("status") not in ("Not Applicable",)
+    ]
     if policies:
-        lines.append("Policy: " + "; ".join(f"{p['policy']}: {p['status']}" for p in policies[:4]) + ".")
+        lines.append(
+            "Policy: " + "; ".join(f"{p['policy']}: {p['status']}" for p in policies[:4]) + "."
+        )
     if output.get("reviewers"):
         lines.append(f"Recommend {', '.join(output['reviewers'])} review.")
     actions = output.get("required_actions", [])
@@ -402,7 +420,7 @@ def _summarize_compliance(output: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _summarize_audit(output: Dict[str, Any]) -> str:
+def _summarize_audit(output: dict[str, Any]) -> str:
     lines = [
         f"**Hiring-decision audit for {output.get('candidate_id', '?')}** — "
         f"{output.get('agent_count', 0)} AI agent(s) participated; audit readiness "
@@ -419,7 +437,8 @@ def _summarize_audit(output: Dict[str, Any]) -> str:
         lines.append("AI decisions: " + "; ".join(ai[:4]) + ".")
     human = output.get("human_decisions_verified", [])
     lines.append(
-        "Verified human approvals: " + (", ".join(human) if human else "none on record (pending review).")
+        "Verified human approvals: "
+        + (", ".join(human) if human else "none on record (pending review).")
     )
     outstanding = output.get("outstanding_approvals", [])
     if outstanding:
@@ -432,11 +451,15 @@ def _summarize_audit(output: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _summarize_hiring_intelligence(output: Dict[str, Any]) -> str:
+def _summarize_hiring_intelligence(output: dict[str, Any]) -> str:
     lines = [
         f"**Workforce hiring intelligence** over {output.get('cohort_size', 0)} analyzed candidate(s) — "
         f"Hiring Health **{output.get('hiring_health', 'n/a')}**"
-        + (f" ({output.get('hiring_health_value'):.0f}/100)" if isinstance(output.get('hiring_health_value'), (int, float)) else "")
+        + (
+            f" ({output.get('hiring_health_value'):.0f}/100)"
+            if isinstance(output.get("hiring_health_value"), (int, float))
+            else ""
+        )
         + ". Organizational intelligence only — never candidate ranking; no fabricated statistics.",
     ]
     if output.get("executive_summary"):
@@ -446,10 +469,16 @@ def _summarize_hiring_intelligence(output: Dict[str, Any]) -> str:
         lines.append("KPIs: " + "; ".join(f"{k['name']}: {k['label']}" for k in kpis) + ".")
     bottlenecks = output.get("estimated_bottlenecks", [])
     if bottlenecks:
-        lines.append("Estimated bottlenecks: " + "; ".join(f"{b['stage']} ({b['severity']})" for b in bottlenecks) + ".")
+        lines.append(
+            "Estimated bottlenecks: "
+            + "; ".join(f"{b['stage']} ({b['severity']})" for b in bottlenecks)
+            + "."
+        )
     opts = [o for o in output.get("optimizations", []) if o.get("priority") in ("Critical", "High")]
     if opts:
-        lines.append("Priority optimizations: " + "; ".join(o["recommendation"] for o in opts[:3]) + ".")
+        lines.append(
+            "Priority optimizations: " + "; ".join(o["recommendation"] for o in opts[:3]) + "."
+        )
     unavailable = output.get("unavailable_trends", [])
     if unavailable and not output.get("data_available"):
         lines.append(
@@ -508,14 +537,14 @@ _INTENT_LEAD = {
 }
 
 
-def compose_copilot_response(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_copilot_response(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose a :class:`CopilotResponse` from tool outputs."""
     intent = evidence.get("intent", "")
-    tools: Dict[str, Any] = evidence.get("tools", {}) or {}
+    tools: dict[str, Any] = evidence.get("tools", {}) or {}
 
     lead = _INTENT_LEAD.get(intent, "Here is what the deterministic engines report.")
-    sections: List[str] = []
-    evidence_sources: List[str] = []
+    sections: list[str] = []
+    evidence_sources: list[str] = []
 
     for name, output in tools.items():
         summarizer = _SUMMARIZERS.get(name)
@@ -550,8 +579,7 @@ def compose_copilot_response(evidence: Dict[str, Any]) -> Dict[str, Any]:
         or not sections
     )
     confidence_note = (
-        "Confidence is limited — evidence is thin or risk is elevated; validate "
-        "before acting."
+        "Confidence is limited — evidence is thin or risk is elevated; validate before acting."
         if low_confidence
         else "Confidence is solid — the engine signals are consistent."
     )
@@ -586,17 +614,17 @@ class RecruiterCopilotAgent(BaseAgent):
     )
     output_schema = CopilotResponse
 
-    def build_evidence(self, payload: RecruiterCopilotInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: RecruiterCopilotInput) -> dict[str, Any]:
         """Return the structured evidence (intent + message + tool outputs)."""
         return build_evidence(payload)
 
     def prompt_values(
-        self, payload: RecruiterCopilotInput, evidence: Dict[str, Any]
-    ) -> Dict[str, str]:
+        self, payload: RecruiterCopilotInput, evidence: dict[str, Any]
+    ) -> dict[str, str]:
         """Supply the recruiter message + intent placeholders."""
         return {"recruiter_message": payload.message, "intent": payload.intent}
 
-    def cache_dimensions(self, payload: RecruiterCopilotInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: RecruiterCopilotInput) -> tuple[str, str]:
         """Cache by intent (subject) and message + tool-output signature (scope)."""
         signature = json.dumps(payload.tool_outputs, sort_keys=True, default=str)
         return payload.intent or "general", f"{payload.message}||{signature}"

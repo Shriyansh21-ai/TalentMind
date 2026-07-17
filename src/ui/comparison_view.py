@@ -9,14 +9,12 @@ focus, missing skills) for each candidate.
 
 from __future__ import annotations
 
-from typing import Dict
-
 import pandas as pd
 import streamlit as st
 
-from src.models.candidates import Candidate
 from src.comparison.builder import build_comparison
 from src.comparison.models import ComparisonReport
+from src.models.candidates import Candidate
 from src.ui.helpers import get_insights
 from src.ui.workspace_state import clear_compare, get_compare_ids
 
@@ -34,9 +32,7 @@ _METRIC_LABELS = [
 ]
 
 
-def render_comparison_workspace(
-    candidate_by_id: Dict[str, Candidate], jd: str
-) -> None:
+def render_comparison_workspace(candidate_by_id: dict[str, Candidate], jd: str) -> None:
     """Render the comparison workspace for the shortlisted candidates.
 
     Args:

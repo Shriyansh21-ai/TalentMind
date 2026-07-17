@@ -21,7 +21,7 @@ Two prepared extension points:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, List, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -34,7 +34,7 @@ class AnalysisProvider(Protocol):
 
     executive_summary: str
     confidence_note: str
-    evidence: List[str]
+    evidence: list[str]
 
     def to_dict(self) -> dict:  # provided by BaseAIResponse
         """Return a plain dict of the analysis."""
@@ -55,8 +55,8 @@ class CombinedAnalysisInputs:
     agent would accept. This milestone does not compute anything from it.
     """
 
-    resume_analysis: Optional[Any] = None  # ResumeAnalysis
-    jd_analysis: Optional[Any] = None       # JDAnalysis
+    resume_analysis: Any | None = None  # ResumeAnalysis
+    jd_analysis: Any | None = None  # JDAnalysis
 
     @property
     def ready(self) -> bool:

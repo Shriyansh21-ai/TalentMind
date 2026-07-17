@@ -8,7 +8,7 @@ fabricated figure.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.audit.schemas import (
     AuditReadiness,
@@ -23,13 +23,13 @@ _READINESS_INDEX = {"high": 3, "medium": 2, "low": 1}
 
 def build_chart_data(
     *,
-    decision_trace: List[DecisionTraceStep],
+    decision_trace: list[DecisionTraceStep],
     evidence_graph: EvidenceGraph,
-    timeline: List[TimelineEvent],
-    responsibility: List[DecisionResponsibility],
+    timeline: list[TimelineEvent],
+    responsibility: list[DecisionResponsibility],
     readiness: AuditReadiness,
-    agents_participated: List[str],
-) -> Dict[str, Any]:
+    agents_participated: list[str],
+) -> dict[str, Any]:
     """Build every chart structure for the audit dashboard (Module 10)."""
     total_agents = len({n.id for n in evidence_graph.nodes if n.kind == "agent"})
     return {
@@ -38,11 +38,13 @@ def build_chart_data(
         ],
         "evidence_graph": evidence_graph.to_dict(),
         "timeline": [
-            {"order": t.order, "name": t.name, "actor": t.actor, "status": t.status} for t in timeline
+            {"order": t.order, "name": t.name, "actor": t.actor, "status": t.status}
+            for t in timeline
         ],
         "approval_chain": [
             {"decision": d.decision, "party": d.responsible_party, "status": d.status}
-            for d in responsibility if d.responsible_party != "AI"
+            for d in responsibility
+            if d.responsible_party != "AI"
         ],
         "agent_participation": {
             "participated": list(agents_participated),

@@ -1,12 +1,12 @@
 # src/models/candidate.py
 
-from typing import List, Optional, Dict
-from pydantic import BaseModel
 
+from pydantic import BaseModel
 
 # =====================================================
 # PROFILE
 # =====================================================
+
 
 class Profile(BaseModel):
     anonymized_name: str
@@ -21,7 +21,7 @@ class Profile(BaseModel):
     current_title: str
     current_company: str
 
-    current_company_size: Optional[str] = None
+    current_company_size: str | None = None
     current_industry: str
 
 
@@ -29,12 +29,13 @@ class Profile(BaseModel):
 # CAREER HISTORY
 # =====================================================
 
+
 class CareerHistory(BaseModel):
     company: str
     title: str
 
     start_date: str
-    end_date: Optional[str] = None
+    end_date: str | None = None
 
     duration_months: int
 
@@ -50,6 +51,7 @@ class CareerHistory(BaseModel):
 # EDUCATION
 # =====================================================
 
+
 class Education(BaseModel):
     institution: str
     degree: str
@@ -59,13 +61,14 @@ class Education(BaseModel):
     start_year: int
     end_year: int
 
-    grade: Optional[str] = None
-    tier: Optional[str] = None
+    grade: str | None = None
+    tier: str | None = None
 
 
 # =====================================================
 # SKILLS
 # =====================================================
+
 
 class Skill(BaseModel):
     name: str
@@ -80,15 +83,17 @@ class Skill(BaseModel):
 # CERTIFICATIONS
 # =====================================================
 
+
 class Certification(BaseModel):
-    name: Optional[str] = None
-    issuer: Optional[str] = None
-    year: Optional[int] = None
+    name: str | None = None
+    issuer: str | None = None
+    year: int | None = None
 
 
 # =====================================================
 # LANGUAGES
 # =====================================================
+
 
 class Language(BaseModel):
     language: str
@@ -99,6 +104,7 @@ class Language(BaseModel):
 # SALARY RANGE
 # =====================================================
 
+
 class SalaryRange(BaseModel):
     min: float
     max: float
@@ -108,8 +114,8 @@ class SalaryRange(BaseModel):
 # REDROB SIGNALS
 # =====================================================
 
-class RedrobSignals(BaseModel):
 
+class RedrobSignals(BaseModel):
     profile_completeness_score: float
 
     signup_date: str
@@ -123,7 +129,7 @@ class RedrobSignals(BaseModel):
     recruiter_response_rate: float
     avg_response_time_hours: float
 
-    skill_assessment_scores: Dict[str, float] = {}
+    skill_assessment_scores: dict[str, float] = {}
 
     connection_count: int
     endorsements_received: int
@@ -153,20 +159,20 @@ class RedrobSignals(BaseModel):
 # CANDIDATE ROOT MODEL
 # =====================================================
 
-class Candidate(BaseModel):
 
+class Candidate(BaseModel):
     candidate_id: str
 
     profile: Profile
 
-    career_history: List[CareerHistory]
+    career_history: list[CareerHistory]
 
-    education: List[Education]
+    education: list[Education]
 
-    skills: List[Skill]
+    skills: list[Skill]
 
-    certifications: List[Certification] = []
+    certifications: list[Certification] = []
 
-    languages: List[Language] = []
+    languages: list[Language] = []
 
     redrob_signals: RedrobSignals

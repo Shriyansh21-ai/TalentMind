@@ -67,9 +67,7 @@ def test_registry_unknown_provider_raises():
 
 def test_install_connect_configure_lifecycle():
     manager = _manager()
-    integration = manager.install(
-        "t1", "o1", "greenhouse", credential="gh-key", sync_enabled=True
-    )
+    integration = manager.install("t1", "o1", "greenhouse", credential="gh-key", sync_enabled=True)
     assert integration.status == IntegrationStatus.NOT_CONNECTED
     assert integration.category == ProviderCategory.ATS
 

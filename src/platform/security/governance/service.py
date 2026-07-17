@@ -9,7 +9,7 @@ policy; WARN/AUDIT policies only report. Produces explainable
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
@@ -168,11 +168,7 @@ class GovernanceService:
     ) -> list[PolicyReport]:
         """Evaluate and raise if any ENFORCE policy is violated (unwaived)."""
         reports = self.evaluate(tenant_id, attributes, domain=domain)
-        blocking = [
-            r
-            for r in reports
-            if not r.compliant and r.enforcement == Enforcement.ENFORCE
-        ]
+        blocking = [r for r in reports if not r.compliant and r.enforcement == Enforcement.ENFORCE]
         if blocking:
             names = ", ".join(r.name for r in blocking)
             raise PolicyViolationError(f"governance policy violated: {names}")

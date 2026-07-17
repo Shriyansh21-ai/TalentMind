@@ -1,9 +1,7 @@
 from pydantic import BaseModel
-from typing import List
 
 
 class CandidateIntelligence(BaseModel):
-
     candidate_id: str
 
     overall_score: float
@@ -24,8 +22,8 @@ class CandidateIntelligence(BaseModel):
 
     confidence: float
 
-    strengths: List[str]
+    strengths: list[str]
 
-    weaknesses: List[str]
+    weaknesses: list[str]
 
     recommendation: str

@@ -6,14 +6,12 @@ interview guide. Pure presentation — the plan is computed upstream and injecte
 
 from __future__ import annotations
 
-from typing import List
-
 import streamlit as st
 
 from src.interview.models import InterviewPlan
 
 
-def _section(title: str, items: List[str], icon: str = "•") -> None:
+def _section(title: str, items: list[str], icon: str = "•") -> None:
     """Render a titled bullet section if it has content."""
     if not items:
         return

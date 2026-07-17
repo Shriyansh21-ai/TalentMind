@@ -11,7 +11,8 @@ concrete services together lives in :mod:`src.platform.bootstrap`.
 
 from __future__ import annotations
 
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from src.platform.common.errors import ConfigurationError
 
@@ -27,12 +28,12 @@ class Container:
     """
 
     def __init__(self) -> None:
-        self._factories: dict[str, Callable[["Container"], object]] = {}
+        self._factories: dict[str, Callable[[Container], object]] = {}
         self._singletons: dict[str, bool] = {}
         self._instances: dict[str, object] = {}
 
     def register(
-        self, key: str, provider: Callable[["Container"], T], *, singleton: bool = True
+        self, key: str, provider: Callable[[Container], T], *, singleton: bool = True
     ) -> None:
         """Register ``provider`` under ``key``.
 

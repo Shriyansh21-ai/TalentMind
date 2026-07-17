@@ -76,12 +76,8 @@ class BillingHook(Protocol):
     """Future billing seam — the platform notifies, a provider reacts."""
 
     def on_subscription_created(self, subscription: Subscription) -> None: ...
-    def on_plan_changed(
-        self, subscription: Subscription, previous: PlanTier
-    ) -> None: ...
-    def on_usage_recorded(
-        self, subscription: Subscription, meter: Meter, amount: int
-    ) -> None: ...
+    def on_plan_changed(self, subscription: Subscription, previous: PlanTier) -> None: ...
+    def on_usage_recorded(self, subscription: Subscription, meter: Meter, amount: int) -> None: ...
 
 
 class NullBillingHook:
@@ -93,7 +89,5 @@ class NullBillingHook:
     def on_plan_changed(self, subscription: Subscription, previous: PlanTier) -> None:
         """Do nothing."""
 
-    def on_usage_recorded(
-        self, subscription: Subscription, meter: Meter, amount: int
-    ) -> None:
+    def on_usage_recorded(self, subscription: Subscription, meter: Meter, amount: int) -> None:
         """Do nothing."""

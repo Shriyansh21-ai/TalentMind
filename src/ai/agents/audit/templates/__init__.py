@@ -39,33 +39,110 @@ class AgentCatalogEntry:
     evidence_type: str
     origin_agent: str
     order: int
-    feeds: List[str] = field(default_factory=list)
+    feeds: list[str] = field(default_factory=list)
 
 
 # Ordered catalog. ``source`` labels match the exact strings the engines report
 # (see committee.gather_evidence._sources and the downstream agents).
-AGENT_CATALOG: List[AgentCatalogEntry] = [
-    AgentCatalogEntry("Resume Analyst Agent", "Resume analysis", "Resume quality analysis", "Resume Analyst Agent", 1, ["Candidate Intelligence engine", "AI Hiring Committee"]),
-    AgentCatalogEntry("JD Analyst Agent", "JD analysis", "Job-description analysis", "JD Analyst Agent", 2, ["AI Hiring Committee", "Compensation Governance Agent"]),
-    AgentCatalogEntry("Candidate Intelligence engine", "Candidate intelligence", "Candidate capability signals", "Candidate Intelligence engine", 3, ["AI Hiring Committee", "Compensation Governance Agent"]),
-    AgentCatalogEntry("Career Timeline Intelligence", "Career timeline", "Career trajectory", "Career Timeline Intelligence", 4, ["AI Hiring Committee", "Pay Equity Guardian"]),
-    AgentCatalogEntry("Resume Risk Detection", "Risk analysis", "Risk findings", "Resume Risk Detection", 5, ["AI Hiring Committee", "Hiring Compliance"]),
-    AgentCatalogEntry("Hiring Recommendation engine", "Hiring recommendation", "Recommendation", "Hiring Recommendation engine", 6, ["AI Hiring Committee"]),
-    AgentCatalogEntry("Interview Intelligence", "Interview plan", "Interview plan", "Interview Intelligence", 7, ["AI Hiring Committee"]),
-    AgentCatalogEntry("AI Hiring Committee", "Committee decision", "Consensus hiring decision", "AI Hiring Committee", 8, ["Compensation Governance Agent", "Hiring Compliance"]),
-    AgentCatalogEntry("Compensation Governance Agent", "Compensation review", "Compensation recommendation", "Compensation Governance Agent", 9, ["Pay Equity Guardian"]),
-    AgentCatalogEntry("Pay Equity Guardian", "Pay-equity review", "Internal-equity assessment", "Pay Equity Guardian", 10, ["Hiring Compliance"]),
-    AgentCatalogEntry("Hiring Compliance", "Compliance review", "Governance compliance status", "Hiring Compliance", 11, ["Final Decision"]),
+AGENT_CATALOG: list[AgentCatalogEntry] = [
+    AgentCatalogEntry(
+        "Resume Analyst Agent",
+        "Resume analysis",
+        "Resume quality analysis",
+        "Resume Analyst Agent",
+        1,
+        ["Candidate Intelligence engine", "AI Hiring Committee"],
+    ),
+    AgentCatalogEntry(
+        "JD Analyst Agent",
+        "JD analysis",
+        "Job-description analysis",
+        "JD Analyst Agent",
+        2,
+        ["AI Hiring Committee", "Compensation Governance Agent"],
+    ),
+    AgentCatalogEntry(
+        "Candidate Intelligence engine",
+        "Candidate intelligence",
+        "Candidate capability signals",
+        "Candidate Intelligence engine",
+        3,
+        ["AI Hiring Committee", "Compensation Governance Agent"],
+    ),
+    AgentCatalogEntry(
+        "Career Timeline Intelligence",
+        "Career timeline",
+        "Career trajectory",
+        "Career Timeline Intelligence",
+        4,
+        ["AI Hiring Committee", "Pay Equity Guardian"],
+    ),
+    AgentCatalogEntry(
+        "Resume Risk Detection",
+        "Risk analysis",
+        "Risk findings",
+        "Resume Risk Detection",
+        5,
+        ["AI Hiring Committee", "Hiring Compliance"],
+    ),
+    AgentCatalogEntry(
+        "Hiring Recommendation engine",
+        "Hiring recommendation",
+        "Recommendation",
+        "Hiring Recommendation engine",
+        6,
+        ["AI Hiring Committee"],
+    ),
+    AgentCatalogEntry(
+        "Interview Intelligence",
+        "Interview plan",
+        "Interview plan",
+        "Interview Intelligence",
+        7,
+        ["AI Hiring Committee"],
+    ),
+    AgentCatalogEntry(
+        "AI Hiring Committee",
+        "Committee decision",
+        "Consensus hiring decision",
+        "AI Hiring Committee",
+        8,
+        ["Compensation Governance Agent", "Hiring Compliance"],
+    ),
+    AgentCatalogEntry(
+        "Compensation Governance Agent",
+        "Compensation review",
+        "Compensation recommendation",
+        "Compensation Governance Agent",
+        9,
+        ["Pay Equity Guardian"],
+    ),
+    AgentCatalogEntry(
+        "Pay Equity Guardian",
+        "Pay-equity review",
+        "Internal-equity assessment",
+        "Pay Equity Guardian",
+        10,
+        ["Hiring Compliance"],
+    ),
+    AgentCatalogEntry(
+        "Hiring Compliance",
+        "Compliance review",
+        "Governance compliance status",
+        "Hiring Compliance",
+        11,
+        ["Final Decision"],
+    ),
 ]
 
-CATALOG_BY_SOURCE: Dict[str, AgentCatalogEntry] = {e.source: e for e in AGENT_CATALOG}
+CATALOG_BY_SOURCE: dict[str, AgentCatalogEntry] = {e.source: e for e in AGENT_CATALOG}
 
 # The terminal node of the evidence graph / decision journey.
 FINAL_DECISION_NODE = "Final Decision"
 
 # Module 12 — extension-point registry. Systems the archive provider interface is
 # DESIGNED for; none is implemented.
-AUDIT_ARCHIVE_PROVIDERS: List[str] = [
+AUDIT_ARCHIVE_PROVIDERS: list[str] = [
     "SIEM",
     "Document Management System",
     "Compliance Archive",

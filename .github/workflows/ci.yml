@@ -95,11 +95,28 @@ jobs:
         run: |
           set -e
           for doc in README.md \
-                     PHASE6_MILESTONE5_REPORT.md \
-                     docs/DEVELOPER_GUIDE.md \
                      docs/ARCHITECTURE.md \
-                     docs/DISASTER_RECOVERY.md \
+                     docs/PROJECT_STRUCTURE.md \
+                     docs/DEVELOPER_GUIDE.md \
+                     docs/USER_GUIDE.md \
                      docs/INSTALL.md \
+                     docs/CONFIGURATION.md \
+                     docs/AI_PLATFORM.md \
+                     docs/MULTI_AGENT_SYSTEM.md \
+                     docs/ENTERPRISE_AGENTS.md \
+                     docs/API_REFERENCE.md \
+                     docs/SECURITY.md \
+                     docs/RUNTIME.md \
+                     docs/INTEGRATIONS.md \
+                     docs/DEPLOYMENT.md \
+                     docs/OPERATIONS.md \
+                     docs/DISASTER_RECOVERY.md \
+                     docs/TROUBLESHOOTING.md \
+                     docs/FAQ.md \
+                     docs/DEMO_GUIDE.md \
+                     docs/CHANGELOG.md \
+                     docs/CONTRIBUTING.md \
+                     docs/CODE_OF_CONDUCT.md \
                      k8s/README.md; do
             test -f "$doc" || { echo "missing doc: $doc"; exit 1; }
           done

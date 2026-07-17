@@ -7,12 +7,12 @@ DOCX and PPTX renderers share one traversal (DRY), and provides escaping helpers
 
 from __future__ import annotations
 
-from typing import Iterable, List, Tuple
+from collections.abc import Iterable
 
 from src.ai.agents.executive_report.renderer import Block, Section
 
 # A line is (style, text). Styles: h2, h3, para, bullet, kv, note, metric.
-Line = Tuple[str, str]
+Line = tuple[str, str]
 
 
 def xml_escape(text: str) -> str:
@@ -37,9 +37,9 @@ def pdf_escape(text: str) -> str:
     return safe.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
 
 
-def block_lines(block: Block) -> List[Line]:
+def block_lines(block: Block) -> list[Line]:
     """Flatten one :class:`Block` into ``(style, text)`` lines."""
-    lines: List[Line] = []
+    lines: list[Line] = []
     if block.kind == "subheading":
         lines.append(("h3", block.text))
     elif block.kind == "paragraph":
@@ -61,17 +61,17 @@ def block_lines(block: Block) -> List[Line]:
     return lines
 
 
-def section_lines(section: Section) -> List[Line]:
+def section_lines(section: Section) -> list[Line]:
     """Flatten a whole section (heading + blocks) into ``(style, text)`` lines."""
-    lines: List[Line] = [("h2", f"{section.number}. {section.title}")]
+    lines: list[Line] = [("h2", f"{section.number}. {section.title}")]
     for block in section.blocks:
         lines.extend(block_lines(block))
     return lines
 
 
-def document_lines(sections: Iterable[Section]) -> List[Line]:
+def document_lines(sections: Iterable[Section]) -> list[Line]:
     """Flatten every section into one ``(style, text)`` line stream."""
-    lines: List[Line] = []
+    lines: list[Line] = []
     for section in sections:
         lines.extend(section_lines(section))
     return lines

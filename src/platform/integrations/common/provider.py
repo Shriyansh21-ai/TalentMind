@@ -60,9 +60,7 @@ class BaseIntegrationProvider:
 
     def __init__(self) -> None:
         if not self.key:
-            raise ProviderConfigurationError(
-                f"{type(self).__name__} must define a non-empty 'key'"
-            )
+            raise ProviderConfigurationError(f"{type(self).__name__} must define a non-empty 'key'")
 
     @property
     def category(self) -> ProviderCategory:
@@ -77,9 +75,7 @@ class BaseIntegrationProvider:
             capabilities=self.capabilities,
         )
 
-    def validate_configuration(
-        self, configuration: IntegrationConfiguration
-    ) -> None:
+    def validate_configuration(self, configuration: IntegrationConfiguration) -> None:
         """Validate a tenant configuration against this provider's needs.
 
         The base implementation checks that every scope the tenant enabled is
@@ -94,18 +90,13 @@ class BaseIntegrationProvider:
                     f"{self.key}: unsupported scopes requested: {unknown}"
                 )
         if configuration.sync_enabled and not (
-            self.capabilities.supports_full_sync
-            or self.capabilities.supports_incremental_sync
+            self.capabilities.supports_full_sync or self.capabilities.supports_incremental_sync
         ):
-            raise ProviderConfigurationError(
-                f"{self.key} does not support synchronization"
-            )
+            raise ProviderConfigurationError(f"{self.key} does not support synchronization")
         if configuration.webhook_enabled and not self.capabilities.supports_webhooks:
             raise ProviderConfigurationError(f"{self.key} does not support webhooks")
 
-    def check_health(
-        self, configuration: IntegrationConfiguration
-    ) -> IntegrationHealth:
+    def check_health(self, configuration: IntegrationConfiguration) -> IntegrationHealth:
         """Return a synthetic health snapshot (no real probe is performed)."""
         return IntegrationHealth(
             state=HealthState.UNKNOWN,

@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compensation.schemas import (
     AuditTrail,
@@ -25,14 +25,14 @@ from src.ai.agents.compensation.templates import APPROVAL_POLICY
 
 
 def build_justification(
-    evidence: Dict[str, Any],
+    evidence: dict[str, Any],
     band: CompensationRange,
     market: MarketPosition,
     budget: BudgetAssessment,
     negotiation: NegotiationIntelligence,
-) -> List[JustificationEntry]:
+) -> list[JustificationEntry]:
     """Build the transparent offer-justification trail (Module 2)."""
-    entries: List[JustificationEntry] = []
+    entries: list[JustificationEntry] = []
 
     # Evidence — the candidate's own stated expectation + engine signals.
     comp = evidence.get("candidate_comp") or {}
@@ -73,7 +73,12 @@ def build_justification(
     # Reasoning — how the band was derived (the pay-band basis).
     for reason in band.basis:
         entries.append(
-            JustificationEntry(kind="Reasoning", statement=reason, source="Internal heuristic model", confidence=band.confidence)
+            JustificationEntry(
+                kind="Reasoning",
+                statement=reason,
+                source="Internal heuristic model",
+                confidence=band.confidence,
+            )
         )
 
     # Business Impact — market position + budget rationale.
@@ -100,13 +105,18 @@ def build_justification(
     # Assumptions — everything not grounded in the evidence.
     for assumption in band.assumptions:
         entries.append(
-            JustificationEntry(kind="Assumption", statement=assumption, source="Internal heuristic model", confidence=0.0)
+            JustificationEntry(
+                kind="Assumption",
+                statement=assumption,
+                source="Internal heuristic model",
+                confidence=0.0,
+            )
         )
 
     return entries
 
 
-def _agents_consulted(evidence: Dict[str, Any]) -> List[str]:
+def _agents_consulted(evidence: dict[str, Any]) -> list[str]:
     """Return the AI agents / engines actually consulted for this decision."""
     mapping = [
         ("resume", "Resume Analyst Agent"),
@@ -121,7 +131,7 @@ def _agents_consulted(evidence: Dict[str, Any]) -> List[str]:
     return [label for key, label in mapping if evidence.get(key)]
 
 
-def _approvals_required(budget: BudgetAssessment, equity_available: bool) -> List[str]:
+def _approvals_required(budget: BudgetAssessment, equity_available: bool) -> list[str]:
     """Return the approvers this decision requires (Module 12)."""
     approvals = list(APPROVAL_POLICY["base"])
     if budget.hire_type == "Critical Hire":
@@ -134,7 +144,7 @@ def _approvals_required(budget: BudgetAssessment, equity_available: bool) -> Lis
 
 
 def build_audit_trail(
-    evidence: Dict[str, Any],
+    evidence: dict[str, Any],
     band: CompensationRange,
     market: MarketPosition,
     budget: BudgetAssessment,

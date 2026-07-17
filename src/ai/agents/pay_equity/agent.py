@@ -20,17 +20,16 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
+from src.ai.agents.pay_equity.composer import compose_pay_equity_narrative
+from src.ai.agents.pay_equity.schemas import PayEquityNarrative
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.prompts.loader import PromptLoader
 from src.ai.providers.base import LLMMessage
 from src.ai.providers.composers import register_composer
-
-from src.ai.agents.pay_equity.composer import compose_pay_equity_narrative
-from src.ai.agents.pay_equity.schemas import PayEquityNarrative
 
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 _prompt_loader = PromptLoader(_PROMPTS_DIR)
@@ -48,26 +47,26 @@ class PayEquityInput:
     candidate_id: str = ""
     policy_name: str = ""
     data_available: bool = False
-    candidate_overview: Dict[str, Any] = field(default_factory=dict)
-    offer_summary: Dict[str, Any] = field(default_factory=dict)
-    compensation: Dict[str, Any] = field(default_factory=dict)
-    intelligence: Dict[str, Any] = field(default_factory=dict)
-    timeline: Dict[str, Any] = field(default_factory=dict)
-    risk: Dict[str, Any] = field(default_factory=dict)
-    committee: Dict[str, Any] = field(default_factory=dict)
-    recommendation: Dict[str, Any] = field(default_factory=dict)
-    internal_data: Dict[str, Any] = field(default_factory=dict)
+    candidate_overview: dict[str, Any] = field(default_factory=dict)
+    offer_summary: dict[str, Any] = field(default_factory=dict)
+    compensation: dict[str, Any] = field(default_factory=dict)
+    intelligence: dict[str, Any] = field(default_factory=dict)
+    timeline: dict[str, Any] = field(default_factory=dict)
+    risk: dict[str, Any] = field(default_factory=dict)
+    committee: dict[str, Any] = field(default_factory=dict)
+    recommendation: dict[str, Any] = field(default_factory=dict)
+    internal_data: dict[str, Any] = field(default_factory=dict)
     # Computed pay-equity signals (so the narrative can cite them).
-    equity_risk: Dict[str, Any] = field(default_factory=dict)
-    compression: Dict[str, Any] = field(default_factory=dict)
-    inversion: Dict[str, Any] = field(default_factory=dict)
-    promotion: Dict[str, Any] = field(default_factory=dict)
-    policy_alignment: Dict[str, Any] = field(default_factory=dict)
-    fairness: Dict[str, Any] = field(default_factory=dict)
-    executive_review: Dict[str, Any] = field(default_factory=dict)
+    equity_risk: dict[str, Any] = field(default_factory=dict)
+    compression: dict[str, Any] = field(default_factory=dict)
+    inversion: dict[str, Any] = field(default_factory=dict)
+    promotion: dict[str, Any] = field(default_factory=dict)
+    policy_alignment: dict[str, Any] = field(default_factory=dict)
+    fairness: dict[str, Any] = field(default_factory=dict)
+    executive_review: dict[str, Any] = field(default_factory=dict)
 
 
-def build_pay_equity_evidence(payload: PayEquityInput) -> Dict[str, Any]:
+def build_pay_equity_evidence(payload: PayEquityInput) -> dict[str, Any]:
     """Pack the pre-gathered structured outputs + computed signals into evidence."""
     return {
         "candidate_overview": payload.candidate_overview or {},
@@ -112,15 +111,15 @@ class PayEquityGuardianAgent(BaseAgent):
     )
     output_schema = PayEquityNarrative
 
-    def build_messages(self, payload, loader, evidence: Dict[str, Any]) -> List[LLMMessage]:
+    def build_messages(self, payload, loader, evidence: dict[str, Any]) -> list[LLMMessage]:
         """Render prompts from the agent's own ``prompts/`` directory."""
         return super().build_messages(payload, _prompt_loader, evidence)
 
-    def build_evidence(self, payload: PayEquityInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: PayEquityInput) -> dict[str, Any]:
         """Return the aggregated pay-equity evidence for ``payload``."""
         return build_pay_equity_evidence(payload)
 
-    def prompt_values(self, payload: PayEquityInput, evidence: Dict[str, Any]) -> Dict[str, str]:
+    def prompt_values(self, payload: PayEquityInput, evidence: dict[str, Any]) -> dict[str, str]:
         """Supply candidate id + offer/policy placeholders for the prompt."""
         offer = payload.offer_summary or {}
         offer_str = offer.get("recommended_range") or (
@@ -133,7 +132,7 @@ class PayEquityGuardianAgent(BaseAgent):
             "data_available": "yes" if payload.data_available else "no (internal data unavailable)",
         }
 
-    def cache_dimensions(self, payload: PayEquityInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: PayEquityInput) -> tuple[str, str]:
         """Cache by candidate id (subject) + full evidence signature (scope)."""
         scope = json.dumps(build_pay_equity_evidence(payload), sort_keys=True, default=str)
         return payload.candidate_id or "pay_equity", scope
@@ -153,7 +152,9 @@ def _orchestration_payload_builder(task, context) -> PayEquityInput:
                 "years_of_experience": getattr(profile, "years_of_experience", 0.0),
             }
     return PayEquityInput(
-        candidate_id=str(payload.get("candidate_id", "") or overview.get("candidate_id", "") or "pay_equity"),
+        candidate_id=str(
+            payload.get("candidate_id", "") or overview.get("candidate_id", "") or "pay_equity"
+        ),
         policy_name=payload.get("policy_name", ""),
         data_available=bool(payload.get("data_available", False)),
         candidate_overview=overview,
@@ -167,7 +168,7 @@ def _orchestration_payload_builder(task, context) -> PayEquityInput:
     )
 
 
-def _register_with_orchestration(agent: "PayEquityGuardianAgent") -> None:
+def _register_with_orchestration(agent: PayEquityGuardianAgent) -> None:
     """Register the agent with the Multi-Agent Orchestration platform (best-effort)."""
     try:
         from src.ai.orchestration.adapters import RunnerAgent

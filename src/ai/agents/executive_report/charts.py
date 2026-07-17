@@ -15,8 +15,7 @@ Enterprise styling is provided by the branding module; here we only shape data.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
-
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Pure chart-data builders
@@ -33,13 +32,13 @@ def _num(value: Any, default: float = 0.0) -> float:
 
 def build_chart_data(
     *,
-    intelligence: Dict[str, Any],
-    timeline: Dict[str, Any],
-    risk: Dict[str, Any],
-    committee: Dict[str, Any],
-    interview: Dict[str, Any],
-    resume: Dict[str, Any],
-) -> Dict[str, Any]:
+    intelligence: dict[str, Any],
+    timeline: dict[str, Any],
+    risk: dict[str, Any],
+    committee: dict[str, Any],
+    interview: dict[str, Any],
+    resume: dict[str, Any],
+) -> dict[str, Any]:
     """Return every chart's data (pure; safe to serialize into the report)."""
     intelligence = intelligence or {}
     timeline = timeline or {}
@@ -131,7 +130,7 @@ def build_chart_data(
 # ---------------------------------------------------------------------------
 
 
-def _bar(st, data: Dict[str, float], caption: str = "") -> None:
+def _bar(st, data: dict[str, float], caption: str = "") -> None:
     """Render a labelled bar chart from ``{label: value}``."""
     if not data:
         st.caption("No data available.")
@@ -141,7 +140,7 @@ def _bar(st, data: Dict[str, float], caption: str = "") -> None:
         st.caption(caption)
 
 
-def render_scorecard(st, charts: Dict[str, Any]) -> None:
+def render_scorecard(st, charts: dict[str, Any]) -> None:
     """Render the hiring scorecard as metrics + a bar chart."""
     data = charts.get("scorecard", {})
     cols = st.columns(len(data) or 1)
@@ -150,7 +149,7 @@ def render_scorecard(st, charts: Dict[str, Any]) -> None:
     _bar(st, data, "Hiring Scorecard — Candidate Intelligence dimensions (not a hiring decision).")
 
 
-def render_radar(st, charts: Dict[str, Any]) -> None:
+def render_radar(st, charts: dict[str, Any]) -> None:
     """Render the capability radar (Plotly if available, else a bar chart)."""
     data = charts.get("radar", {})
     if not data:
@@ -181,19 +180,19 @@ def render_radar(st, charts: Dict[str, Any]) -> None:
         _bar(st, data, "Capability profile.")
 
 
-def render_risk_matrix(st, charts: Dict[str, Any]) -> None:
+def render_risk_matrix(st, charts: dict[str, Any]) -> None:
     """Render the risk matrix as a severity bar chart."""
     _bar(st, charts.get("risk_matrix", {}), "Risk Matrix — sub-risk severity (higher is riskier).")
 
 
-def render_consensus_meter(st, charts: Dict[str, Any]) -> None:
+def render_consensus_meter(st, charts: dict[str, Any]) -> None:
     """Render the committee consensus meter."""
     meter = float(charts.get("consensus_meter", 0.0))
     st.caption("Committee Consensus Meter (No Hire ◄──► Strong Hire)")
     st.progress(max(0.0, min(1.0, meter)))
 
 
-def render_confidence_distribution(st, charts: Dict[str, Any]) -> None:
+def render_confidence_distribution(st, charts: dict[str, Any]) -> None:
     """Render the five explained confidence signals as progress bars."""
     data = charts.get("confidence_distribution", {})
     if not data:
@@ -204,22 +203,30 @@ def render_confidence_distribution(st, charts: Dict[str, Any]) -> None:
         st.progress(max(0.0, min(1.0, value / 100.0)))
 
 
-def render_career_growth(st, charts: Dict[str, Any]) -> None:
+def render_career_growth(st, charts: dict[str, Any]) -> None:
     """Render the career-growth trajectory chart."""
-    _bar(st, charts.get("career_growth", {}), "Career Growth — trajectory signals (Career Timeline Intelligence).")
+    _bar(
+        st,
+        charts.get("career_growth", {}),
+        "Career Growth — trajectory signals (Career Timeline Intelligence).",
+    )
 
 
-def render_skill_distribution(st, charts: Dict[str, Any]) -> None:
+def render_skill_distribution(st, charts: dict[str, Any]) -> None:
     """Render the resume-quality distribution chart."""
-    _bar(st, charts.get("skill_distribution", {}), "Resume-quality distribution (resume quality only, not a hiring score).")
+    _bar(
+        st,
+        charts.get("skill_distribution", {}),
+        "Resume-quality distribution (resume quality only, not a hiring score).",
+    )
 
 
-def render_interview_roadmap(st, charts: Dict[str, Any]) -> None:
+def render_interview_roadmap(st, charts: dict[str, Any]) -> None:
     """Render the interview roadmap (topics per round)."""
     _bar(st, charts.get("interview_roadmap", {}), "Interview Roadmap — topics per round.")
 
 
-def render_all(st, charts: Dict[str, Any]) -> None:
+def render_all(st, charts: dict[str, Any]) -> None:
     """Render the full visualization suite in a professional layout."""
     render_scorecard(st, charts)
     left, right = st.columns(2)

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from threading import RLock
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -45,8 +45,8 @@ class SharedContext:
     timeline: Any = None
     risk: Any = None
     current_workflow: str = ""
-    outputs: Dict[str, Dict[str, Any]] = field(default_factory=dict)
-    store: Dict[str, Any] = field(default_factory=dict)
+    outputs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    store: dict[str, Any] = field(default_factory=dict)
     _lock: RLock = field(default_factory=RLock, repr=False, compare=False)
 
     # -- generic scratch space ----------------------------------------------
@@ -80,26 +80,22 @@ class SharedContext:
 
     # -- task output plumbing (later tasks consume earlier ones) ------------
 
-    def record_output(self, task_id: str, data: Dict[str, Any]) -> None:
+    def record_output(self, task_id: str, data: dict[str, Any]) -> None:
         """Record a completed task's structured output for downstream tasks."""
         with self._lock:
             self.outputs[task_id] = data
 
-    def output_of(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def output_of(self, task_id: str) -> dict[str, Any] | None:
         """Return a previously-recorded task output, or ``None``."""
         with self._lock:
             return self.outputs.get(task_id)
 
-    def dependency_outputs(self, task) -> Dict[str, Dict[str, Any]]:
+    def dependency_outputs(self, task) -> dict[str, dict[str, Any]]:
         """Return ``{dep_id: output}`` for every dependency of ``task`` that ran."""
         with self._lock:
-            return {
-                dep: self.outputs[dep]
-                for dep in task.dependencies
-                if dep in self.outputs
-            }
+            return {dep: self.outputs[dep] for dep in task.dependencies if dep in self.outputs}
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """Return a JSON-serializable snapshot of the context (for monitoring)."""
         with self._lock:
             named = {slot: _describe(getattr(self, slot)) for slot in _NAMED_SLOTS}
@@ -114,7 +110,7 @@ class SharedContext:
             return named
 
 
-_NAMED_SLOTS: List[str] = [
+_NAMED_SLOTS: list[str] = [
     "candidate",
     "jd",
     "conversation",

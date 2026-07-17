@@ -10,10 +10,9 @@ FAISS index, so this stays fast while still exercising every top-level import
 
 from __future__ import annotations
 
-import faiss  # noqa: F401  (preserve faiss-before-torch load order in-process)
-
 from pathlib import Path
 
+import faiss  # noqa: F401  (preserve faiss-before-torch load order in-process)
 from streamlit.testing.v1 import AppTest
 
 APP_PATH = str(Path(__file__).resolve().parents[1] / "app.py")

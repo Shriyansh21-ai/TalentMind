@@ -150,8 +150,7 @@ class VaultSecretProvider:
 
     def _not_ready(self) -> CredentialError:
         return CredentialError(
-            "VaultSecretProvider is an architecture placeholder; bind a real "
-            "backend before use",
+            "VaultSecretProvider is an architecture placeholder; bind a real backend before use",
             code="secret_provider_not_configured",
         )
 

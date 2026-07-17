@@ -78,9 +78,7 @@ class SubscriptionService:
             Meter.AI_CREDITS.value: UsageState(
                 meter=Meter.AI_CREDITS, limit=plan.ai_credits_monthly
             ),
-            Meter.STORAGE_GB.value: UsageState(
-                meter=Meter.STORAGE_GB, limit=plan.storage_gb
-            ),
+            Meter.STORAGE_GB.value: UsageState(meter=Meter.STORAGE_GB, limit=plan.storage_gb),
             Meter.API_REQUESTS.value: UsageState(
                 meter=Meter.API_REQUESTS, limit=plan.api_requests_per_minute
             ),
@@ -129,8 +127,7 @@ class SubscriptionService:
         state = sub.usage.get(meter.value, UsageState(meter=meter))
         if state.would_exceed(amount):
             raise QuotaExceededError(
-                f"{meter.value} quota exceeded "
-                f"({state.used}+{amount} > {state.limit})"
+                f"{meter.value} quota exceeded ({state.used}+{amount} > {state.limit})"
             )
         state.used += amount
         sub.usage = {**sub.usage, meter.value: state}

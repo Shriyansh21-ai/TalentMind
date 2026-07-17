@@ -35,9 +35,7 @@ _PBKDF2_ROUNDS = 120_000
 
 def _hash_secret(secret: str, salt: bytes) -> str:
     """Return a hex PBKDF2-HMAC-SHA256 digest of ``secret`` with ``salt``."""
-    return hashlib.pbkdf2_hmac(
-        "sha256", secret.encode("utf-8"), salt, _PBKDF2_ROUNDS
-    ).hex()
+    return hashlib.pbkdf2_hmac("sha256", secret.encode("utf-8"), salt, _PBKDF2_ROUNDS).hex()
 
 
 class IdentityManager:
@@ -54,9 +52,7 @@ class IdentityManager:
     ) -> None:
         self._clock = clock or SystemClock()
         self._ttl = token_ttl_seconds
-        self.identities: InMemoryRepository[Identity] = identities or InMemoryRepository(
-            "identity"
-        )
+        self.identities: InMemoryRepository[Identity] = identities or InMemoryRepository("identity")
         self.sessions: InMemoryRepository[IdentitySession] = sessions or InMemoryRepository(
             "identity_session"
         )
@@ -93,9 +89,7 @@ class IdentityManager:
             subject=subject,
             provider_type=provider_type,
             status=status,
-            metadata=IdentityMetadata(
-                display_name=display_name or subject, email=email
-            ),
+            metadata=IdentityMetadata(display_name=display_name or subject, email=email),
             roles=roles or [],
             groups=groups or [],
             created_at=now,
@@ -115,9 +109,7 @@ class IdentityManager:
         """Return a tenant's identities."""
         return self.identities.list(tenant_id=tenant_id)
 
-    def set_status(
-        self, tenant_id: str, identity_id: str, status: IdentityStatus
-    ) -> Identity:
+    def set_status(self, tenant_id: str, identity_id: str, status: IdentityStatus) -> Identity:
         """Transition an identity's lifecycle status."""
         identity = self.get(tenant_id, identity_id)
         identity.status = status
@@ -205,9 +197,7 @@ class IdentityManager:
         session.touch(self._clock.now())
         return self.sessions.update(session)
 
-    def build_context(
-        self, identity: Identity, session: IdentitySession
-    ) -> IdentityContext:
+    def build_context(self, identity: Identity, session: IdentitySession) -> IdentityContext:
         """Build the runtime :class:`IdentityContext` for an identity + session."""
         return IdentityContext(
             identity_id=identity.id,
@@ -223,7 +213,5 @@ class IdentityManager:
     # -- internals ----------------------------------------------------------
 
     def _resolve(self, tenant_id: str, subject: str) -> Identity | None:
-        matches = self.identities.list(
-            tenant_id=tenant_id, where=lambda i: i.subject == subject
-        )
+        matches = self.identities.list(tenant_id=tenant_id, where=lambda i: i.subject == subject)
         return matches[0] if matches else None

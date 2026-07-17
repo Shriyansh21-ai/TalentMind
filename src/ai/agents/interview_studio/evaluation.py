@@ -10,7 +10,7 @@ derived from the plan already generated (Module 16).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.interview_studio.schemas import (
     InterviewQuestion,
@@ -22,10 +22,10 @@ from src.ai.agents.interview_studio.schemas import (
 
 
 def build_live_assistant(
-    stages: List[InterviewStage],
-    questions: List[InterviewQuestion],
-    rubrics: List[RubricDimension],
-    risk_validations: List[RiskValidation],
+    stages: list[InterviewStage],
+    questions: list[InterviewQuestion],
+    rubrics: list[RubricDimension],
+    risk_validations: list[RiskValidation],
 ) -> LiveInterviewAssistant:
     """Assemble the live interviewer support hooks.
 
@@ -48,9 +48,7 @@ def build_live_assistant(
     ]
 
     # Checklist: one line per planned question (capped so it stays scannable).
-    question_checklist = [
-        f"[{q.difficulty}] {q.competency}: {q.text}" for q in questions[:15]
-    ]
+    question_checklist = [f"[{q.difficulty}] {q.competency}: {q.text}" for q in questions[:15]]
 
     evaluation_checklist = [
         f"{d.name} ({d.weight}): {d.evidence_to_look_for[0] if d.evidence_to_look_for else d.description}"
@@ -58,8 +56,7 @@ def build_live_assistant(
     ]
 
     risk_reminders = [
-        f"[{rv.category}] {rv.risk} -> ask: {rv.validation_question}"
-        for rv in risk_validations[:6]
+        f"[{rv.category}] {rv.risk} -> ask: {rv.validation_question}" for rv in risk_validations[:6]
     ]
 
     followup_suggestions = [
@@ -70,7 +67,7 @@ def build_live_assistant(
     ]
 
     # Timer hooks: cumulative minute marks for each stage (Module 9 / 14 hook).
-    timer_hooks: List[Dict[str, Any]] = []
+    timer_hooks: list[dict[str, Any]] = []
     elapsed = 0
     for stage in stages:
         timer_hooks.append(
@@ -82,8 +79,14 @@ def build_live_assistant(
             }
         )
         elapsed += stage.duration_minutes
-    timer_hooks.append({"at_minute": elapsed, "stage": "Wrap-up", "duration_minutes": 0,
-                        "checkpoint": "Leave time for the candidate's questions; finalize notes."})
+    timer_hooks.append(
+        {
+            "at_minute": elapsed,
+            "stage": "Wrap-up",
+            "duration_minutes": 0,
+            "checkpoint": "Leave time for the candidate's questions; finalize notes.",
+        }
+    )
 
     return LiveInterviewAssistant(
         interviewer_notes_template=notes_template,

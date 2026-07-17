@@ -14,17 +14,18 @@ clearly shows internal comparisons as unavailable.
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 import streamlit as st
 
-from src.ai.core.runner import AgentRunner
 from src.ai.agents.pay_equity.equity_engine import PayEquityGuardianEngine
 from src.ai.agents.pay_equity.schemas import PayEquityReport
 from src.ai.agents.pay_equity.templates import PAY_POLICIES, get_policy
+from src.ai.core.runner import AgentRunner
 
-_runner: Optional[AgentRunner] = None
-_engine: Optional[PayEquityGuardianEngine] = None
+_runner: AgentRunner | None = None
+_engine: PayEquityGuardianEngine | None = None
 
 
 def _get_engine(insights_fn=None) -> PayEquityGuardianEngine:
@@ -75,7 +76,9 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
     top[4].metric("Review", report.executive_review.review_level)
 
     if not report.data_available:
-        st.info("ℹ️ No internal compensation data connected — internal comparisons are unavailable and findings are provisional (Module 14).")
+        st.info(
+            "ℹ️ No internal compensation data connected — internal comparisons are unavailable and findings are provisional (Module 14)."
+        )
     for warning in report.warnings:
         st.warning(warning)
 
@@ -99,17 +102,21 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
         st.caption("🔎 " + narrative.data_availability_note)
         c = st.columns(2)
         with c[0]:
-            st.markdown("**Key findings**"); _bullets(narrative.key_findings, "")
+            st.markdown("**Key findings**")
+            _bullets(narrative.key_findings, "")
         with c[1]:
-            st.markdown("**Human-review recommendations**"); _bullets(narrative.human_review_recommendations, "")
-        st.markdown("**Assumptions**"); _bullets(narrative.assumptions, "")
+            st.markdown("**Human-review recommendations**")
+            _bullets(narrative.human_review_recommendations, "")
+        st.markdown("**Assumptions**")
+        _bullets(narrative.assumptions, "")
         st.caption("📌 " + narrative.confidence_note)
 
     with tabs[1]:
         er = report.equity_risk
         st.metric("Overall internal-equity risk", er.level)
         st.caption(f"Confidence {er.confidence:.0f}/100 · data available: {er.data_available}")
-        st.markdown("**Risk drivers**"); _bullets(er.drivers, "")
+        st.markdown("**Risk drivers**")
+        _bullets(er.drivers, "")
         st.markdown("**Internal-equity findings (each explains WHY)**")
         for f in report.equity_findings:
             badge = {"Consistent": "✅", "Review": "⚠️", "Not Evaluable": "➖"}.get(f.status, "•")
@@ -121,11 +128,14 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
         st.metric("Compression risk", cm.risk_level)
         st.write(cm.rationale)
         if cm.business_impact:
-            st.markdown("**Business impact**"); st.write(cm.business_impact)
+            st.markdown("**Business impact**")
+            st.write(cm.business_impact)
         if cm.mitigation:
-            st.markdown("**Suggested mitigation**"); st.write(cm.mitigation)
+            st.markdown("**Suggested mitigation**")
+            st.write(cm.mitigation)
         if cm.evidence:
-            st.markdown("**Evidence**"); _bullets(cm.evidence, "")
+            st.markdown("**Evidence**")
+            _bullets(cm.evidence, "")
 
     with tabs[3]:
         iv = report.inversion
@@ -145,7 +155,8 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
         st.metric("Promotion equity", pr.consistency)
         st.write(pr.level_alignment)
         st.write(pr.progression_note)
-        st.markdown("**Recommendations**"); _bullets(pr.recommendations, "")
+        st.markdown("**Recommendations**")
+        _bullets(pr.recommendations, "")
         st.caption(f"Confidence {pr.confidence:.0f}/100")
 
     with tabs[5]:
@@ -153,18 +164,25 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
         st.metric(f"Policy: {pol.policy_name}", pol.alignment)
         st.write(pol.rationale)
         if pol.violations:
-            st.markdown("**Policy exceptions flagged for review**"); _bullets(pol.violations, "")
-        st.markdown("**Review requirements**"); _bullets(pol.review_requirements, "")
+            st.markdown("**Policy exceptions flagged for review**")
+            _bullets(pol.violations, "")
+        st.markdown("**Review requirements**")
+        _bullets(pol.review_requirements, "")
 
     with tabs[6]:
         fa = report.fairness
         st.write(fa.assessment)
-        st.markdown("**Potential concerns**"); _bullets(fa.concerns, "")
-        st.markdown("**Human-review recommendations**"); _bullets(fa.human_review_recommendations, "")
-        st.markdown("**Governance notes**"); _bullets(fa.governance_notes, "")
+        st.markdown("**Potential concerns**")
+        _bullets(fa.concerns, "")
+        st.markdown("**Human-review recommendations**")
+        _bullets(fa.human_review_recommendations, "")
+        st.markdown("**Governance notes**")
+        _bullets(fa.governance_notes, "")
         if fa.evidence:
-            st.markdown("**Evidence**"); _bullets(fa.evidence, "")
-        st.markdown("**Assumptions**"); _bullets(fa.assumptions, "")
+            st.markdown("**Evidence**")
+            _bullets(fa.evidence, "")
+        st.markdown("**Assumptions**")
+        _bullets(fa.assumptions, "")
 
     with tabs[7]:
         er = report.executive_review
@@ -186,7 +204,8 @@ def _render_report(report: PayEquityReport, *, key_prefix: str) -> None:
                 st.caption("Promotion: " + sc.promotion_impact)
                 st.caption("Retention: " + sc.retention_impact)
                 if sc.tradeoffs:
-                    st.markdown("**Trade-offs**"); _bullets(sc.tradeoffs, "")
+                    st.markdown("**Trade-offs**")
+                    _bullets(sc.tradeoffs, "")
 
     with tabs[9]:
         _render_dashboard(report)
@@ -197,11 +216,15 @@ def _render_dashboard(report: PayEquityReport) -> None:
     charts = report.charts
     gauge = charts.get("equity_risk_gauge", {})
     st.markdown("**Equity risk gauge**")
-    st.caption(" · ".join(f"**{s}**" if s == gauge.get("level") else s for s in gauge.get("scale", [])))
+    st.caption(
+        " · ".join(f"**{s}**" if s == gauge.get("level") else s for s in gauge.get("scale", []))
+    )
 
     cm = charts.get("compression_matrix", {})
     st.markdown("**Compression / inversion matrix**")
-    st.caption(f"Compression: {cm.get('compression', 'n/a')} · Inversion: {cm.get('inversion', 'n/a')}")
+    st.caption(
+        f"Compression: {cm.get('compression', 'n/a')} · Inversion: {cm.get('inversion', 'n/a')}"
+    )
 
     st.markdown("**Approval flow**")
     for step in charts.get("approval_flow", []):
@@ -210,11 +233,15 @@ def _render_dashboard(report: PayEquityReport) -> None:
 
     oa = charts.get("offer_alignment", {})
     st.markdown("**Offer alignment**")
-    st.caption(f"Policy {oa.get('policy')}: {oa.get('alignment')} · target {oa.get('target')} {oa.get('unit')}")
+    st.caption(
+        f"Policy {oa.get('policy')}: {oa.get('alignment')} · target {oa.get('target')} {oa.get('unit')}"
+    )
 
     gs = charts.get("governance_status", {})
     st.markdown("**Governance status**")
-    st.caption(f"Review level: {gs.get('review_level')} · required: {', '.join(gs.get('required_approvers', []))}")
+    st.caption(
+        f"Review level: {gs.get('review_level')} · required: {', '.join(gs.get('required_approvers', []))}"
+    )
 
     st.markdown("**Scenario comparison**")
     for name, v in charts.get("scenario_comparison", {}).items():
@@ -224,7 +251,7 @@ def _render_dashboard(report: PayEquityReport) -> None:
     st.caption(" → ".join(charts.get("executive_review_pipeline", [])) or "Standard approvals")
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         if empty_message:
@@ -278,4 +305,6 @@ def render_pay_equity_workspace(repository_factory: RepositoryFactory, *, insigh
     if st.button("⚖️ Run pay-equity review", type="primary", key="pe_run"):
         candidate = repository.get(chosen)
         if candidate is not None:
-            render_pay_equity(candidate, jd=jd_text, policy=policy, insights_fn=insights_fn, key_prefix="pe_ws")
+            render_pay_equity(
+                candidate, jd=jd_text, policy=policy, insights_fn=insights_fn, key_prefix="pe_ws"
+            )

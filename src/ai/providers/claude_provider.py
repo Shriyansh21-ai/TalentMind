@@ -7,7 +7,7 @@ the provider is actually selected and used.
 from __future__ import annotations
 
 import importlib.util
-from typing import Any, List, Tuple
+from typing import Any
 
 from src.ai.core.response import TokenUsage
 from src.ai.providers._remote import RemoteProvider
@@ -31,8 +31,8 @@ class ClaudeProvider(RemoteProvider):
         return anthropic.Anthropic(api_key=self._api_key(), timeout=self.settings.timeout)
 
     def _complete(
-        self, client: Any, messages: List[LLMMessage], json_mode: bool
-    ) -> Tuple[str, TokenUsage]:
+        self, client: Any, messages: list[LLMMessage], json_mode: bool
+    ) -> tuple[str, TokenUsage]:
         """Call messages.create and return ``(text, usage)``.
 
         Anthropic takes the system prompt separately, so system messages are
@@ -53,9 +53,7 @@ class ClaudeProvider(RemoteProvider):
             messages=chat,
         )
 
-        text = "".join(
-            getattr(block, "text", "") for block in getattr(response, "content", [])
-        )
+        text = "".join(getattr(block, "text", "") for block in getattr(response, "content", []))
         usage = TokenUsage()
         if getattr(response, "usage", None):
             usage = TokenUsage(

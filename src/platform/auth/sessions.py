@@ -97,9 +97,7 @@ class SessionManager:
         )
         self._sessions.add(session)
         refresh_plain = self._issue_refresh(session)
-        return IssuedSession(
-            session=session, session_token=token, refresh_token=refresh_plain
-        )
+        return IssuedSession(session=session, session_token=token, refresh_token=refresh_plain)
 
     def _issue_refresh(self, session: Session, rotated_from: str | None = None) -> str:
         """Mint a refresh token for ``session`` and return its plaintext value."""
@@ -213,8 +211,7 @@ class SessionManager:
         """Revoke every active session for a user; return the count revoked."""
         active = self._sessions.list(
             tenant_id=tenant_id,
-            where=lambda s: s.user_id == user_id
-            and s.status == SessionStatus.ACTIVE,
+            where=lambda s: s.user_id == user_id and s.status == SessionStatus.ACTIVE,
         )
         for session in active:
             self.revoke(tenant_id, session.id)

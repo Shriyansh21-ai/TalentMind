@@ -26,13 +26,19 @@ Missing Information, Recommendation or Human Review (Module 14).
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import Field, field_validator
 
 from src.ai.schemas.base import BaseAIResponse
 
-REGISTERS = ("Observed Evidence", "Company Policy", "Missing Information", "Recommendation", "Human Review")
+REGISTERS = (
+    "Observed Evidence",
+    "Company Policy",
+    "Missing Information",
+    "Recommendation",
+    "Human Review",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -55,10 +61,10 @@ class ComplianceNarrative(BaseAIResponse):
     documentation_note: str = ""
     audit_note: str = ""
     risk_note: str = ""
-    required_actions: List[str] = Field(default_factory=list)
-    key_findings: List[str] = Field(default_factory=list)
-    assumptions: List[str] = Field(default_factory=list)
-    human_review_recommendations: List[str] = Field(default_factory=list)
+    required_actions: list[str] = Field(default_factory=list)
+    key_findings: list[str] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+    human_review_recommendations: list[str] = Field(default_factory=list)
     confidence_note: str = ""
 
     @field_validator("executive_summary")
@@ -86,7 +92,7 @@ class WorkflowStep:
     register: str = "Missing Information"
     critical: bool = True
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -94,13 +100,13 @@ class WorkflowStep:
 class WorkflowCompliance:
     """Overall hiring-workflow compliance (Module 1)."""
 
-    steps: List[WorkflowStep] = field(default_factory=list)
+    steps: list[WorkflowStep] = field(default_factory=list)
     completed: int = 0
     total: int = 0
     status: str = "Requires Review"  # Compliant | Incomplete | Requires Review
     confidence: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "steps": [s.to_dict() for s in self.steps],
             "completed": self.completed,
@@ -124,7 +130,7 @@ class ApprovalStatus:
     state: str = "Not Required"  # Complete | Missing | Requires Review | Not Required
     reason: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -132,15 +138,19 @@ class ApprovalStatus:
 class ApprovalMatrix:
     """The approval matrix (Module 2)."""
 
-    approvals: List[ApprovalStatus] = field(default_factory=list)
+    approvals: list[ApprovalStatus] = field(default_factory=list)
 
-    def required(self) -> List[str]:
+    def required(self) -> list[str]:
         return [a.approver for a in self.approvals if a.required]
 
-    def outstanding(self) -> List[str]:
-        return [a.approver for a in self.approvals if a.required and a.state in ("Missing", "Requires Review")]
+    def outstanding(self) -> list[str]:
+        return [
+            a.approver
+            for a in self.approvals
+            if a.required and a.state in ("Missing", "Requires Review")
+        ]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "approvals": [a.to_dict() for a in self.approvals],
             "required": self.required(),
@@ -159,11 +169,13 @@ class PolicyCheck:
 
     policy_key: str
     policy_name: str
-    status: str = "Not Applicable"  # Compliant | Violation | Requires Review | Not Applicable | Not Evaluable
+    status: str = (
+        "Not Applicable"  # Compliant | Violation | Requires Review | Not Applicable | Not Evaluable
+    )
     rationale: str = ""
-    required_actions: List[str] = field(default_factory=list)
+    required_actions: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -180,7 +192,7 @@ class DocumentStatus:
     state: str = "Requires Review"  # Present | Missing | Requires Review
     register: str = "Missing Information"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -188,15 +200,15 @@ class DocumentStatus:
 class DocumentationReview:
     """The documentation review (Module 4)."""
 
-    documents: List[DocumentStatus] = field(default_factory=list)
+    documents: list[DocumentStatus] = field(default_factory=list)
 
-    def missing(self) -> List[str]:
+    def missing(self) -> list[str]:
         return [d.name for d in self.documents if d.state == "Missing"]
 
-    def present(self) -> List[str]:
+    def present(self) -> list[str]:
         return [d.name for d in self.documents if d.state == "Present"]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "documents": [d.to_dict() for d in self.documents],
             "missing": self.missing(),
@@ -217,7 +229,7 @@ class AuditFinding:
     status: str = "Needs Investigation"  # Complete | Incomplete | Needs Investigation
     rationale: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -225,10 +237,10 @@ class AuditFinding:
 class AuditTrailValidation:
     """The audit-trail validation (Module 6)."""
 
-    findings: List[AuditFinding] = field(default_factory=list)
+    findings: list[AuditFinding] = field(default_factory=list)
     status: str = "Needs Investigation"  # Complete | Incomplete | Needs Investigation
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"findings": [f.to_dict() for f in self.findings], "status": self.status}
 
 
@@ -248,7 +260,7 @@ class ComplianceException:
     register: str = "Missing Information"
     confidence: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -262,12 +274,12 @@ class GovernanceRisk:
     """Overall governance risk (Module 5)."""
 
     level: str = "Medium"  # Low | Medium | High
-    drivers: List[str] = field(default_factory=list)
-    missing_controls: List[str] = field(default_factory=list)
-    human_review_recommendations: List[str] = field(default_factory=list)
+    drivers: list[str] = field(default_factory=list)
+    missing_controls: list[str] = field(default_factory=list)
+    human_review_recommendations: list[str] = field(default_factory=list)
     confidence: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -282,10 +294,10 @@ class ComplianceScenario:
 
     name: str
     governance_impact: str = ""
-    affected_controls: List[str] = field(default_factory=list)
+    affected_controls: list[str] = field(default_factory=list)
     severity: str = "Medium"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -300,10 +312,10 @@ class ComplianceReview:
 
     legal_review_recommended: bool = False
     compliance_review_recommended: bool = False
-    reviewers: List[str] = field(default_factory=list)
+    reviewers: list[str] = field(default_factory=list)
     rationale: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -327,22 +339,22 @@ class HiringComplianceReport:
     candidate_id: str
     generated_on: str
     data_available: bool
-    candidate_overview: Dict[str, Any]
+    candidate_overview: dict[str, Any]
     narrative: ComplianceNarrative
     workflow: WorkflowCompliance
     approvals: ApprovalMatrix
-    policy_checks: List[PolicyCheck]
+    policy_checks: list[PolicyCheck]
     documentation: DocumentationReview
     audit: AuditTrailValidation
     governance_risk: GovernanceRisk
-    exceptions: List[ComplianceException]
+    exceptions: list[ComplianceException]
     review: ComplianceReview
-    scenarios: List[ComplianceScenario]
-    charts: Dict[str, Any] = field(default_factory=dict)
-    evidence_sources: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    scenarios: list[ComplianceScenario]
+    charts: dict[str, Any] = field(default_factory=dict)
+    evidence_sources: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the whole report."""
         return {
             "report_id": self.report_id,

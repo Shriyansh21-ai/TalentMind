@@ -8,7 +8,7 @@ running, and the error is captured in the returned results.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from src.platform.common.models import PlatformModel
 

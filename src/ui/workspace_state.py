@@ -8,8 +8,6 @@ modules disagreeing on a state key.
 
 from __future__ import annotations
 
-from typing import List
-
 import streamlit as st
 
 _COMPARE_KEY = "workspace_compare_ids"
@@ -22,7 +20,7 @@ def _ensure() -> None:
         st.session_state[_COMPARE_KEY] = []
 
 
-def get_compare_ids() -> List[str]:
+def get_compare_ids() -> list[str]:
     """Return the currently selected comparison candidate ids (ordered)."""
     _ensure()
     return list(st.session_state[_COMPARE_KEY])
@@ -41,7 +39,7 @@ def toggle_compare(candidate_id: str) -> None:
     recruiter understands why nothing changed.
     """
     _ensure()
-    current: List[str] = st.session_state[_COMPARE_KEY]
+    current: list[str] = st.session_state[_COMPARE_KEY]
     if candidate_id in current:
         current.remove(candidate_id)
     elif len(current) < MAX_COMPARE:

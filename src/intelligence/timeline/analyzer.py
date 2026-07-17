@@ -10,11 +10,9 @@ Public entry point: :func:`build_career_timeline`.
 
 from __future__ import annotations
 
-from typing import List
-
-from src.models.candidates import Candidate, CareerHistory
 from src.intelligence.common import career_utils as cu
 from src.intelligence.timeline.models import CareerTimelineAnalysis
+from src.models.candidates import Candidate, CareerHistory
 
 # Tuning thresholds (months) — grouped here so heuristics stay readable.
 _RAPID_PROMOTION_MONTHS = 18
@@ -114,7 +112,7 @@ def _career_stability(average_duration: float) -> float:
     return 25.0
 
 
-def _career_growth_score(promotion_count: int, career: List[CareerHistory]) -> float:
+def _career_growth_score(promotion_count: int, career: list[CareerHistory]) -> float:
     """Blend promotion count with the seniority level ultimately reached."""
     latest_rank = cu.seniority_rank(career[-1].title)
     seniority_component = min(latest_rank / 6.0, 1.0) * 60.0
@@ -128,7 +126,7 @@ def _timeline_score(growth: float, stability: float, consistency: float) -> floa
     return round(min(max(score, 0.0), 100.0), 1)
 
 
-def _leadership_progression(career: List[CareerHistory]) -> str:
+def _leadership_progression(career: list[CareerHistory]) -> str:
     """Describe the candidate's leadership trajectory as a label."""
     started_managing = cu.is_management_title(career[0].title)
     ends_managing = cu.is_management_title(career[-1].title)
@@ -143,7 +141,7 @@ def _leadership_progression(career: List[CareerHistory]) -> str:
     return "Individual contributor track"
 
 
-def _company_quality_trend(career: List[CareerHistory]) -> str:
+def _company_quality_trend(career: list[CareerHistory]) -> str:
     """Report the trend in employer size/tier across the timeline."""
     tiers = [cu.company_size_tier(job.company_size) for job in career]
     tiers = [tier for tier in tiers if tier > 0]
@@ -164,22 +162,20 @@ def _company_quality_trend(career: List[CareerHistory]) -> str:
 
 def _signals(
     candidate: Candidate,
-    ordered: List[CareerHistory],
+    ordered: list[CareerHistory],
     average_duration: float,
     promotion_count: int,
     promotion_velocity: float,
     consistency: float,
-) -> tuple[List[str], List[str]]:
+) -> tuple[list[str], list[str]]:
     """Derive recruiter-friendly strengths and concerns from the timeline."""
-    strengths: List[str] = []
-    concerns: List[str] = []
+    strengths: list[str] = []
+    concerns: list[str] = []
 
     # Promotion / acceleration signals.
     fastest_promotion = _fastest_promotion_months(ordered)
     if fastest_promotion is not None and fastest_promotion <= _RAPID_PROMOTION_MONTHS:
-        strengths.append(
-            f"Rapid promotion — advanced within {fastest_promotion} months in a role."
-        )
+        strengths.append(f"Rapid promotion — advanced within {fastest_promotion} months in a role.")
     if promotion_velocity >= 0.4:
         strengths.append("Career acceleration — promotions ahead of typical pace.")
     if promotion_count == 0 and len(ordered) >= 3:
@@ -189,18 +185,14 @@ def _signals(
     if any(job.duration_months >= _LONG_TENURE_MONTHS for job in ordered):
         strengths.append("Long tenure — demonstrated commitment at an employer.")
     if average_duration < _SHORT_TENURE_MONTHS and len(ordered) >= 3:
-        concerns.append(
-            f"Frequent switching — average tenure only {average_duration:.0f} months."
-        )
+        concerns.append(f"Frequent switching — average tenure only {average_duration:.0f} months.")
 
     # Movement pattern.
     if _mostly_lateral(ordered):
         concerns.append("Largely lateral movement with limited seniority change.")
 
     # Leadership growth.
-    if cu.is_management_title(ordered[-1].title) and not cu.is_management_title(
-        ordered[0].title
-    ):
+    if cu.is_management_title(ordered[-1].title) and not cu.is_management_title(ordered[0].title):
         strengths.append("Management growth — progressed from IC into leadership.")
 
     # Domain focus.
@@ -222,7 +214,7 @@ def _signals(
 
 def _career_story(
     candidate: Candidate,
-    ordered: List[CareerHistory],
+    ordered: list[CareerHistory],
     promotion_count: int,
     leadership_progression: str,
     consistency: float,
@@ -233,9 +225,8 @@ def _career_story(
     latest = ordered[-1]
     industries = {(job.industry or "").strip() for job in ordered if job.industry}
 
-    parts: List[str] = [
-        f"{years:.1f} years across {len(ordered)} "
-        f"{'role' if len(ordered) == 1 else 'roles'}.",
+    parts: list[str] = [
+        f"{years:.1f} years across {len(ordered)} {'role' if len(ordered) == 1 else 'roles'}.",
     ]
 
     if len(ordered) >= 2:
@@ -248,8 +239,7 @@ def _career_story(
 
     if promotion_count:
         parts.append(
-            f"{promotion_count} upward "
-            f"{'move' if promotion_count == 1 else 'moves'} in seniority."
+            f"{promotion_count} upward {'move' if promotion_count == 1 else 'moves'} in seniority."
         )
 
     parts.append(f"{leadership_progression}.")
@@ -287,7 +277,7 @@ def _timeline_summary(
 # ---------------------------------------------------------------------------
 
 
-def _fastest_promotion_months(career: List[CareerHistory]) -> int | None:
+def _fastest_promotion_months(career: list[CareerHistory]) -> int | None:
     """Shortest tenure that immediately preceded an upward move, if any."""
     fastest: int | None = None
     for previous, following in zip(career, career[1:]):
@@ -297,7 +287,7 @@ def _fastest_promotion_months(career: List[CareerHistory]) -> int | None:
     return fastest
 
 
-def _mostly_lateral(career: List[CareerHistory]) -> bool:
+def _mostly_lateral(career: list[CareerHistory]) -> bool:
     """True when most transitions kept the same seniority rank."""
     if len(career) < 3:
         return False

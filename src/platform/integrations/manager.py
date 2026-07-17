@@ -14,7 +14,7 @@ transitions emit both a structured log line and (optionally) a platform event.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
@@ -62,9 +62,7 @@ class IntegrationManager:
     ) -> None:
         self._clock = clock or SystemClock()
         self.registry = registry or build_default_registry()
-        self.repo: InMemoryRepository[Integration] = repository or InMemoryRepository(
-            "integration"
-        )
+        self.repo: InMemoryRepository[Integration] = repository or InMemoryRepository("integration")
         self.vault = vault or CredentialVault(clock=self._clock)
         self.observability = observability or ObservabilityRegistry(clock=self._clock)
         self._publisher = publisher
@@ -104,9 +102,7 @@ class IntegrationManager:
 
         credential_ref = ""
         if credential:
-            ref = self.vault.issue(
-                tenant_id, credential, credential_type=credential_type
-            )
+            ref = self.vault.issue(tenant_id, credential, credential_type=credential_type)
             credential_ref = ref.ref
 
         configuration = IntegrationConfiguration(

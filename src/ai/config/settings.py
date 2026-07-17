@@ -27,11 +27,10 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from typing import Dict
 
 # Default model per provider. Kept here (not in provider code) so ops can reason
 # about the whole platform's model surface from one place.
-_DEFAULT_MODELS: Dict[str, str] = {
+_DEFAULT_MODELS: dict[str, str] = {
     "local": "deterministic-composer-v1",
     "openai": "gpt-4o-mini",
     "claude": "claude-sonnet-5",
@@ -94,10 +93,10 @@ class AISettings:
     cache_dir: str = "data/ai_cache"
     telemetry_dir: str = "logs"
     strict: bool = False
-    extra: Dict[str, str] = field(default_factory=dict)
+    extra: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def from_env(cls) -> "AISettings":
+    def from_env(cls) -> AISettings:
         """Build settings from the process environment (with safe defaults)."""
         provider = os.environ.get("TALENTMIND_AI_PROVIDER", "local").strip().lower()
         if provider not in _DEFAULT_MODELS:

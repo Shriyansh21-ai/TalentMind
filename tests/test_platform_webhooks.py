@@ -18,7 +18,6 @@ from src.platform.integrations.webhooks import (
     WebhookSigner,
 )
 
-
 # -- signing ----------------------------------------------------------------
 
 
@@ -77,9 +76,7 @@ def test_failed_delivery_dead_letters_after_retries():
         return False
 
     service = WebhookService(transport=failing_transport, clock=FrozenClock())
-    service.register(
-        "t1", "o1", "https://x/hook", secret="s", event_filters=["*"], max_retries=2
-    )
+    service.register("t1", "o1", "https://x/hook", secret="s", event_filters=["*"], max_retries=2)
     deliveries = service.dispatch("t1", "a.created", {"x": 1})
     delivery = deliveries[0]
     assert delivery.status == DeliveryStatus.DEAD_LETTERED
@@ -110,7 +107,10 @@ def test_incoming_verification_accepts_valid_signature():
     clock = FrozenClock()
     service = WebhookService(clock=clock)
     sub = service.register(
-        "t1", "o1", "https://src/in", secret="insecret",
+        "t1",
+        "o1",
+        "https://src/in",
+        secret="insecret",
         direction=WebhookDirection.INCOMING,
     )
     secret = service.vault.resolve("t1", sub.secret_ref)
@@ -127,7 +127,10 @@ def test_incoming_verification_accepts_valid_signature():
 def test_incoming_rejects_bad_signature():
     service = WebhookService(clock=FrozenClock())
     sub = service.register(
-        "t1", "o1", "https://src/in", secret="insecret",
+        "t1",
+        "o1",
+        "https://src/in",
+        secret="insecret",
         direction=WebhookDirection.INCOMING,
     )
     with pytest.raises(WebhookVerificationError):

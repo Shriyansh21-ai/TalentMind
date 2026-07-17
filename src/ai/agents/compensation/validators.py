@@ -10,7 +10,7 @@ No I/O.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compensation.schemas import (
     CompensationRange,
@@ -32,18 +32,18 @@ _SOURCE_LABELS = {
 }
 
 
-def available_sources(evidence: Dict[str, Any]) -> List[str]:
+def available_sources(evidence: dict[str, Any]) -> list[str]:
     """Return the labels of the evidence sources actually present + non-empty."""
-    sources: List[str] = []
+    sources: list[str] = []
     for key, label in _SOURCE_LABELS.items():
         if evidence.get(key):
             sources.append(label)
     return list(dict.fromkeys(sources))
 
 
-def evidence_coverage_warnings(evidence: Dict[str, Any]) -> List[str]:
+def evidence_coverage_warnings(evidence: dict[str, Any]) -> list[str]:
     """Return warnings when key evidence sources are missing (Module 16)."""
-    warnings: List[str] = []
+    warnings: list[str] = []
     if not (evidence.get("candidate_comp") or {}).get("expected_max"):
         warnings.append(
             "Candidate stated no salary expectation; the band is anchored on a "
@@ -62,9 +62,9 @@ def validate_no_fabrication(
     band: CompensationRange,
     market: MarketPosition,
     equity: InternalEquityReadiness,
-) -> List[str]:
+) -> list[str]:
     """Assert the no-fabrication guarantees; return warnings on any violation."""
-    warnings: List[str] = []
+    warnings: list[str] = []
 
     # Market position must be honest about the absence of external data.
     if not market.data_available and "internal heuristic" not in (market.data_note or "").lower():
@@ -72,7 +72,9 @@ def validate_no_fabrication(
 
     # Internal equity must be unavailable unless a real provider was injected.
     if not equity.available and equity.status_message != "Internal equity validation unavailable.":
-        warnings.append("Internal equity reported as unavailable but the status message is inconsistent.")
+        warnings.append(
+            "Internal equity reported as unavailable but the status message is inconsistent."
+        )
 
     # The band must carry its internal-heuristic disclaimer.
     if not any("internal heuristic" in a.lower() for a in band.assumptions):

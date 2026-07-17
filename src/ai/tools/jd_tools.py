@@ -13,22 +13,20 @@ one is passed explicitly. The tool runs the agent through the shared
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
+# Importing the agent module auto-registers the JDAnalystAgent with the AI
+# platform registry, the composer registry and the orchestration registry.
+from src.ai.agents.jd.agent import JDAnalystInput, jd_analyst_agent
 from src.ai.core.runner import AgentRunner
 from src.ai.tools.base import (
     BaseTool,
     ToolContext,
     ToolMetadata,
     ToolResult,
-    ToolValidationError,
 )
 
-# Importing the agent module auto-registers the JDAnalystAgent with the AI
-# platform registry, the composer registry and the orchestration registry.
-from src.ai.agents.jd.agent import JDAnalystInput, jd_analyst_agent
-
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 
 def _get_runner() -> AgentRunner:
@@ -53,7 +51,7 @@ class JDAnalysisTool(BaseTool):
         engine="JD Analyst Agent",
     )
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Analyze the current JD (from input or conversation context)."""
         jd_text = (tool_input.get("jd_text") or getattr(context, "jd", "") or "").strip()
         if not jd_text:
@@ -68,7 +66,8 @@ class JDAnalysisTool(BaseTool):
             )
 
         result = _get_runner().run(
-            jd_analyst_agent, JDAnalystInput(jd_text=jd_text, jd_id=str(tool_input.get("jd_id", "")))
+            jd_analyst_agent,
+            JDAnalystInput(jd_text=jd_text, jd_id=str(tool_input.get("jd_id", ""))),
         )
         if not result.ok or result.data is None:
             return ToolResult(

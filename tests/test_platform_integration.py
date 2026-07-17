@@ -7,11 +7,10 @@ sub-package imports cleanly, and that tenant isolation holds end-to-end.
 
 from __future__ import annotations
 
-import faiss  # noqa: F401
-
 import re
 from pathlib import Path
 
+import faiss  # noqa: F401
 import pytest
 
 from src.platform.bootstrap import build_platform
@@ -50,8 +49,18 @@ def test_every_subpackage_imports():
     import importlib
 
     for name in [
-        "organizations", "tenancy", "auth", "rbac", "workspaces", "config",
-        "subscription", "notifications", "audit", "api", "storage", "developer",
+        "organizations",
+        "tenancy",
+        "auth",
+        "rbac",
+        "workspaces",
+        "config",
+        "subscription",
+        "notifications",
+        "audit",
+        "api",
+        "storage",
+        "developer",
     ]:
         importlib.import_module(f"src.platform.{name}")
 
@@ -69,8 +78,17 @@ def test_app_exposes_platform_admin_nav():
 def test_build_platform_wires_all_services():
     platform = build_platform(clock=FrozenClock())
     for key in [
-        "organizations", "tenants", "auth", "rbac", "workspaces", "config",
-        "subscriptions", "notifications", "audit", "storage", "extensions",
+        "organizations",
+        "tenants",
+        "auth",
+        "rbac",
+        "workspaces",
+        "config",
+        "subscriptions",
+        "notifications",
+        "audit",
+        "storage",
+        "extensions",
     ]:
         assert platform.container.has(key)
     # Lazy singletons: same instance on repeated access.

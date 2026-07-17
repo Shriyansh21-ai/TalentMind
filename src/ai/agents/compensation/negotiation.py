@@ -10,19 +10,19 @@ candidate record; no behavioural data is fabricated.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compensation.schemas import CompensationRange, NegotiationIntelligence
 
 
-def _num(source: Dict[str, Any], key: str, default: float = 0.0) -> float:
+def _num(source: dict[str, Any], key: str, default: float = 0.0) -> float:
     try:
         return float(source.get(key, default))
     except (TypeError, ValueError):
         return default
 
 
-def build_negotiation(evidence: Dict[str, Any], band: CompensationRange) -> NegotiationIntelligence:
+def build_negotiation(evidence: dict[str, Any], band: CompensationRange) -> NegotiationIntelligence:
     """Build the negotiation intelligence for the recommendation (Module 6)."""
     comp = evidence.get("candidate_comp") or {}
     exp_min = _num(comp, "expected_min")
@@ -32,14 +32,20 @@ def build_negotiation(evidence: Dict[str, Any], band: CompensationRange) -> Nego
     open_to_work = bool(comp.get("open_to_work"))
     relocate = bool(comp.get("willing_to_relocate"))
 
-    observed: List[str] = []
+    observed: list[str] = []
     if exp_max > 0:
-        observed.append(f"Stated expectation {band.currency} {exp_min:.1f}-{exp_max:.1f} {band.unit}.")
+        observed.append(
+            f"Stated expectation {band.currency} {exp_min:.1f}-{exp_max:.1f} {band.unit}."
+        )
     if acceptance_rate:
-        observed.append(f"Historical offer-acceptance rate {acceptance_rate * 100:.0f}% (platform signal).")
+        observed.append(
+            f"Historical offer-acceptance rate {acceptance_rate * 100:.0f}% (platform signal)."
+        )
     if notice:
         observed.append(f"Notice period {notice:.0f} days.")
-    observed.append(f"Open to work: {'yes' if open_to_work else 'unknown'}; willing to relocate: {'yes' if relocate else 'no'}.")
+    observed.append(
+        f"Open to work: {'yes' if open_to_work else 'unknown'}; willing to relocate: {'yes' if relocate else 'no'}."
+    )
 
     # Acceptance likelihood: target vs. expectation + historical acceptance.
     expected_mid = (exp_min + exp_max) / 2.0 if exp_max > 0 else 0.0
@@ -59,7 +65,7 @@ def build_negotiation(evidence: Dict[str, Any], band: CompensationRange) -> Nego
     else:
         negotiation_prob = "Moderate"
 
-    objections: List[str] = []
+    objections: list[str] = []
     if expected_mid and band.target < expected_mid:
         objections.append("Target is below the candidate's stated expectation.")
     if notice >= 60:

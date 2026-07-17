@@ -10,7 +10,8 @@ etc.) are supplied by injected getters so this module stays decoupled.
 
 from __future__ import annotations
 
-from typing import Callable, Protocol, runtime_checkable
+from collections.abc import Callable
+from typing import Protocol, runtime_checkable
 
 from pydantic import Field
 

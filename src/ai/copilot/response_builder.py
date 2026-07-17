@@ -8,10 +8,6 @@ predictable and testable.
 
 from __future__ import annotations
 
-from typing import List, Optional
-
-from src.ai.core.response import AgentResult, AgentStatus
-from src.ai.tools.base import ToolResult
 from src.ai.copilot.models import (
     CopilotAction,
     CopilotPlan,
@@ -19,6 +15,8 @@ from src.ai.copilot.models import (
     Intent,
     IntentResult,
 )
+from src.ai.core.response import AgentResult
+from src.ai.tools.base import ToolResult
 
 # Deterministic follow-up questions per intent (3 each).
 _FOLLOW_UPS = {
@@ -125,18 +123,18 @@ _FOLLOW_UPS = {
 }
 
 
-def suggest_follow_ups(intent: Intent) -> List[str]:
+def suggest_follow_ups(intent: Intent) -> list[str]:
     """Return 3 deterministic follow-up questions for ``intent``."""
     return list(_FOLLOW_UPS.get(intent, _FOLLOW_UPS[Intent.GENERAL_HIRING_QUESTION]))
 
 
-def suggest_actions(plan: CopilotPlan) -> List[CopilotAction]:
+def suggest_actions(plan: CopilotPlan) -> list[CopilotAction]:
     """Return recruiter actions relevant to the plan's intent + resolved refs."""
-    actions: List[CopilotAction] = []
+    actions: list[CopilotAction] = []
     candidate = plan.focus_candidate
     comparison = plan.comparison_ids
 
-    def candidate_actions(cid: str) -> List[CopilotAction]:
+    def candidate_actions(cid: str) -> list[CopilotAction]:
         return [
             CopilotAction("move_to_shortlist", "⭐ Move to Shortlist", {"candidate_id": cid}),
             CopilotAction("generate_interview_plan", "🗓 Interview Plan", {"candidate_id": cid}),
@@ -165,17 +163,25 @@ def suggest_actions(plan: CopilotPlan) -> List[CopilotAction]:
         actions = candidate_actions(candidate)
     elif plan.intent == Intent.COMPARE_CANDIDATES and len(comparison) >= 2:
         actions = [
-            CopilotAction("compare_candidates", "🆚 Open Comparison", {"candidate_ids": comparison}),
-            CopilotAction("generate_hiring_report", "📄 Hiring Report", {"candidate_id": comparison[0]}),
+            CopilotAction(
+                "compare_candidates", "🆚 Open Comparison", {"candidate_ids": comparison}
+            ),
+            CopilotAction(
+                "generate_hiring_report", "📄 Hiring Report", {"candidate_id": comparison[0]}
+            ),
         ]
     elif plan.intent in {Intent.SEARCH_CANDIDATE, Intent.SKILL_SEARCH} and candidate:
         actions = [
             CopilotAction("analyze_candidate", "🔍 Analyze Top Match", {"candidate_id": candidate}),
-            CopilotAction("move_to_shortlist", "⭐ Shortlist Top Match", {"candidate_id": candidate}),
+            CopilotAction(
+                "move_to_shortlist", "⭐ Shortlist Top Match", {"candidate_id": candidate}
+            ),
         ]
         if len(comparison) >= 2:
             actions.append(
-                CopilotAction("compare_candidates", "🆚 Compare Top Two", {"candidate_ids": comparison})
+                CopilotAction(
+                    "compare_candidates", "🆚 Compare Top Two", {"candidate_ids": comparison}
+                )
             )
     elif plan.intent == Intent.PIPELINE_QUESTION and candidate:
         actions = [
@@ -189,7 +195,7 @@ def build_turn(
     message: str,
     intent_result: IntentResult,
     plan: CopilotPlan,
-    tool_results: List[ToolResult],
+    tool_results: list[ToolResult],
     ai_result: AgentResult,
     latency_ms: float,
 ) -> CopilotTurn:
@@ -210,8 +216,7 @@ def build_turn(
     error = None if status == "ok" else (ai_result.error or "No answer produced.")
     if status == "failed" and not answer:
         answer = (
-            "I couldn't produce an answer for that request. Please rephrase or "
-            "specify a candidate."
+            "I couldn't produce an answer for that request. Please rephrase or specify a candidate."
         )
 
     return CopilotTurn(

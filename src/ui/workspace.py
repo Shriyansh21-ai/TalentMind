@@ -11,18 +11,16 @@ orchestrator" architecture: app.py gains one import and one call.
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
-
 import streamlit as st
 
-from src.models.candidates import Candidate
 from src.insights.models import CandidateInsights
+from src.models.candidates import Candidate
 from src.pipeline.store import PipelineStore
-from src.ui.helpers import get_insights
 from src.ui.analytics_dashboard import render_enterprise_dashboard
-from src.ui.talent_pool_view import render_talent_pools
-from src.ui.filters_panel import render_smart_filters
 from src.ui.comparison_view import render_comparison_workspace
+from src.ui.filters_panel import render_smart_filters
+from src.ui.helpers import get_insights
+from src.ui.talent_pool_view import render_talent_pools
 
 # Size of the insight cohort used for engine-backed analytics / segmentation /
 # filtering. Bounding this keeps the workspace responsive on large datasets: the
@@ -32,8 +30,8 @@ ANALYTICS_COHORT = 40
 
 
 def render_enterprise_workspace(
-    candidates: List[Candidate],
-    results: List[Tuple[Candidate, float]],
+    candidates: list[Candidate],
+    results: list[tuple[Candidate, float]],
     jd: str,
 ) -> None:
     """Render the full Enterprise Hiring Workspace.
@@ -49,13 +47,13 @@ def render_enterprise_workspace(
         st.info("Rank candidates to unlock the enterprise workspace.")
         return
 
-    candidate_by_id: Dict[str, Candidate] = {
+    candidate_by_id: dict[str, Candidate] = {
         candidate.candidate_id: candidate for candidate, _ in results
     }
 
     cohort = results[:ANALYTICS_COHORT]
     with st.spinner("Preparing candidate intelligence for the workspace..."):
-        insights: List[CandidateInsights] = [
+        insights: list[CandidateInsights] = [
             get_insights(candidate, jd, score) for candidate, score in cohort
         ]
 

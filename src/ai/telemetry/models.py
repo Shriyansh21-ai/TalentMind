@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -39,10 +39,10 @@ class TelemetryEvent:
     cache_hit: bool = False
     retries: int = 0
     subject_id: str = "global"
-    timestamp: Optional[str] = None
-    warnings: List[str] = field(default_factory=list)
-    error: Optional[str] = None
+    timestamp: str | None = None
+    warnings: list[str] = field(default_factory=list)
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the event."""
         return asdict(self)

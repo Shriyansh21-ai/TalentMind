@@ -13,19 +13,18 @@ from __future__ import annotations
 import json
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-from src.ai.providers.composers import has_composer
-
+from src.ai.agents.hiring_intelligence import executive_metrics as kpi_mod
+from src.ai.agents.hiring_intelligence import forecast as forecast_mod
+from src.ai.agents.hiring_intelligence import optimization as optimization_mod
+from src.ai.agents.hiring_intelligence import pipeline_analytics as pipeline_mod
+from src.ai.agents.hiring_intelligence import team_analytics as team_mod
+from src.ai.agents.hiring_intelligence import trend_analysis as trend_mod
+from src.ai.agents.hiring_intelligence import validators
 from src.ai.agents.hiring_intelligence.agent import (
     HiringIntelligenceInput,
     build_intelligence_evidence,
-    hiring_intelligence_agent,
 )
 from src.ai.agents.hiring_intelligence.analytics_engine import (
     HiringIntelligenceEngine,
@@ -40,15 +39,12 @@ from src.ai.agents.hiring_intelligence.schemas import (
     HiringIntelligenceReport,
     WorkforceNarrative,
 )
-from src.ai.agents.hiring_intelligence import executive_metrics as kpi_mod
-from src.ai.agents.hiring_intelligence import pipeline_analytics as pipeline_mod
-from src.ai.agents.hiring_intelligence import team_analytics as team_mod
-from src.ai.agents.hiring_intelligence import trend_analysis as trend_mod
-from src.ai.agents.hiring_intelligence import forecast as forecast_mod
-from src.ai.agents.hiring_intelligence import optimization as optimization_mod
-from src.ai.agents.hiring_intelligence import validators
-
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 JD = "Senior Machine Learning Engineer. Python, PyTorch, AWS. 8+ years."
 
@@ -61,16 +57,44 @@ class _AnalyticsProvider:
 
     def get_trends(self):
         return {
-            "series": {"Hiring volume": {"direction": "Up", "evidence": "12mo series", "confidence": 70, "interpretation": "growing"}},
+            "series": {
+                "Hiring volume": {
+                    "direction": "Up",
+                    "evidence": "12mo series",
+                    "confidence": 70,
+                    "interpretation": "growing",
+                }
+            },
             "kpis": {"governance_health": 72.0, "compliance_readiness": 68.0},
-            "bottlenecks": {"Approval delay": {"severity": "High", "cause": "slow sign-off", "impact": "delayed starts", "improvement": "SLA"}},
+            "bottlenecks": {
+                "Approval delay": {
+                    "severity": "High",
+                    "cause": "slow sign-off",
+                    "impact": "delayed starts",
+                    "improvement": "SLA",
+                }
+            },
         }
 
     def get_team_metrics(self):
-        return [{"dimension": "Department", "group": "Engineering", "count": 40, "hiring_health": "High", "detail": "warehouse"}]
+        return [
+            {
+                "dimension": "Department",
+                "group": "Engineering",
+                "count": 40,
+                "hiring_health": "High",
+                "detail": "warehouse",
+            }
+        ]
 
     def get_capacity(self):
-        return {"Recruiter workload": {"level": "High", "risk": "overloaded", "recommendation": "add capacity"}}
+        return {
+            "Recruiter workload": {
+                "level": "High",
+                "risk": "overloaded",
+                "recommendation": "add capacity",
+            }
+        }
 
 
 def _runner() -> AgentRunner:
@@ -78,17 +102,32 @@ def _runner() -> AgentRunner:
 
 
 def _cohort(n: int = 5):
-    titles = ["Senior ML Engineer", "Backend Engineer", "Data Scientist", "Engineering Manager", "Frontend Engineer"]
-    return [make_candidate(candidate_id=f"C{i}", title=titles[i % len(titles)], years=3 + i * 2) for i in range(n)]
+    titles = [
+        "Senior ML Engineer",
+        "Backend Engineer",
+        "Data Scientist",
+        "Engineering Manager",
+        "Frontend Engineer",
+    ]
+    return [
+        make_candidate(candidate_id=f"C{i}", title=titles[i % len(titles)], years=3 + i * 2)
+        for i in range(n)
+    ]
 
 
 def _report(provider=None, **kw) -> HiringIntelligenceReport:
     engine = HiringIntelligenceEngine(ai_runner=_runner(), data_provider=provider)
-    return engine.build(candidates=kw.pop("candidates", _cohort()), jd=kw.pop("jd", JD), generated_on="2026-07-16", **kw)
+    return engine.build(
+        candidates=kw.pop("candidates", _cohort()),
+        jd=kw.pop("jd", JD),
+        generated_on="2026-07-16",
+        **kw,
+    )
 
 
 def _snapshots(cohort):
     from src.insights.builder import build_insights
+
     return build_cohort_snapshots(cohort, JD, build_insights)
 
 
@@ -115,8 +154,8 @@ def test_narrative_schema_is_score_free():
 
 
 def test_tool_registered_in_builtin():
-    from src.ai.tools.registry import registry as tool_registry
     import src.ai.tools.builtin  # noqa: F401
+    from src.ai.tools.registry import registry as tool_registry
 
     assert tool_registry.has("hiring_intelligence")
 
@@ -142,7 +181,9 @@ def test_composer_never_empty_and_validates():
 
 
 def test_build_evidence_shape():
-    ev = build_intelligence_evidence(HiringIntelligenceInput(cohort_size=5, data_available=False, analytics={"kpis": []}))
+    ev = build_intelligence_evidence(
+        HiringIntelligenceInput(cohort_size=5, data_available=False, analytics={"kpis": []})
+    )
     assert ev["cohort_size"] == 5
     assert "analytics" in ev
 
@@ -197,7 +238,11 @@ def test_kpis_from_provider():
 def test_bottlenecks_timed_unavailable_without_provider():
     snaps = _snapshots(_cohort(5))
     bottlenecks = pipeline_mod.build_bottlenecks(snaps, None, False)
-    timed = [b for b in bottlenecks if b.stage in ("Screening delay", "Approval delay", "Offer delay", "Compliance delay")]
+    timed = [
+        b
+        for b in bottlenecks
+        if b.stage in ("Screening delay", "Approval delay", "Offer delay", "Compliance delay")
+    ]
     assert timed and all(b.register == "Unavailable" for b in timed)
 
 
@@ -222,7 +267,12 @@ def test_team_analytics_observed_dimensions():
     assert any(m.dimension == "Role Family" for m in observed)
     assert any(m.dimension == "Location" for m in observed)
     # Department/BU/Hiring Manager/Recruiter unavailable without an org-structure source.
-    assert {m.dimension for m in unavailable} == {"Department", "Business Unit", "Hiring Manager", "Recruiter"}
+    assert {m.dimension for m in unavailable} == {
+        "Department",
+        "Business Unit",
+        "Hiring Manager",
+        "Recruiter",
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -232,7 +282,9 @@ def test_team_analytics_observed_dimensions():
 
 def test_trends_unavailable_without_provider():
     trends = trend_mod.build_trends(_snapshots(_cohort(3)), None, False)
-    assert trends and all(t.register == "Unavailable" and t.direction == "Unavailable" for t in trends)
+    assert trends and all(
+        t.register == "Unavailable" and t.direction == "Unavailable" for t in trends
+    )
 
 
 def test_trends_observed_with_provider():
@@ -294,7 +346,9 @@ def test_engine_with_provider_enables_trends_and_teams():
     report = _report(provider=_AnalyticsProvider(), candidates=_cohort(6))
     assert report.data_available is True
     assert any(t.register == "Observed" for t in report.trends)
-    assert any(m.dimension == "Department" and m.register == "Observed" for m in report.team_metrics)
+    assert any(
+        m.dimension == "Department" and m.register == "Observed" for m in report.team_metrics
+    )
 
 
 def test_engine_bounds_cohort():
@@ -315,8 +369,16 @@ def test_report_to_dict_is_serializable():
 
 def test_charts_present():
     report = _report()
-    for key in ("distributions", "executive_kpis", "hiring_health", "pipeline_flow",
-                "department_comparison", "forecast", "optimization_opportunities", "governance_health"):
+    for key in (
+        "distributions",
+        "executive_kpis",
+        "hiring_health",
+        "pipeline_flow",
+        "department_comparison",
+        "forecast",
+        "optimization_opportunities",
+        "governance_health",
+    ):
         assert key in report.charts
 
 
@@ -335,7 +397,9 @@ def test_never_ranks_individuals():
 
 def test_no_fabrication_unavailable_kpis_have_no_value():
     report = _report()
-    warnings = validators.validate_safety(report.narrative, report.kpis, report.trends, report.data_available)
+    warnings = validators.validate_safety(
+        report.narrative, report.kpis, report.trends, report.data_available
+    )
     assert all("flagged" not in w for w in warnings)
     for k in report.kpis:
         if k.register == "Unavailable":
@@ -348,9 +412,9 @@ def test_no_fabrication_unavailable_kpis_have_no_value():
 
 
 def test_copilot_routes_intelligence_questions():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -365,16 +429,16 @@ def test_copilot_routes_intelligence_questions():
 
 
 def test_copilot_intelligence_intent_selects_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.HIRING_INTELLIGENCE) == ["hiring_intelligence"]
 
 
 def test_copilot_existing_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -393,9 +457,9 @@ def test_copilot_existing_intents_unchanged():
 
 
 def test_copilot_delegates_to_intelligence_end_to_end():
-    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository(_cohort(5))
     cop = RecruiterCopilot(repo, ai_runner=_runner())

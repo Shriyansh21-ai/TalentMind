@@ -5,8 +5,6 @@ Renders the pipeline overview. Each distinct metric is shown exactly once
 computed identically to the original.
 """
 
-from typing import Dict, List, Tuple
-
 import streamlit as st
 
 from src.models.candidates import Candidate
@@ -14,10 +12,10 @@ from src.ui.helpers import count_actions
 
 
 def render_dashboard(
-    candidates: List[Candidate],
-    results: List[Tuple[Candidate, float]],
+    candidates: list[Candidate],
+    results: list[tuple[Candidate, float]],
     jd: str,
-    actions: Dict[str, str],
+    actions: dict[str, str],
 ) -> None:
     """Render the recruiter dashboard metric row.
 

@@ -10,7 +10,6 @@ reusable and testable.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List
 
 
 @dataclass(frozen=True)
@@ -47,7 +46,7 @@ class Brand:
     body_font: str = "'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
 
     # Recommendation → semantic colour (for scorecards / badges).
-    rec_colors: Dict[str, str] = field(
+    rec_colors: dict[str, str] = field(
         default_factory=lambda: {
             "Hire Immediately": "#1E8449",
             "Strong Hire": "#1E8449",

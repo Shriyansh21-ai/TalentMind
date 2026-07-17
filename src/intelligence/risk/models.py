@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List
 
 
 @dataclass
@@ -41,7 +40,7 @@ class RiskReport:
     technical_depth_risk: str
     leadership_risk: str
     communication_risk: str
-    risk_factors: List[str] = field(default_factory=list)
-    red_flags: List[str] = field(default_factory=list)
-    validation_questions: List[str] = field(default_factory=list)
-    positive_signals: List[str] = field(default_factory=list)
+    risk_factors: list[str] = field(default_factory=list)
+    red_flags: list[str] = field(default_factory=list)
+    validation_questions: list[str] = field(default_factory=list)
+    positive_signals: list[str] = field(default_factory=list)

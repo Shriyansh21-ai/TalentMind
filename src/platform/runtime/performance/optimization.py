@@ -11,9 +11,8 @@ share across threads (Module 14 — thread-safe where appropriate).
 from __future__ import annotations
 
 import threading
-from typing import Callable, Generic, Protocol, TypeVar, runtime_checkable
-
-from pydantic import Field
+from collections.abc import Callable
+from typing import Generic, Protocol, TypeVar, runtime_checkable
 
 from src.platform.common.models import PlatformModel
 
@@ -176,27 +175,27 @@ class PerformanceProfileBuilder:
     def __init__(self, name: str = "default") -> None:
         self._data: dict[str, object] = {"name": name}
 
-    def with_batch_size(self, size: int) -> "PerformanceProfileBuilder":
+    def with_batch_size(self, size: int) -> PerformanceProfileBuilder:
         self._data["batch_size"] = size
         return self
 
-    def with_chunk_size(self, size: int) -> "PerformanceProfileBuilder":
+    def with_chunk_size(self, size: int) -> PerformanceProfileBuilder:
         self._data["chunk_size"] = size
         return self
 
-    def with_cache_ttl(self, seconds: float) -> "PerformanceProfileBuilder":
+    def with_cache_ttl(self, seconds: float) -> PerformanceProfileBuilder:
         self._data["cache_ttl_seconds"] = seconds
         return self
 
-    def with_pool_size(self, size: int) -> "PerformanceProfileBuilder":
+    def with_pool_size(self, size: int) -> PerformanceProfileBuilder:
         self._data["pool_size"] = size
         return self
 
-    def with_lazy_loading(self, enabled: bool) -> "PerformanceProfileBuilder":
+    def with_lazy_loading(self, enabled: bool) -> PerformanceProfileBuilder:
         self._data["lazy_loading"] = enabled
         return self
 
-    def with_cache_warming(self, enabled: bool) -> "PerformanceProfileBuilder":
+    def with_cache_warming(self, enabled: bool) -> PerformanceProfileBuilder:
         self._data["cache_warming"] = enabled
         return self
 

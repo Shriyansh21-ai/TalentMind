@@ -75,9 +75,7 @@ class InMemoryVectorStore:
         # namespaced_id -> (vector, metadata)
         self._vectors: dict[str, tuple[list[float], dict]] = {}
 
-    def upsert(
-        self, tenant_id: str, vector_id: str, vector: list[float], metadata: dict
-    ) -> None:
+    def upsert(self, tenant_id: str, vector_id: str, vector: list[float], metadata: dict) -> None:
         """Insert or replace a vector for a tenant."""
         key = TenantIsolationGuard.namespaced_key(tenant_id, vector_id)
         self._vectors[key] = (list(vector), dict(metadata))
@@ -91,7 +89,7 @@ class InMemoryVectorStore:
         for key, (stored, _meta) in self._vectors.items():
             if not key.startswith(prefix):
                 continue
-            scored.append((key[len(prefix):], _cosine(vector, stored)))
+            scored.append((key[len(prefix) :], _cosine(vector, stored)))
         scored.sort(key=lambda pair: pair[1], reverse=True)
         return scored[:top_k]
 

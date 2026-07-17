@@ -7,8 +7,9 @@ pydantic models — no per-endpoint filtering code.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import Enum
-from typing import Any, Sequence, TypeVar
+from typing import Any, TypeVar
 
 from src.platform.common.models import PlatformModel
 

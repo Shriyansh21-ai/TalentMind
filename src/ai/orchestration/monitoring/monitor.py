@@ -11,9 +11,8 @@ visualization page (Module 15).
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List
 
 from src.ai.orchestration.events.emitter import EventEmitter
 from src.ai.orchestration.events.events import EventType, OrchestrationEvent
@@ -51,7 +50,7 @@ class WorkflowMetrics:
     tasks_failed: int = 0
     retries: int = 0
     total_latency_ms: float = 0.0
-    log: List[str] = field(default_factory=list)
+    log: list[str] = field(default_factory=list)
 
     @property
     def success_rate(self) -> float:
@@ -75,9 +74,9 @@ class WorkflowMonitor:
     }
 
     def __init__(self) -> None:
-        self.agents: Dict[str, AgentMetrics] = {}
-        self.workflows: Dict[str, WorkflowMetrics] = {}
-        self._timeline: List[Dict[str, object]] = []
+        self.agents: dict[str, AgentMetrics] = {}
+        self.workflows: dict[str, WorkflowMetrics] = {}
+        self._timeline: list[dict[str, object]] = []
 
     # -- wiring -------------------------------------------------------------
 
@@ -95,9 +94,7 @@ class WorkflowMonitor:
         if event.type == EventType.AGENT_STARTED:
             wf.tasks_started += 1
         elif event.type == EventType.AGENT_FINISHED and event.agent:
-            metrics = self.agents.setdefault(
-                event.agent, AgentMetrics(agent=event.agent)
-            )
+            metrics = self.agents.setdefault(event.agent, AgentMetrics(agent=event.agent))
             metrics.invocations += 1
             latency = float(data.get("latency_ms", 0.0) or 0.0)
             metrics.total_latency_ms += latency
@@ -116,16 +113,16 @@ class WorkflowMonitor:
 
     # -- read model ---------------------------------------------------------
 
-    def visual_log(self, workflow_id: str) -> List[str]:
+    def visual_log(self, workflow_id: str) -> list[str]:
         """Return the human-readable event log for a workflow (visual workflow logs)."""
         wf = self.workflows.get(workflow_id)
         return list(wf.log) if wf else []
 
-    def timeline(self) -> List[Dict[str, object]]:
+    def timeline(self) -> list[dict[str, object]]:
         """Return the full ordered event timeline (for the visualization page)."""
         return list(self._timeline)
 
-    def summary(self) -> Dict[str, object]:
+    def summary(self) -> dict[str, object]:
         """Return an aggregate snapshot across every observed run."""
         total_started = sum(w.tasks_started for w in self.workflows.values())
         total_completed = sum(w.tasks_completed for w in self.workflows.values())

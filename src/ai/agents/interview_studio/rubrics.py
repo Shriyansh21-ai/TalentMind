@@ -10,13 +10,13 @@ interviewers should look for, drawn from the candidate's own intelligence
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.interview_studio.schemas import RubricDimension
 from src.ai.agents.interview_studio.templates import RoleProfile
 
 
-def _levels(strong: str, solid: str, mixed: str, weak: str) -> Dict[str, str]:
+def _levels(strong: str, solid: str, mixed: str, weak: str) -> dict[str, str]:
     """Build the qualitative level ladder for a rubric dimension."""
     return {"Strong": strong, "Solid": solid, "Mixed": mixed, "Weak": weak}
 
@@ -127,7 +127,7 @@ _CORE_DIMENSIONS = [
 ]
 
 
-def build_rubrics(evidence: Dict[str, Any], role: RoleProfile) -> List[RubricDimension]:
+def build_rubrics(evidence: dict[str, Any], role: RoleProfile) -> list[RubricDimension]:
     """Assemble the evaluation rubric, weighting + enriching by role/evidence.
 
     Args:
@@ -149,9 +149,9 @@ def build_rubrics(evidence: Dict[str, Any], role: RoleProfile) -> List[RubricDim
         heavy.update({"Leadership", "Decision Making"})
     heavy.add("Technical Depth")
 
-    dimensions: List[RubricDimension] = []
+    dimensions: list[RubricDimension] = []
     for name, description, levels in _CORE_DIMENSIONS:
-        evidence_to_look_for: List[str] = []
+        evidence_to_look_for: list[str] = []
         # Point interviewers at the candidate's own signals for this dimension.
         for s in strengths:
             if _related(name, s):
@@ -160,7 +160,9 @@ def build_rubrics(evidence: Dict[str, Any], role: RoleProfile) -> List[RubricDim
             if _related(name, w):
                 evidence_to_look_for.append(f"Probe development area: {w}")
         if not evidence_to_look_for:
-            evidence_to_look_for.append(f"Look for concrete, first-person evidence of {name.lower()}.")
+            evidence_to_look_for.append(
+                f"Look for concrete, first-person evidence of {name.lower()}."
+            )
 
         dimensions.append(
             RubricDimension(

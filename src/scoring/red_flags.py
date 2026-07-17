@@ -4,14 +4,7 @@ def calculate_red_flag_penalty(candidate):
 
     title = candidate.profile.current_title.lower()
 
-    bad_titles = [
-        "marketing",
-        "operations",
-        "customer support",
-        "sales",
-        "hr",
-        "recruiter"
-    ]
+    bad_titles = ["marketing", "operations", "customer support", "sales", "hr", "recruiter"]
 
     for bad in bad_titles:
         if bad in title:

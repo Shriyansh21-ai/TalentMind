@@ -8,10 +8,9 @@ interview plan) without loading the production dataset or the FAISS index.
 
 from __future__ import annotations
 
-import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from pathlib import Path
 
+import faiss  # noqa: F401  (faiss-before-torch load order)
 from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[1].as_posix()

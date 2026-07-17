@@ -10,7 +10,7 @@ and its AppTest render instantly with real-looking data and no network. A
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.platform.common.clock import FrozenClock
 from src.platform.runtime.bootstrap import RuntimePlatform, build_runtime_platform
@@ -73,8 +73,10 @@ def build_runtime_demo() -> RuntimePlatform:
 
     # A scheduled job (due in the future) and a cancelled job.
     rt.jobs.submit(
-        _TENANT, _ORG, "export_report",
-        run_at=datetime(2027, 1, 1, tzinfo=timezone.utc),
+        _TENANT,
+        _ORG,
+        "export_report",
+        run_at=datetime(2027, 1, 1, tzinfo=UTC),
     )
     rt.jobs.cancel(_TENANT, j_cleanup.id)
 
@@ -82,9 +84,7 @@ def build_runtime_demo() -> RuntimePlatform:
     rt.cache.analytics_cache.set("kpi:jobs", 42, ttl_seconds=300)
     rt.cache.analytics_cache.get("kpi:jobs")  # a hit
     rt.cache.analytics_cache.get("kpi:missing")  # a miss
-    rt.execution.run_sequential(
-        [Task("warm_a", lambda: 1), Task("warm_b", lambda: 2)]
-    )
+    rt.execution.run_sequential([Task("warm_a", lambda: 1), Task("warm_b", lambda: 2)])
 
     # Tick background maintenance once.
     rt.services.tick()

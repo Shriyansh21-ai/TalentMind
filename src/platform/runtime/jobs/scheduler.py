@@ -32,11 +32,7 @@ class JobScheduler:
     def due(self, *, now: datetime | None = None) -> list[str]:
         """Return the ids of jobs whose run time has arrived (and drop them)."""
         moment = now or self._clock.now()
-        ready = [
-            job_id
-            for job_id, run_at in self._scheduled.items()
-            if run_at <= moment
-        ]
+        ready = [job_id for job_id, run_at in self._scheduled.items() if run_at <= moment]
         for job_id in ready:
             del self._scheduled[job_id]
         return ready

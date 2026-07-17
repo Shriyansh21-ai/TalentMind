@@ -14,7 +14,7 @@ def calculate_career_score(candidate):
         "rag",
         "learning to rank",
         "reranking",
-        "re-ranking"
+        "re-ranking",
     ]
 
     medium_keywords = [
@@ -28,11 +28,10 @@ def calculate_career_score(candidate):
         "qdrant",
         "milvus",
         "faiss",
-        "elasticsearch"
+        "elasticsearch",
     ]
 
     for job in candidate.career_history:
-
         text = job.description.lower()
 
         for keyword in strong_keywords:

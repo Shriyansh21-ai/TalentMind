@@ -9,12 +9,12 @@ Nothing is fabricated; every estimate cites its basis.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compensation.schemas import Estimate, FutureCompensationOutlook
 
 
-def _num(source: Dict[str, Any], key: str, default: float = 0.0) -> float:
+def _num(source: dict[str, Any], key: str, default: float = 0.0) -> float:
     try:
         return float(source.get(key, default))
     except (TypeError, ValueError):
@@ -30,14 +30,14 @@ def _level(value: float) -> str:
     return "Low"
 
 
-def build_future_outlook(evidence: Dict[str, Any]) -> FutureCompensationOutlook:
+def build_future_outlook(evidence: dict[str, Any]) -> FutureCompensationOutlook:
     """Build the future compensation outlook (Module 9)."""
     intelligence = evidence.get("intelligence") or {}
     timeline = evidence.get("timeline") or {}
 
     base_conf = _num(intelligence, "confidence") or 55.0
-    ci: List[str] = ["Candidate Intelligence engine"]
-    ct: List[str] = ["Career Timeline Intelligence"]
+    ci: list[str] = ["Candidate Intelligence engine"]
+    ct: list[str] = ["Career Timeline Intelligence"]
 
     growth = _num(intelligence, "career_growth_score")
     learning = _num(intelligence, "learning_velocity")
@@ -45,7 +45,9 @@ def build_future_outlook(evidence: Dict[str, Any]) -> FutureCompensationOutlook:
     stability = _num(timeline, "career_stability")
     overall = _num(intelligence, "overall_score")
 
-    def est(value: float, rationale: str, basis: List[str], kind: str = "Heuristic Estimate") -> Estimate:
+    def est(
+        value: float, rationale: str, basis: list[str], kind: str = "Heuristic Estimate"
+    ) -> Estimate:
         return Estimate(
             level=_level(value),
             rationale=rationale,

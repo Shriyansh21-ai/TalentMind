@@ -11,16 +11,17 @@ Presentation only — all reasoning comes from :class:`HiringCommitteeEngine`.
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 import streamlit as st
 
-from src.ai.core.runner import AgentRunner
 from src.ai.committee.committee import HiringCommitteeEngine
 from src.ai.committee.schemas import CommitteeMode, CommitteeReport
+from src.ai.core.runner import AgentRunner
 
-_runner: Optional[AgentRunner] = None
-_engine: Optional[HiringCommitteeEngine] = None
+_runner: AgentRunner | None = None
+_engine: HiringCommitteeEngine | None = None
 
 _REC_BADGE = {
     "Strong Hire": "🟢",
@@ -88,7 +89,9 @@ def _render_report(report: CommitteeReport) -> None:
 
     # Consensus meter: map weighted stance (-2..3) onto 0..1.
     meter = max(0.0, min(1.0, (consensus.weighted_stance + 2.0) / 5.0))
-    st.caption(f"Consensus meter (No Hire ◄──► Strong Hire) · stance {consensus.weighted_stance:+.2f}")
+    st.caption(
+        f"Consensus meter (No Hire ◄──► Strong Hire) · stance {consensus.weighted_stance:+.2f}"
+    )
     st.progress(meter)
 
     for warning in report.warnings:
@@ -148,7 +151,9 @@ def _render_report(report: CommitteeReport) -> None:
             st.caption("No challenges raised.")
         for ch in report.discussion.challenges:
             st.markdown(f"- {ch.get('claim', '')}")
-            st.caption(f"Evidence: {ch.get('evidence', '')} · confidence gap {ch.get('confidence_gap', 0)}")
+            st.caption(
+                f"Evidence: {ch.get('evidence', '')} · confidence gap {ch.get('confidence_gap', 0)}"
+            )
         if report.discussion.missing_evidence:
             st.markdown("**Missing evidence**")
             _bullets(report.discussion.missing_evidence, "")
@@ -157,7 +162,9 @@ def _render_report(report: CommitteeReport) -> None:
         if not report.conflicts:
             st.success("No material conflicts — the panel's differences are only of degree.")
         for conflict in report.conflicts:
-            with st.expander(f"⚡ {conflict.member_a} vs {conflict.member_b} (gap {conflict.stance_gap:.0f})"):
+            with st.expander(
+                f"⚡ {conflict.member_a} vs {conflict.member_b} (gap {conflict.stance_gap:.0f})"
+            ):
                 st.markdown(f"**Root cause:** {conflict.root_cause}")
                 st.markdown(f"**Missing evidence:** {conflict.missing_evidence}")
                 st.markdown(f"**Different assumptions:** {conflict.assumption_difference}")
@@ -181,7 +188,9 @@ def _render_report(report: CommitteeReport) -> None:
             st.caption(f"• {text}")
 
     with tabs[5]:
-        st.markdown(f"**Candidate:** {report.candidate_overview.get('title')} @ {report.candidate_overview.get('company')}")
+        st.markdown(
+            f"**Candidate:** {report.candidate_overview.get('title')} @ {report.candidate_overview.get('company')}"
+        )
         st.markdown("**Resume summary:** " + report.resume_summary)
         st.markdown("**JD summary:** " + report.jd_summary)
         st.markdown("**Consensus matrix (stance distribution)**")
@@ -190,7 +199,7 @@ def _render_report(report: CommitteeReport) -> None:
         st.caption(f"Meeting id: {report.meeting_id} · mode: {report.mode}")
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         if empty_message:
@@ -229,10 +238,14 @@ def render_committee_workspace(repository_factory: RepositoryFactory, *, insight
     ids = [c.candidate_id for c in candidates]
     cols = st.columns([2, 1])
     chosen = cols[0].selectbox("Candidate", ids, key="cm_pick")
-    mode = cols[1].selectbox("Committee mode", ["balanced", "optimistic", "conservative"], key="cm_mode")
+    mode = cols[1].selectbox(
+        "Committee mode", ["balanced", "optimistic", "conservative"], key="cm_mode"
+    )
     jd_text = st.text_area("Optional job description (sharpens role-fit)", key="cm_jd")
 
     if st.button("🏛️ Convene committee", type="primary", key="cm_run"):
         candidate = repository.get(chosen)
         if candidate is not None:
-            render_committee(candidate, jd=jd_text, mode=mode, insights_fn=insights_fn, key_prefix="cm_ws")
+            render_committee(
+                candidate, jd=jd_text, mode=mode, insights_fn=insights_fn, key_prefix="cm_ws"
+            )

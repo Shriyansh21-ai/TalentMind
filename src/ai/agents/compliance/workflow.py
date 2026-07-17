@@ -9,7 +9,7 @@ fabricated (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from src.ai.agents.compliance.schemas import (
     ApprovalMatrix,
@@ -21,7 +21,7 @@ from src.ai.agents.compliance.templates import WORKFLOW_STEPS
 
 
 def assess_workflow(
-    context: Dict[str, Any],
+    context: dict[str, Any],
     approvals: ApprovalMatrix,
     documentation: DocumentationReview,
 ) -> WorkflowCompliance:
@@ -33,31 +33,71 @@ def assess_workflow(
         if definition.evidence_source == "__approvals__":
             outstanding = approvals.outstanding()
             if not approvals.required():
-                status, register, why = "Requires Review", "Missing Information", "No required approvals determined."
+                status, register, why = (
+                    "Requires Review",
+                    "Missing Information",
+                    "No required approvals determined.",
+                )
             elif not outstanding:
-                status, register, why = "Completed", "Observed Evidence", "All required approvals are complete."
+                status, register, why = (
+                    "Completed",
+                    "Observed Evidence",
+                    "All required approvals are complete.",
+                )
             elif any(a.state == "Requires Review" for a in approvals.approvals if a.required):
-                status, register, why = "Requires Review", "Missing Information", (
-                    f"Approvals pending confirmation: {', '.join(outstanding)}."
+                status, register, why = (
+                    "Requires Review",
+                    "Missing Information",
+                    (f"Approvals pending confirmation: {', '.join(outstanding)}."),
                 )
             else:
-                status, register, why = "Missing", "Missing Information", f"Missing approvals: {', '.join(outstanding)}."
+                status, register, why = (
+                    "Missing",
+                    "Missing Information",
+                    f"Missing approvals: {', '.join(outstanding)}.",
+                )
         elif definition.evidence_source == "__documentation__":
             missing = documentation.missing()
             pending = [d.name for d in documentation.documents if d.state == "Requires Review"]
             if missing:
-                status, register, why = "Missing", "Missing Information", f"Missing documents: {', '.join(missing)}."
+                status, register, why = (
+                    "Missing",
+                    "Missing Information",
+                    f"Missing documents: {', '.join(missing)}.",
+                )
             elif pending:
-                status, register, why = "Requires Review", "Missing Information", f"Documents to confirm filed: {', '.join(pending)}."
+                status, register, why = (
+                    "Requires Review",
+                    "Missing Information",
+                    f"Documents to confirm filed: {', '.join(pending)}.",
+                )
             else:
-                status, register, why = "Completed", "Observed Evidence", "All required documentation is present."
+                status, register, why = (
+                    "Completed",
+                    "Observed Evidence",
+                    "All required documentation is present.",
+                )
         elif definition.evidence_source in sources:
-            status, register, why = "Completed", "Observed Evidence", f"{definition.name} confirmed via {definition.evidence_source}."
+            status, register, why = (
+                "Completed",
+                "Observed Evidence",
+                f"{definition.name} confirmed via {definition.evidence_source}.",
+            )
         else:
-            status, register, why = "Missing", "Missing Information", f"{definition.name} not evidenced by any upstream engine."
+            status, register, why = (
+                "Missing",
+                "Missing Information",
+                f"{definition.name} not evidenced by any upstream engine.",
+            )
 
         steps.append(
-            WorkflowStep(name=definition.name, status=status, rationale=why, register=register, critical=definition.critical)
+            WorkflowStep(
+                name=definition.name,
+                status=status,
+                rationale=why,
+                register=register,
+                critical=definition.critical,
+            )
         )
 
     completed = sum(1 for s in steps if s.status == "Completed")
@@ -71,4 +111,6 @@ def assess_workflow(
         overall = "Requires Review"
     confidence = round(60.0 + 40.0 * (completed / total if total else 0.0), 1)
 
-    return WorkflowCompliance(steps=steps, completed=completed, total=total, status=overall, confidence=confidence)
+    return WorkflowCompliance(
+        steps=steps, completed=completed, total=total, status=overall, confidence=confidence
+    )

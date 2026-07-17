@@ -71,9 +71,7 @@ class MemoryCacheProvider:
     def set(self, key: str, value: object, *, ttl_seconds: float | None = None) -> None:
         """Cache ``value`` under ``key`` with an optional TTL."""
         expires_at = (
-            self._clock.now().timestamp() + ttl_seconds
-            if ttl_seconds is not None
-            else None
+            self._clock.now().timestamp() + ttl_seconds if ttl_seconds is not None else None
         )
         self._store[key] = (value, expires_at)
 

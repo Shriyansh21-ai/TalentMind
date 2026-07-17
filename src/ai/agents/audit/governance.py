@@ -9,13 +9,13 @@ fabricated (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from src.ai.agents.audit.schemas import AuditReadiness
 from src.ai.agents.audit.templates import AGENT_CATALOG
 
 # Ordered sections of the executive audit report (Module 9).
-REPORT_SECTIONS: List[Tuple[str, str]] = [
+REPORT_SECTIONS: list[tuple[str, str]] = [
     ("executive_summary", "Executive Summary"),
     ("decision_journey", "Decision Journey"),
     ("evidence_graph", "Evidence Graph"),
@@ -28,12 +28,12 @@ REPORT_SECTIONS: List[Tuple[str, str]] = [
 ]
 
 
-def section_titles() -> List[str]:
+def section_titles() -> list[str]:
     """Return the ordered audit-report section titles."""
     return [title for _key, title in REPORT_SECTIONS]
 
 
-def build_audit_readiness(context: Dict[str, Any]) -> AuditReadiness:
+def build_audit_readiness(context: dict[str, Any]) -> AuditReadiness:
     """Assess audit readiness (Module 7)."""
     sources = set(context.get("evidence_sources", []))
     workflow = context.get("workflow", {}) or {}
@@ -48,7 +48,9 @@ def build_audit_readiness(context: Dict[str, Any]) -> AuditReadiness:
     missing_approvals = list(approvals.get("outstanding", []))
 
     # Unverified decisions = audit dimensions not Complete + pending approvals.
-    unverified = [f["dimension"] for f in audit.get("findings", []) if f.get("status") != "Complete"]
+    unverified = [
+        f["dimension"] for f in audit.get("findings", []) if f.get("status") != "Complete"
+    ]
     if missing_approvals:
         unverified.append(f"Approvals: {', '.join(missing_approvals)}")
 

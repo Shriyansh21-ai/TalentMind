@@ -9,13 +9,13 @@ statistic.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.hiring_intelligence.schemas import (
+    KPI,
     Bottleneck,
     Distribution,
     ForecastScenario,
-    KPI,
     Optimization,
     TeamMetric,
 )
@@ -23,13 +23,13 @@ from src.ai.agents.hiring_intelligence.schemas import (
 
 def build_chart_data(
     *,
-    distributions: List[Distribution],
-    kpis: List[KPI],
-    bottlenecks: List[Bottleneck],
-    team_metrics: List[TeamMetric],
-    forecast: List[ForecastScenario],
-    optimizations: List[Optimization],
-) -> Dict[str, Any]:
+    distributions: list[Distribution],
+    kpis: list[KPI],
+    bottlenecks: list[Bottleneck],
+    team_metrics: list[TeamMetric],
+    forecast: list[ForecastScenario],
+    optimizations: list[Optimization],
+) -> dict[str, Any]:
     """Build every chart structure for the workforce dashboard (Module 11)."""
     return {
         "distributions": {d.name: d.counts for d in distributions},
@@ -44,8 +44,14 @@ def build_chart_data(
             {"stage": b.stage, "severity": b.severity, "register": b.register} for b in bottlenecks
         ],
         "department_comparison": [
-            {"dimension": t.dimension, "group": t.group, "count": t.count, "hiring_health": t.hiring_health}
-            for t in team_metrics if t.register == "Observed"
+            {
+                "dimension": t.dimension,
+                "group": t.group,
+                "count": t.count,
+                "hiring_health": t.hiring_health,
+            }
+            for t in team_metrics
+            if t.register == "Observed"
         ],
         "forecast": {
             f.name: {"growth": f.growth_label, "confidence": f.confidence} for f in forecast
@@ -55,7 +61,11 @@ def build_chart_data(
             for o in optimizations
         ],
         "governance_health": next(
-            ({"value": k.value, "label": k.label, "register": k.register} for k in kpis if k.name == "Governance Health"),
+            (
+                {"value": k.value, "label": k.label, "register": k.register}
+                for k in kpis
+                if k.name == "Governance Health"
+            ),
             {"value": None, "label": "Unavailable", "register": "Unavailable"},
         ),
     }

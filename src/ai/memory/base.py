@@ -8,7 +8,7 @@ behind the same contract without touching agents.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional
+from typing import Any
 
 
 class BaseMemory(ABC):
@@ -27,9 +27,9 @@ class BaseMemory(ABC):
         """Append ``value`` to the session's ordered interaction log."""
 
     @abstractmethod
-    def history(self, session_id: str) -> List[Any]:
+    def history(self, session_id: str) -> list[Any]:
         """Return the session's interaction log (oldest first)."""
 
     @abstractmethod
-    def clear(self, session_id: Optional[str] = None) -> None:
+    def clear(self, session_id: str | None = None) -> None:
         """Clear one session, or all sessions when ``session_id`` is ``None``."""

@@ -10,8 +10,9 @@ is fully deterministic in tests.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from pydantic import Field
 
@@ -49,9 +50,7 @@ class BackgroundServiceManager:
         self._tasks: dict[str, ScheduledTask] = {}
         self._fns: dict[str, BackgroundTask] = {}
 
-    def register(
-        self, name: str, interval_seconds: float, task: BackgroundTask
-    ) -> ScheduledTask:
+    def register(self, name: str, interval_seconds: float, task: BackgroundTask) -> ScheduledTask:
         """Register a recurring task."""
         scheduled = ScheduledTask(name=name, interval_seconds=interval_seconds)
         self._tasks[name] = scheduled

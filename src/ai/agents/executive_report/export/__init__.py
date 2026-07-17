@@ -10,8 +10,9 @@ analysis is ever duplicated (Module 15). All renderers are dependency-free.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 from src.ai.agents.executive_report.branding import DEFAULT_BRAND, Brand
 from src.ai.agents.executive_report.export import docx as _docx
@@ -23,7 +24,7 @@ from src.ai.agents.executive_report.schemas import ExecutiveHiringReport
 from src.ai.agents.executive_report.templates import get_template
 
 # format key -> (renderer, mime type, file suffix)
-_EXPORTERS: Dict[str, Tuple[Callable[[ReportDocument], bytes], str, str]] = {
+_EXPORTERS: dict[str, tuple[Callable[[ReportDocument], bytes], str, str]] = {
     "pdf": (_pdf.render, "application/pdf", "pdf"),
     "docx": (
         _docx.render,
@@ -38,7 +39,7 @@ _EXPORTERS: Dict[str, Tuple[Callable[[ReportDocument], bytes], str, str]] = {
     ),
 }
 
-FORMATS: List[str] = list(_EXPORTERS.keys())
+FORMATS: list[str] = list(_EXPORTERS.keys())
 
 
 @dataclass(frozen=True)
@@ -52,13 +53,17 @@ class Packet:
 
 
 # The named packets a recruiter/executive can request directly (Module 11).
-PACKETS: Dict[str, Packet] = {
+PACKETS: dict[str, Packet] = {
     "executive_summary": Packet("executive_summary", "Executive Summary", "executive", "pdf"),
     "candidate_report": Packet("candidate_report", "Candidate Report", "hr", "pdf"),
     "committee_report": Packet("committee_report", "Committee Report", "committee", "pdf"),
-    "interview_packet": Packet("interview_packet", "Interview Packet", "engineering_manager", "pdf"),
+    "interview_packet": Packet(
+        "interview_packet", "Interview Packet", "engineering_manager", "pdf"
+    ),
     "recruiter_report": Packet("recruiter_report", "Recruiter Report", "recruiter", "pdf"),
-    "hiring_manager_report": Packet("hiring_manager_report", "Hiring Manager Report", "engineering_manager", "pdf"),
+    "hiring_manager_report": Packet(
+        "hiring_manager_report", "Hiring Manager Report", "engineering_manager", "pdf"
+    ),
     "cto_report": Packet("cto_report", "CTO Report", "cto", "pdf"),
     "ceo_report": Packet("ceo_report", "CEO Report", "ceo", "pdf"),
 }
@@ -94,7 +99,7 @@ def export_packet(
     *,
     fmt: str = "",
     brand: Brand = DEFAULT_BRAND,
-) -> Tuple[bytes, str, str]:
+) -> tuple[bytes, str, str]:
     """Render a named packet. Returns ``(bytes, mime_type, filename)``."""
     spec = PACKETS.get((packet or "").strip().lower())
     if spec is None:

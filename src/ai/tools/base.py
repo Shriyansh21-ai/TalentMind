@@ -14,12 +14,13 @@ from __future__ import annotations
 
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
-from src.models.candidates import Candidate
 from src.insights.builder import build_insights
 from src.insights.models import CandidateInsights
+from src.models.candidates import Candidate
 
 
 class ToolError(Exception):
@@ -38,15 +39,15 @@ class CandidateRepository(ABC):
     """
 
     @abstractmethod
-    def get(self, candidate_id: str) -> Optional[Candidate]:
+    def get(self, candidate_id: str) -> Candidate | None:
         """Return a candidate by id, or ``None`` if unknown."""
 
     @abstractmethod
-    def search(self, query: str, top_k: int = 5) -> List[tuple]:
+    def search(self, query: str, top_k: int = 5) -> list[tuple]:
         """Return ``[(candidate, score), ...]`` for a free-text/semantic query."""
 
     @abstractmethod
-    def sample(self, limit: int = 200) -> List[Candidate]:
+    def sample(self, limit: int = 200) -> list[Candidate]:
         """Return up to ``limit`` candidates (for aggregate/dashboard tools)."""
 
 
@@ -66,7 +67,7 @@ class ToolContext:
     repository: CandidateRepository
     jd: str = ""
     insights_fn: Callable[[Candidate, str], CandidateInsights] = None  # type: ignore[assignment]
-    extra: Dict[str, Any] = field(default_factory=dict)
+    extra: dict[str, Any] = field(default_factory=dict)
 
     def build_insights(self, candidate: Candidate) -> CandidateInsights:
         """Build (or fetch cached) insights for ``candidate`` under the current JD."""
@@ -87,7 +88,7 @@ class ToolMetadata:
 
     name: str
     description: str
-    input_fields: List[str] = field(default_factory=list)
+    input_fields: list[str] = field(default_factory=list)
     engine: str = ""
 
 
@@ -108,14 +109,14 @@ class ToolResult:
 
     name: str
     ok: bool = True
-    output: Dict[str, Any] = field(default_factory=dict)
+    output: dict[str, Any] = field(default_factory=dict)
     summary: str = ""
-    evidence_sources: List[str] = field(default_factory=list)
+    evidence_sources: list[str] = field(default_factory=list)
     confidence: float = 100.0
     latency_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
-    def to_summary_dict(self) -> Dict[str, Any]:
+    def to_summary_dict(self) -> dict[str, Any]:
         """Return a compact dict for UI tool-visibility cards / telemetry."""
         return {
             "name": self.name,
@@ -133,7 +134,7 @@ class BaseTool(ABC):
 
     metadata: ToolMetadata
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         """Validate ``tool_input`` before execution (override as needed).
 
         Raises:
@@ -141,10 +142,10 @@ class BaseTool(ABC):
         """
 
     @abstractmethod
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Run the underlying engine and return a :class:`ToolResult`."""
 
-    def run(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def run(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Validate + execute with timing and uniform error handling."""
         start = time.perf_counter()
         try:

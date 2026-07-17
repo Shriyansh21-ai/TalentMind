@@ -12,7 +12,7 @@ import json
 import os
 import time
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from src.ai.core.exceptions import ProviderError, ProviderUnavailableError
 from src.ai.core.response import AgentResponse, TokenUsage
@@ -31,12 +31,12 @@ class RemoteProvider(BaseLLMProvider):
 
     # -- helpers ------------------------------------------------------------
 
-    def _api_key(self) -> Optional[str]:
+    def _api_key(self) -> str | None:
         """Return the configured API key from the environment (or ``None``)."""
         return os.environ.get(self.env_key) if self.env_key else None
 
     @staticmethod
-    def _json_directive(schema: Dict[str, Any]) -> str:
+    def _json_directive(schema: dict[str, Any]) -> str:
         """Return a system instruction forcing schema-valid JSON output."""
         return (
             "You must respond with a single JSON object and nothing else. "
@@ -56,8 +56,8 @@ class RemoteProvider(BaseLLMProvider):
 
     @abstractmethod
     def _complete(
-        self, client: Any, messages: List[LLMMessage], json_mode: bool
-    ) -> Tuple[str, TokenUsage]:
+        self, client: Any, messages: list[LLMMessage], json_mode: bool
+    ) -> tuple[str, TokenUsage]:
         """Perform one completion; return ``(text, usage)``."""
 
     # -- BaseLLMProvider ----------------------------------------------------
@@ -73,17 +73,17 @@ class RemoteProvider(BaseLLMProvider):
         except Exception:
             return False
 
-    def generate(self, messages: List[LLMMessage], **kwargs: Any) -> AgentResponse:
+    def generate(self, messages: list[LLMMessage], **kwargs: Any) -> AgentResponse:
         """Generate free-form text via the vendor API."""
         return self._run(messages, json_mode=False)
 
     def generate_json(
         self,
-        messages: List[LLMMessage],
+        messages: list[LLMMessage],
         *,
-        schema: Dict[str, Any],
+        schema: dict[str, Any],
         schema_name: str,
-        evidence: Optional[Dict[str, Any]] = None,
+        evidence: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> AgentResponse:
         """Generate a JSON object; the schema directive is prepended as a system msg."""
@@ -94,12 +94,11 @@ class RemoteProvider(BaseLLMProvider):
 
     # -- internal -----------------------------------------------------------
 
-    def _run(self, messages: List[LLMMessage], json_mode: bool) -> AgentResponse:
+    def _run(self, messages: list[LLMMessage], json_mode: bool) -> AgentResponse:
         """Shared timing + error-wrapping around a vendor completion."""
         if not self.health_check():
             raise ProviderUnavailableError(
-                f"Provider {self.key!r} is not available "
-                f"(missing SDK or {self.env_key})."
+                f"Provider {self.key!r} is not available (missing SDK or {self.env_key})."
             )
         start = time.perf_counter()
         try:

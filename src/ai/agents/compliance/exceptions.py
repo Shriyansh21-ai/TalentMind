@@ -10,7 +10,7 @@ confidence. It flags governance issues only; it makes no legal determination
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compliance.schemas import (
     ApprovalMatrix,
@@ -22,14 +22,14 @@ from src.ai.agents.compliance.schemas import (
 
 
 def detect_exceptions(
-    context: Dict[str, Any],
+    context: dict[str, Any],
     workflow: WorkflowCompliance,
     approvals: ApprovalMatrix,
     documentation: DocumentationReview,
-    policy_checks: List[PolicyCheck],
-) -> List[ComplianceException]:
+    policy_checks: list[PolicyCheck],
+) -> list[ComplianceException]:
     """Detect structured compliance exceptions (Module 7)."""
-    exceptions: List[ComplianceException] = []
+    exceptions: list[ComplianceException] = []
 
     # Missing critical workflow steps (e.g. interview / committee).
     for step in workflow.steps:
@@ -47,7 +47,9 @@ def detect_exceptions(
 
     # Outstanding required approvals.
     for approver in approvals.outstanding():
-        confirmable = any(a.approver == approver and a.state == "Requires Review" for a in approvals.approvals)
+        confirmable = any(
+            a.approver == approver and a.state == "Requires Review" for a in approvals.approvals
+        )
         exceptions.append(
             ComplianceException(
                 kind=f"Missing approval: {approver}",
@@ -80,7 +82,8 @@ def detect_exceptions(
                     kind=f"Policy conflict: {check.policy_name}",
                     severity="High",
                     detail=check.rationale,
-                    recommendation="; ".join(check.required_actions) or "Route for governance review.",
+                    recommendation="; ".join(check.required_actions)
+                    or "Route for governance review.",
                     register="Company Policy",
                     confidence=75.0,
                 )

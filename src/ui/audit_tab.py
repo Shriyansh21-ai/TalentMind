@@ -12,16 +12,17 @@ legal opinion. Unverified/absent items are clearly marked.
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 import streamlit as st
 
-from src.ai.core.runner import AgentRunner
 from src.ai.agents.audit.audit_engine import HiringAuditEngine
 from src.ai.agents.audit.schemas import HiringAuditReport
+from src.ai.core.runner import AgentRunner
 
-_runner: Optional[AgentRunner] = None
-_engine: Optional[HiringAuditEngine] = None
+_runner: AgentRunner | None = None
+_engine: HiringAuditEngine | None = None
 
 
 def _get_engine(insights_fn=None) -> HiringAuditEngine:
@@ -60,9 +61,14 @@ def render_audit(
 
 
 _STATUS_BADGE = {
-    "Observed": "✅", "Complete": "✅", "Ready": "✅",
-    "Unavailable": "➖", "Unverified": "⚠️", "Partially Ready": "⚠️",
-    "Not Ready": "❌", "Requires Review": "⚠️",
+    "Observed": "✅",
+    "Complete": "✅",
+    "Ready": "✅",
+    "Unavailable": "➖",
+    "Unverified": "⚠️",
+    "Partially Ready": "⚠️",
+    "Not Ready": "❌",
+    "Requires Review": "⚠️",
 }
 
 
@@ -79,13 +85,19 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
     top[0].metric("Agents", len(report.agents_participated))
     top[1].metric("Audit Readiness", readiness.status)
     top[2].metric("Level", readiness.readiness_level)
-    ai_count = sum(1 for d in report.responsibility if d.responsible_party == "AI" and d.status == "Observed")
-    human_count = sum(1 for d in report.responsibility if d.responsible_party != "AI" and d.status == "Observed")
+    ai_count = sum(
+        1 for d in report.responsibility if d.responsible_party == "AI" and d.status == "Observed"
+    )
+    human_count = sum(
+        1 for d in report.responsibility if d.responsible_party != "AI" and d.status == "Observed"
+    )
     top[3].metric("AI Decisions", ai_count)
     top[4].metric("Verified Approvals", human_count)
 
     if not report.data_available:
-        st.info("ℹ️ No audit archive connected — human approvals and historical decisions are unverified; the reconstruction reflects on-record artefacts only (Module 14).")
+        st.info(
+            "ℹ️ No audit archive connected — human approvals and historical decisions are unverified; the reconstruction reflects on-record artefacts only (Module 14)."
+        )
     for warning in report.warnings:
         st.warning(warning)
 
@@ -110,24 +122,32 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
         st.caption("🔎 " + narrative.data_availability_note)
         c = st.columns(2)
         with c[0]:
-            st.markdown("**Key findings**"); _bullets(narrative.key_findings, "")
-            st.markdown("**Audit recommendations**"); _bullets(narrative.audit_recommendations, "")
+            st.markdown("**Key findings**")
+            _bullets(narrative.key_findings, "")
+            st.markdown("**Audit recommendations**")
+            _bullets(narrative.audit_recommendations, "")
         with c[1]:
-            st.markdown("**Outstanding risks**"); _bullets(narrative.outstanding_risks, "")
-            st.markdown("**Assumptions**"); _bullets(narrative.assumptions, "")
+            st.markdown("**Outstanding risks**")
+            _bullets(narrative.outstanding_risks, "")
+            st.markdown("**Assumptions**")
+            _bullets(narrative.assumptions, "")
         st.caption("📌 " + narrative.confidence_note)
 
     with tabs[1]:
         st.caption(narrative.decision_journey_note)
         for s in report.decision_trace:
-            st.markdown(f"{_badge(s.status)} **{s.order}. {s.stage}** — {s.status}  _({s.origin_agent})_")
+            st.markdown(
+                f"{_badge(s.status)} **{s.order}. {s.stage}** — {s.status}  _({s.origin_agent})_"
+            )
             st.caption(s.summary)
 
     with tabs[2]:
         st.caption(narrative.evidence_note)
         for p in report.provenance:
             st.markdown(f"{_badge(p.register)} **{p.evidence_source}** — {p.evidence_type}")
-            st.caption(f"Origin: {p.origin_agent} · confidence: {p.confidence} · register: {p.register}")
+            st.caption(
+                f"Origin: {p.origin_agent} · confidence: {p.confidence} · register: {p.register}"
+            )
 
     with tabs[3]:
         graph = report.evidence_graph
@@ -148,7 +168,8 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
             ("AI decisions", r.ai_decisions),
             ("Human decisions", r.human_decisions),
         ]:
-            st.markdown(f"**{title}**"); _bullets(items, "None recorded.")
+            st.markdown(f"**{title}**")
+            _bullets(items, "None recorded.")
 
     with tabs[5]:
         for t in report.timeline:
@@ -167,7 +188,9 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
             st.markdown("**👤 Human decisions**")
             for d in report.responsibility:
                 if d.responsible_party != "AI":
-                    st.caption(f"{_badge(d.status)} {d.decision} — {d.responsible_party} · {d.kind} ({d.status})")
+                    st.caption(
+                        f"{_badge(d.status)} {d.decision} — {d.responsible_party} · {d.kind} ({d.status})"
+                    )
 
     with tabs[7]:
         st.caption(narrative.governance_note)
@@ -178,10 +201,14 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
     with tabs[8]:
         st.metric("Audit readiness", f"{readiness.status} ({readiness.readiness_level})")
         st.caption(readiness.governance_completeness)
-        st.markdown("**Missing evidence**"); _bullets(readiness.missing_evidence, "None.")
-        st.markdown("**Missing documents**"); _bullets(readiness.missing_documents, "None.")
-        st.markdown("**Missing approvals**"); _bullets(readiness.missing_approvals, "None.")
-        st.markdown("**Unverified decisions**"); _bullets(readiness.unverified_decisions, "None.")
+        st.markdown("**Missing evidence**")
+        _bullets(readiness.missing_evidence, "None.")
+        st.markdown("**Missing documents**")
+        _bullets(readiness.missing_documents, "None.")
+        st.markdown("**Missing approvals**")
+        _bullets(readiness.missing_approvals, "None.")
+        st.markdown("**Unverified decisions**")
+        _bullets(readiness.unverified_decisions, "None.")
 
     with tabs[9]:
         h = report.history
@@ -191,7 +218,9 @@ def _render_report(report: HiringAuditReport, *, key_prefix: str) -> None:
                 st.json(rec)
         else:
             st.info(h.status_message)
-            st.caption("Connect an audit archive (SIEM / DMS / compliance archive) to reconstruct past decisions (Module 12).")
+            st.caption(
+                "Connect an audit archive (SIEM / DMS / compliance archive) to reconstruct past decisions (Module 12)."
+            )
 
     with tabs[10]:
         _render_dashboard(report)
@@ -206,15 +235,24 @@ def _render_dashboard(report: HiringAuditReport) -> None:
     st.caption(f"{ap.get('count', 0)}/{ap.get('total', 0)} catalog agents participated")
 
     st.markdown("**Decision flow**")
-    st.caption(" → ".join(f"{s['stage']}{'' if s['status'] == 'Observed' else ' (—)'}" for s in charts.get("decision_flow", [])))
+    st.caption(
+        " → ".join(
+            f"{s['stage']}{'' if s['status'] == 'Observed' else ' (—)'}"
+            for s in charts.get("decision_flow", [])
+        )
+    )
 
     st.markdown("**Approval chain**")
     for step in charts.get("approval_chain", []):
-        st.caption(f"{_badge(step.get('status'))} {step.get('decision')} ({step.get('party')}) — {step.get('status')}")
+        st.caption(
+            f"{_badge(step.get('status'))} {step.get('decision')} ({step.get('party')}) — {step.get('status')}"
+        )
 
     gh = charts.get("governance_health", {})
     st.markdown("**Governance health / audit readiness**")
-    st.caption(" · ".join(f"**{s}**" if s == gh.get("readiness") else s for s in gh.get("scale", [])))
+    st.caption(
+        " · ".join(f"**{s}**" if s == gh.get("readiness") else s for s in gh.get("scale", []))
+    )
 
     ar = charts.get("audit_readiness", {})
     st.caption(
@@ -223,7 +261,7 @@ def _render_dashboard(report: HiringAuditReport) -> None:
     )
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         if empty_message:
@@ -265,7 +303,9 @@ def render_audit_workspace(repository_factory: RepositoryFactory, *, insights_fn
     ids = [c.candidate_id for c in candidates]
     cols = st.columns([2, 3])
     chosen = cols[0].selectbox("Candidate", ids, key="au_pick")
-    jd_text = cols[1].text_area("Optional job description (sharpens the reconstruction)", key="au_jd")
+    jd_text = cols[1].text_area(
+        "Optional job description (sharpens the reconstruction)", key="au_jd"
+    )
 
     if st.button("🔎 Reconstruct hiring decision", type="primary", key="au_run"):
         candidate = repository.get(chosen)

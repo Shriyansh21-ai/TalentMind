@@ -13,16 +13,17 @@ compliance conclusion. Items needing an external system are shown as pending rev
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 import streamlit as st
 
-from src.ai.core.runner import AgentRunner
 from src.ai.agents.compliance.compliance_report import HiringComplianceEngine
 from src.ai.agents.compliance.schemas import HiringComplianceReport
+from src.ai.core.runner import AgentRunner
 
-_runner: Optional[AgentRunner] = None
-_engine: Optional[HiringComplianceEngine] = None
+_runner: AgentRunner | None = None
+_engine: HiringComplianceEngine | None = None
 
 
 def _get_engine(insights_fn=None) -> HiringComplianceEngine:
@@ -61,10 +62,19 @@ def render_compliance(
 
 
 _STATUS_BADGE = {
-    "Completed": "✅", "Compliant": "✅", "Present": "✅", "Complete": "✅",
-    "Missing": "❌", "Violation": "❌",
-    "Requires Review": "⚠️", "Incomplete": "⚠️", "Partial": "⚠️",
-    "Needs Investigation": "🔍", "Not Applicable": "➖", "Not Required": "➖", "Not Evaluable": "➖",
+    "Completed": "✅",
+    "Compliant": "✅",
+    "Present": "✅",
+    "Complete": "✅",
+    "Missing": "❌",
+    "Violation": "❌",
+    "Requires Review": "⚠️",
+    "Incomplete": "⚠️",
+    "Partial": "⚠️",
+    "Needs Investigation": "🔍",
+    "Not Applicable": "➖",
+    "Not Required": "➖",
+    "Not Evaluable": "➖",
 }
 
 
@@ -84,7 +94,9 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
     top[4].metric("Review", ", ".join(report.review.reviewers) or "Standard")
 
     if not report.data_available:
-        st.info("ℹ️ No governance / workflow / document system connected — approvals and documents that need an external system are shown as pending review (Module 14).")
+        st.info(
+            "ℹ️ No governance / workflow / document system connected — approvals and documents that need an external system are shown as pending review (Module 14)."
+        )
     for warning in report.warnings:
         st.warning(warning)
 
@@ -107,17 +119,23 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
         st.info(narrative.executive_summary)
         c = st.columns(2)
         with c[0]:
-            st.markdown("**Key findings**"); _bullets(narrative.key_findings, "")
-            st.markdown("**Required actions**"); _bullets(narrative.required_actions, "")
+            st.markdown("**Key findings**")
+            _bullets(narrative.key_findings, "")
+            st.markdown("**Required actions**")
+            _bullets(narrative.required_actions, "")
         with c[1]:
-            st.markdown("**Human-review recommendations**"); _bullets(narrative.human_review_recommendations, "")
-            st.markdown("**Assumptions**"); _bullets(narrative.assumptions, "")
+            st.markdown("**Human-review recommendations**")
+            _bullets(narrative.human_review_recommendations, "")
+            st.markdown("**Assumptions**")
+            _bullets(narrative.assumptions, "")
         st.caption("📌 " + narrative.confidence_note)
 
     with tabs[1]:
         st.caption(narrative.workflow_note)
         for step in report.workflow.steps:
-            st.markdown(f"{_badge(step.status)} **{step.name}** — {step.status}  _({step.register})_")
+            st.markdown(
+                f"{_badge(step.status)} **{step.name}** — {step.status}  _({step.register})_"
+            )
             st.caption(step.rationale)
 
     with tabs[2]:
@@ -152,20 +170,31 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
     with tabs[6]:
         gr = report.governance_risk
         st.metric("Governance risk", gr.level)
-        st.markdown("**Drivers**"); _bullets(gr.drivers, "")
-        st.markdown("**Missing controls**"); _bullets(gr.missing_controls, "None.")
+        st.markdown("**Drivers**")
+        _bullets(gr.drivers, "")
+        st.markdown("**Missing controls**")
+        _bullets(gr.missing_controls, "None.")
         st.markdown("**Exceptions**")
         for e in report.exceptions:
-            st.markdown(f"{_badge(e.severity if e.severity in _STATUS_BADGE else '')}**[{e.severity}] {e.kind}**")
+            st.markdown(
+                f"{_badge(e.severity if e.severity in _STATUS_BADGE else '')}**[{e.severity}] {e.kind}**"
+            )
             st.caption(e.detail + (f"  → {e.recommendation}" if e.recommendation else ""))
 
     with tabs[7]:
         rv = report.review
         st.write(rv.rationale)
         c = st.columns(2)
-        c[0].metric("Legal review", "Recommended" if rv.legal_review_recommended else "Not required")
-        c[1].metric("Compliance review", "Recommended" if rv.compliance_review_recommended else "Not required")
-        st.caption("Requesting a review routes the matter to a person — it is not itself a legal opinion.")
+        c[0].metric(
+            "Legal review", "Recommended" if rv.legal_review_recommended else "Not required"
+        )
+        c[1].metric(
+            "Compliance review",
+            "Recommended" if rv.compliance_review_recommended else "Not required",
+        )
+        st.caption(
+            "Requesting a review routes the matter to a person — it is not itself a legal opinion."
+        )
 
     with tabs[8]:
         st.caption("Governance impact if a control were skipped (Module 9).")
@@ -173,7 +202,8 @@ def _render_report(report: HiringComplianceReport, *, key_prefix: str) -> None:
             with st.expander(f"[{sc.severity}] {sc.name}"):
                 st.write(sc.governance_impact)
                 if sc.affected_controls:
-                    st.markdown("**Affected controls**"); _bullets(sc.affected_controls, "")
+                    st.markdown("**Affected controls**")
+                    _bullets(sc.affected_controls, "")
 
     with tabs[9]:
         _render_dashboard(report)
@@ -212,7 +242,7 @@ def _render_dashboard(report: HiringComplianceReport) -> None:
     st.caption(", ".join(missing) if missing else "None missing.")
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         if empty_message:

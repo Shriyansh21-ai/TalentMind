@@ -15,8 +15,9 @@ the reviews in parallel through the workflow engine.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING
 
 from src.ai.committee.schemas import CommitteeMode, MemberOpinion, Recommendation
 
@@ -35,7 +36,7 @@ class CommitteeMember:
     capability: str
     review_fn: ReviewFn
 
-    def review(self, bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
+    def review(self, bundle: EvidenceBundle, mode: CommitteeMode) -> MemberOpinion:
         """Produce this member's independent opinion for ``bundle``."""
         return self.review_fn(bundle, mode)
 
@@ -109,7 +110,7 @@ def _abstain(role: str, title: str, reason: str) -> MemberOpinion:
 # ---------------------------------------------------------------------------
 
 
-def _resume_expert(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
+def _resume_expert(bundle: EvidenceBundle, mode: CommitteeMode) -> MemberOpinion:
     """Resume Expert — reads the ResumeAnalysis (resume quality as evidence)."""
     ra = bundle.resume_analysis
     if ra is None:
@@ -123,7 +124,9 @@ def _resume_expert(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpini
     ]
     concerns = list(ra.weaknesses[:3])
     if ra.risk_report.findings:
-        concerns.append(f"Resume risk: {ra.risk_report.level} ({len(ra.risk_report.findings)} finding(s))")
+        concerns.append(
+            f"Resume risk: {ra.risk_report.level} ({len(ra.risk_report.findings)} finding(s))"
+        )
     return MemberOpinion(
         role="resume_expert",
         role_title="Resume Expert",
@@ -140,7 +143,7 @@ def _resume_expert(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpini
     )
 
 
-def _jd_expert(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
+def _jd_expert(bundle: EvidenceBundle, mode: CommitteeMode) -> MemberOpinion:
     """JD Expert — reads the JDAnalysis (role readiness / clarity as context)."""
     ja = bundle.jd_analysis
     if ja is None:
@@ -161,7 +164,9 @@ def _jd_expert(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
     ]
     concerns = []
     if ja.risk_report.findings:
-        concerns.append(f"JD risk: {ja.risk_report.level} ({len(ja.risk_report.findings)} finding(s))")
+        concerns.append(
+            f"JD risk: {ja.risk_report.level} ({len(ja.risk_report.findings)} finding(s))"
+        )
     return MemberOpinion(
         role="jd_expert",
         role_title="JD Expert",
@@ -178,11 +183,13 @@ def _jd_expert(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
     )
 
 
-def _technical_hiring_manager(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
+def _technical_hiring_manager(bundle: EvidenceBundle, mode: CommitteeMode) -> MemberOpinion:
     """Technical Hiring Manager — reads Candidate Intelligence technical signals."""
     intel = bundle.intelligence
     if intel is None:
-        return _abstain("technical_hiring_manager", "Technical Hiring Manager", "no candidate intelligence")
+        return _abstain(
+            "technical_hiring_manager", "Technical Hiring Manager", "no candidate intelligence"
+        )
     score = float(getattr(intel, "technical_score", 0.0))
     rec = _rec_from_score(score)
     evidence = [
@@ -207,7 +214,7 @@ def _technical_hiring_manager(bundle: "EvidenceBundle", mode: CommitteeMode) -> 
     )
 
 
-def _risk_officer(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
+def _risk_officer(bundle: EvidenceBundle, mode: CommitteeMode) -> MemberOpinion:
     """Risk Officer — reads Risk Intelligence (+ resume/JD risk signals)."""
     risk = bundle.risk
     if risk is None:
@@ -227,7 +234,8 @@ def _risk_officer(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinio
         role_title="Risk Officer",
         recommendation=rec,
         confidence=80.0 if red_flags else 70.0,
-        opinion=f"Hiring risk is {level}. " + ("Red flags require validation." if red_flags else "No blocking red flags."),
+        opinion=f"Hiring risk is {level}. "
+        + ("Red flags require validation." if red_flags else "No blocking red flags."),
         strengths=list(getattr(risk, "positive_signals", []))[:3],
         concerns=red_flags[:4] or list(getattr(risk, "risk_factors", []))[:3],
         evidence=evidence,
@@ -235,7 +243,7 @@ def _risk_officer(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinio
     )
 
 
-def _career_growth(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
+def _career_growth(bundle: EvidenceBundle, mode: CommitteeMode) -> MemberOpinion:
     """Career Growth Specialist — reads Timeline Intelligence."""
     tl = bundle.timeline
     if tl is None:
@@ -259,12 +267,14 @@ def _career_growth(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpini
     )
 
 
-def _interview_lead(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
+def _interview_lead(bundle: EvidenceBundle, mode: CommitteeMode) -> MemberOpinion:
     """Interview Lead — reads the Interview plan + recommendation focus."""
     plan = bundle.interview_plan
     if plan is None:
         return _abstain("interview_lead", "Interview Lead", "no interview plan")
-    validation = list(getattr(plan, "validation_questions", [])) + list(getattr(plan, "risk_followups", []))
+    validation = list(getattr(plan, "validation_questions", [])) + list(
+        getattr(plan, "risk_followups", [])
+    )
     # Many open validation items → hold pending interview; few → lean positive.
     if len(validation) >= 4:
         rec = Recommendation.HOLD
@@ -272,7 +282,9 @@ def _interview_lead(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpin
         rec = Recommendation.LEAN_HIRE
     else:
         rec = Recommendation.LEAN_HIRE
-    topics = list(getattr(plan, "technical_topics", [])) + list(getattr(plan, "system_design_topics", []))
+    topics = list(getattr(plan, "technical_topics", [])) + list(
+        getattr(plan, "system_design_topics", [])
+    )
     evidence = [
         f"[Interview Intelligence] {len(topics)} technical topic(s), {len(validation)} validation item(s)",
     ]
@@ -295,7 +307,7 @@ def _interview_lead(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpin
     )
 
 
-def _hiring_analyst(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpinion:
+def _hiring_analyst(bundle: EvidenceBundle, mode: CommitteeMode) -> MemberOpinion:
     """Hiring Analyst — reads the Hiring Recommendation engine output."""
     rec_obj = bundle.recommendation
     if rec_obj is None:
@@ -325,14 +337,25 @@ def _hiring_analyst(bundle: "EvidenceBundle", mode: CommitteeMode) -> MemberOpin
 _PANEL = [
     CommitteeMember("resume_expert", "Resume Expert", "committee_review:resume", _resume_expert),
     CommitteeMember("jd_expert", "JD Expert", "committee_review:jd", _jd_expert),
-    CommitteeMember("technical_hiring_manager", "Technical Hiring Manager", "committee_review:technical", _technical_hiring_manager),
+    CommitteeMember(
+        "technical_hiring_manager",
+        "Technical Hiring Manager",
+        "committee_review:technical",
+        _technical_hiring_manager,
+    ),
     CommitteeMember("risk_officer", "Risk Officer", "committee_review:risk", _risk_officer),
-    CommitteeMember("career_growth", "Career Growth Specialist", "committee_review:career", _career_growth),
-    CommitteeMember("interview_lead", "Interview Lead", "committee_review:interview", _interview_lead),
-    CommitteeMember("hiring_analyst", "Hiring Analyst", "committee_review:analyst", _hiring_analyst),
+    CommitteeMember(
+        "career_growth", "Career Growth Specialist", "committee_review:career", _career_growth
+    ),
+    CommitteeMember(
+        "interview_lead", "Interview Lead", "committee_review:interview", _interview_lead
+    ),
+    CommitteeMember(
+        "hiring_analyst", "Hiring Analyst", "committee_review:analyst", _hiring_analyst
+    ),
 ]
 
 
-def build_panel() -> List[CommitteeMember]:
+def build_panel() -> list[CommitteeMember]:
     """Return the ordered committee panel (7 reviewing members; chair is separate)."""
     return list(_PANEL)

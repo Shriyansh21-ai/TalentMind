@@ -19,17 +19,16 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
+from src.ai.agents.audit.composer import compose_audit_narrative
+from src.ai.agents.audit.schemas import AuditNarrative
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.prompts.loader import PromptLoader
 from src.ai.providers.base import LLMMessage
 from src.ai.providers.composers import register_composer
-
-from src.ai.agents.audit.composer import compose_audit_narrative
-from src.ai.agents.audit.schemas import AuditNarrative
 
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 _prompt_loader = PromptLoader(_PROMPTS_DIR)
@@ -46,20 +45,20 @@ class AuditInput:
 
     candidate_id: str = ""
     data_available: bool = False
-    candidate_overview: Dict[str, Any] = field(default_factory=dict)
-    evidence_sources: List[str] = field(default_factory=list)
-    agents_participated: List[str] = field(default_factory=list)
-    decision_trace: List[Dict[str, Any]] = field(default_factory=list)
-    provenance: List[Dict[str, Any]] = field(default_factory=list)
-    reasoning: Dict[str, Any] = field(default_factory=dict)
-    timeline: List[Dict[str, Any]] = field(default_factory=list)
-    responsibility: List[Dict[str, Any]] = field(default_factory=list)
-    governance_explanations: List[Dict[str, Any]] = field(default_factory=list)
-    audit_readiness: Dict[str, Any] = field(default_factory=dict)
-    history: Dict[str, Any] = field(default_factory=dict)
+    candidate_overview: dict[str, Any] = field(default_factory=dict)
+    evidence_sources: list[str] = field(default_factory=list)
+    agents_participated: list[str] = field(default_factory=list)
+    decision_trace: list[dict[str, Any]] = field(default_factory=list)
+    provenance: list[dict[str, Any]] = field(default_factory=list)
+    reasoning: dict[str, Any] = field(default_factory=dict)
+    timeline: list[dict[str, Any]] = field(default_factory=list)
+    responsibility: list[dict[str, Any]] = field(default_factory=list)
+    governance_explanations: list[dict[str, Any]] = field(default_factory=list)
+    audit_readiness: dict[str, Any] = field(default_factory=dict)
+    history: dict[str, Any] = field(default_factory=dict)
 
 
-def build_audit_evidence(payload: AuditInput) -> Dict[str, Any]:
+def build_audit_evidence(payload: AuditInput) -> dict[str, Any]:
     """Pack the reconstructed audit artefacts into the evidence dict."""
     return {
         "candidate_overview": payload.candidate_overview or {},
@@ -100,15 +99,15 @@ class HiringAuditAgent(BaseAgent):
     )
     output_schema = AuditNarrative
 
-    def build_messages(self, payload, loader, evidence: Dict[str, Any]) -> List[LLMMessage]:
+    def build_messages(self, payload, loader, evidence: dict[str, Any]) -> list[LLMMessage]:
         """Render prompts from the agent's own ``prompts/`` directory."""
         return super().build_messages(payload, _prompt_loader, evidence)
 
-    def build_evidence(self, payload: AuditInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: AuditInput) -> dict[str, Any]:
         """Return the reconstructed audit evidence for ``payload``."""
         return build_audit_evidence(payload)
 
-    def prompt_values(self, payload: AuditInput, evidence: Dict[str, Any]) -> Dict[str, str]:
+    def prompt_values(self, payload: AuditInput, evidence: dict[str, Any]) -> dict[str, str]:
         """Supply candidate id + readiness/participation placeholders for the prompt."""
         readiness = payload.audit_readiness or {}
         return {
@@ -118,7 +117,7 @@ class HiringAuditAgent(BaseAgent):
             "data_available": "yes" if payload.data_available else "no (archive not connected)",
         }
 
-    def cache_dimensions(self, payload: AuditInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: AuditInput) -> tuple[str, str]:
         """Cache by candidate id (subject) + full evidence signature (scope)."""
         scope = json.dumps(build_audit_evidence(payload), sort_keys=True, default=str)
         return payload.candidate_id or "audit", scope
@@ -137,7 +136,9 @@ def _orchestration_payload_builder(task, context) -> AuditInput:
                 "title": getattr(profile, "current_title", ""),
             }
     return AuditInput(
-        candidate_id=str(payload.get("candidate_id", "") or overview.get("candidate_id", "") or "audit"),
+        candidate_id=str(
+            payload.get("candidate_id", "") or overview.get("candidate_id", "") or "audit"
+        ),
         data_available=bool(payload.get("data_available", False)),
         candidate_overview=overview,
         evidence_sources=payload.get("evidence_sources", []),
@@ -153,7 +154,7 @@ def _orchestration_payload_builder(task, context) -> AuditInput:
     )
 
 
-def _register_with_orchestration(agent: "HiringAuditAgent") -> None:
+def _register_with_orchestration(agent: HiringAuditAgent) -> None:
     """Register the agent with the Multi-Agent Orchestration platform (best-effort)."""
     try:
         from src.ai.orchestration.adapters import RunnerAgent

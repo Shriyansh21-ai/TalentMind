@@ -20,7 +20,7 @@ Four generators:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.interview_studio.schemas import InterviewQuestion, RiskValidation
 from src.ai.agents.interview_studio.templates import RoleProfile
@@ -33,7 +33,7 @@ STRONG_TECH = 75.0
 _MAX_PER_SECTION = 10
 
 
-def _years(evidence: Dict[str, Any]) -> float:
+def _years(evidence: dict[str, Any]) -> float:
     ov = evidence.get("candidate_overview") or {}
     try:
         return float(ov.get("years_of_experience", 0.0) or 0.0)
@@ -41,7 +41,7 @@ def _years(evidence: Dict[str, Any]) -> float:
         return 0.0
 
 
-def _difficulty_ladder(years: float) -> List[str]:
+def _difficulty_ladder(years: float) -> list[str]:
     """Return the difficulty progression appropriate to seniority (Module 3)."""
     if years >= SENIOR_YEARS:
         return ["Core", "Deep", "Deep", "Stretch"]
@@ -50,7 +50,7 @@ def _difficulty_ladder(years: float) -> List[str]:
     return ["Warm-up", "Warm-up", "Core", "Deep"]
 
 
-def _plan(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def _plan(evidence: dict[str, Any]) -> dict[str, Any]:
     """Return the deterministic interview-plan dict (never recomputed)."""
     return evidence.get("interview") or {}
 
@@ -60,7 +60,7 @@ def _plan(evidence: Dict[str, Any]) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def technical_questions(evidence: Dict[str, Any], role: RoleProfile) -> List[InterviewQuestion]:
+def technical_questions(evidence: dict[str, Any], role: RoleProfile) -> list[InterviewQuestion]:
     """Generate the technical question set (coding, architecture, system design)."""
     years = _years(evidence)
     ladder = _difficulty_ladder(years)
@@ -69,7 +69,7 @@ def technical_questions(evidence: Dict[str, Any], role: RoleProfile) -> List[Int
     tech_score = intelligence.get("technical_score")
     strong = isinstance(tech_score, (int, float)) and tech_score >= STRONG_TECH
 
-    questions: List[InterviewQuestion] = []
+    questions: list[InterviewQuestion] = []
 
     # 1) Depth on the candidate's proven skills (from the interview plan).
     for i, topic in enumerate((plan.get("technical_topics") or [])[:4]):
@@ -164,41 +164,74 @@ def technical_questions(evidence: Dict[str, Any], role: RoleProfile) -> List[Int
 
 # Standard behavioral competencies (Module 4). Each maps to an evaluation signal.
 _BEHAVIORAL_BANK = [
-    ("Ownership", "Tell me about a time you took ownership beyond your assigned scope. What happened?",
-     ["Proactivity", "Accountability"]),
-    ("Conflict resolution", "Describe a serious disagreement with a colleague and how you resolved it.",
-     ["Empathy", "Directness", "Outcome"]),
-    ("Decision making", "Walk me through a hard decision you made with incomplete information.",
-     ["Judgment", "Reasoning under ambiguity"]),
-    ("Stakeholder management", "How have you managed conflicting priorities from different stakeholders?",
-     ["Influence", "Prioritization"]),
-    ("Communication", "Tell me about a time you had to explain something complex to a non-technical audience.",
-     ["Clarity", "Audience awareness"]),
-    ("Failure & learning", "Describe a project that failed or went badly. What did you learn?",
-     ["Self-awareness", "Growth"]),
-    ("Career motivation", "What are you looking for next, and why this role specifically?",
-     ["Motivation", "Role alignment"]),
+    (
+        "Ownership",
+        "Tell me about a time you took ownership beyond your assigned scope. What happened?",
+        ["Proactivity", "Accountability"],
+    ),
+    (
+        "Conflict resolution",
+        "Describe a serious disagreement with a colleague and how you resolved it.",
+        ["Empathy", "Directness", "Outcome"],
+    ),
+    (
+        "Decision making",
+        "Walk me through a hard decision you made with incomplete information.",
+        ["Judgment", "Reasoning under ambiguity"],
+    ),
+    (
+        "Stakeholder management",
+        "How have you managed conflicting priorities from different stakeholders?",
+        ["Influence", "Prioritization"],
+    ),
+    (
+        "Communication",
+        "Tell me about a time you had to explain something complex to a non-technical audience.",
+        ["Clarity", "Audience awareness"],
+    ),
+    (
+        "Failure & learning",
+        "Describe a project that failed or went badly. What did you learn?",
+        ["Self-awareness", "Growth"],
+    ),
+    (
+        "Career motivation",
+        "What are you looking for next, and why this role specifically?",
+        ["Motivation", "Role alignment"],
+    ),
 ]
 
 _LEADERSHIP_BANK = [
-    ("Team building", "Describe a team you built or grew and the outcomes you drove.",
-     ["People leadership", "Results"]),
-    ("Mentoring", "How do you develop and mentor the engineers who report to you?",
-     ["Coaching", "Growth mindset"]),
-    ("Hard people decision", "Tell me about a difficult people decision you had to make.",
-     ["Judgment", "Courage"]),
-    ("Technical direction", "How do you set and align technical direction across teams?",
-     ["Vision", "Alignment"]),
+    (
+        "Team building",
+        "Describe a team you built or grew and the outcomes you drove.",
+        ["People leadership", "Results"],
+    ),
+    (
+        "Mentoring",
+        "How do you develop and mentor the engineers who report to you?",
+        ["Coaching", "Growth mindset"],
+    ),
+    (
+        "Hard people decision",
+        "Tell me about a difficult people decision you had to make.",
+        ["Judgment", "Courage"],
+    ),
+    (
+        "Technical direction",
+        "How do you set and align technical direction across teams?",
+        ["Vision", "Alignment"],
+    ),
 ]
 
 
-def behavioral_questions(evidence: Dict[str, Any], role: RoleProfile) -> List[InterviewQuestion]:
+def behavioral_questions(evidence: dict[str, Any], role: RoleProfile) -> list[InterviewQuestion]:
     """Generate behavioral + leadership questions, tailored by the evidence."""
     intelligence = evidence.get("intelligence") or {}
     leadership = intelligence.get("leadership_score")
     strong_leader = isinstance(leadership, (int, float)) and leadership >= 70
 
-    questions: List[InterviewQuestion] = []
+    questions: list[InterviewQuestion] = []
     for competency, text, signals in _BEHAVIORAL_BANK:
         questions.append(
             InterviewQuestion(
@@ -231,7 +264,9 @@ def behavioral_questions(evidence: Dict[str, Any], role: RoleProfile) -> List[In
                         "Outcomes and how they measured success",
                     ],
                     signals=list(signals),
-                    source="Candidate Intelligence (leadership signal)" if strong_leader else f"Role profile: {role.name}",
+                    source="Candidate Intelligence (leadership signal)"
+                    if strong_leader
+                    else f"Role profile: {role.name}",
                 )
             )
 
@@ -258,10 +293,10 @@ def behavioral_questions(evidence: Dict[str, Any], role: RoleProfile) -> List[In
 # ---------------------------------------------------------------------------
 
 
-def role_specific_questions(evidence: Dict[str, Any], role: RoleProfile) -> List[InterviewQuestion]:
+def role_specific_questions(evidence: dict[str, Any], role: RoleProfile) -> list[InterviewQuestion]:
     """Generate questions for the role's specialized competencies (Module 5)."""
     years = _years(evidence)
-    questions: List[InterviewQuestion] = []
+    questions: list[InterviewQuestion] = []
     for competency in role.competencies:
         questions.append(
             InterviewQuestion(
@@ -294,16 +329,18 @@ def _pass_criteria(risk_text: str) -> str:
     )
 
 
-def risk_validations(evidence: Dict[str, Any]) -> List[RiskValidation]:
+def risk_validations(evidence: dict[str, Any]) -> list[RiskValidation]:
     """Convert resume / timeline / committee risks into validation questions.
 
     Implements the mandated chain (Module 6):
     Risk -> Validation Question -> Expected Evidence -> Pass Criteria.
     """
-    validations: List[RiskValidation] = []
+    validations: list[RiskValidation] = []
     seen: set = set()
 
-    def _add(risk: str, category: str, source: str, question: str = "", evidence_txt: str = "") -> None:
+    def _add(
+        risk: str, category: str, source: str, question: str = "", evidence_txt: str = ""
+    ) -> None:
         key = (risk or "").strip().lower()
         if not key or key in seen:
             return
@@ -313,7 +350,8 @@ def risk_validations(evidence: Dict[str, Any]) -> List[RiskValidation]:
                 risk=risk,
                 category=category,
                 validation_question=question or f"Help me understand the context behind: {risk}.",
-                expected_evidence=evidence_txt or "A concrete, verifiable explanation consistent with the resume and timeline.",
+                expected_evidence=evidence_txt
+                or "A concrete, verifiable explanation consistent with the resume and timeline.",
                 pass_criteria=_pass_criteria(risk),
                 source=source,
             )
@@ -323,13 +361,17 @@ def risk_validations(evidence: Dict[str, Any]) -> List[RiskValidation]:
     # Explicit validation questions the risk engine already produced.
     for q in (risk.get("validation_questions") or [])[:4]:
         _add(
-            q, "resume", "Resume Risk Detection",
+            q,
+            "resume",
+            "Resume Risk Detection",
             question=q,
             evidence_txt="Direct, specific answer that substantiates the claim in question.",
         )
     for flag in (risk.get("red_flags") or [])[:4]:
         _add(
-            flag, "resume", "Resume Risk Detection",
+            flag,
+            "resume",
+            "Resume Risk Detection",
             question=f"I want to give you a chance to address a flag we noticed: {flag}. What's the context?",
         )
     for factor in (risk.get("risk_factors") or [])[:3]:
@@ -347,7 +389,9 @@ def risk_validations(evidence: Dict[str, Any]) -> List[RiskValidation]:
         _add(hr, "committee", "AI Hiring Committee")
     for unknown in (decision.get("remaining_unknowns") or [])[:3]:
         _add(
-            unknown, "committee", "AI Hiring Committee",
+            unknown,
+            "committee",
+            "AI Hiring Committee",
             question=f"The committee left one thing open: {unknown}. Can you close the loop for us?",
             evidence_txt="Evidence that resolves the open question the committee identified.",
         )

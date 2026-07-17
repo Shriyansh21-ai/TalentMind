@@ -13,10 +13,10 @@ offline modes agree on the facts.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def _overview_line(evidence: Dict[str, Any]) -> str:
+def _overview_line(evidence: dict[str, Any]) -> str:
     """Return a one-line candidate descriptor for the summary opener."""
     ov = evidence.get("candidate_overview") or {}
     title = ov.get("title") or "the candidate"
@@ -30,7 +30,7 @@ def _overview_line(evidence: Dict[str, Any]) -> str:
     return " ".join(parts)
 
 
-def _recommendation(evidence: Dict[str, Any]) -> tuple:
+def _recommendation(evidence: dict[str, Any]) -> tuple:
     """Return ``(label, source)`` for the authoritative upstream recommendation."""
     committee = evidence.get("committee") or {}
     consensus = committee.get("consensus") or {}
@@ -42,7 +42,7 @@ def _recommendation(evidence: Dict[str, Any]) -> tuple:
     return "", ""
 
 
-def _readiness(evidence: Dict[str, Any]) -> str:
+def _readiness(evidence: dict[str, Any]) -> str:
     """Return a qualitative interview-readiness label (never a score)."""
     plan = evidence.get("interview") or {}
     has_plan = bool(plan.get("technical_topics") or plan.get("behavioral_questions"))
@@ -55,9 +55,9 @@ def _readiness(evidence: Dict[str, Any]) -> str:
     return "Ready to Interview"
 
 
-def _key_probes(evidence: Dict[str, Any]) -> List[str]:
+def _key_probes(evidence: dict[str, Any]) -> list[str]:
     """Collect the highest-priority things the interview must probe."""
-    probes: List[str] = []
+    probes: list[str] = []
     committee = evidence.get("committee") or {}
     probes.extend((committee.get("decision") or {}).get("interview_priorities", []) or [])
     recommendation = evidence.get("recommendation") or {}
@@ -67,9 +67,9 @@ def _key_probes(evidence: Dict[str, Any]) -> List[str]:
     return list(dict.fromkeys(p for p in probes if p))[:5]
 
 
-def _watch_areas(evidence: Dict[str, Any]) -> List[str]:
+def _watch_areas(evidence: dict[str, Any]) -> list[str]:
     """Collect the concerns / risks the panel should watch for."""
-    watch: List[str] = []
+    watch: list[str] = []
     risk = evidence.get("risk") or {}
     watch.extend(risk.get("red_flags") or [])
     intelligence = evidence.get("intelligence") or {}
@@ -79,7 +79,7 @@ def _watch_areas(evidence: Dict[str, Any]) -> List[str]:
     return list(dict.fromkeys(w for w in watch if w))[:5]
 
 
-def _confidence_note(evidence: Dict[str, Any]) -> str:
+def _confidence_note(evidence: dict[str, Any]) -> str:
     """Return a qualitative confidence note based on evidence coverage."""
     committee = evidence.get("committee") or {}
     overall = (committee.get("confidence") or {}).get("overall")
@@ -105,7 +105,7 @@ def _confidence_note(evidence: Dict[str, Any]) -> str:
     )
 
 
-def compose_interview_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_interview_narrative(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose an :class:`InterviewStudioNarrative` from evidence."""
     overview = _overview_line(evidence)
     role = evidence.get("role_name") or evidence.get("role") or "the role"
@@ -128,9 +128,9 @@ def compose_interview_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
     watch = _watch_areas(evidence)
 
     strategy_overview = (
-        f"The loop is calibrated to the candidate's seniority and role fit. Depth "
-        f"and difficulty scale to the evidence; priorities follow the committee and "
-        f"the recommendation engine."
+        "The loop is calibrated to the candidate's seniority and role fit. Depth "
+        "and difficulty scale to the evidence; priorities follow the committee and "
+        "the recommendation engine."
     )
     personalization = (
         "Personalized to this candidate: the technical stage probes their proven "
@@ -154,7 +154,9 @@ def compose_interview_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "interview_summary": summary,
         "strategy_overview": strategy_overview,
-        "recommended_focus": ("; ".join(probes) if probes else "Confirm role fit and technical depth."),
+        "recommended_focus": (
+            "; ".join(probes) if probes else "Confirm role fit and technical depth."
+        ),
         "personalization_note": personalization,
         "coverage_note": coverage,
         "risk_validation_note": risk_note,

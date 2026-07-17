@@ -15,14 +15,13 @@ Lifecycle::
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, List, Optional
-
-from src.ai.core.runner import AgentRunner
+from typing import Any
 
 from src.ai.committee.chair import ChairInput, committee_chair_agent, compose_committee_decision
-from src.ai.committee.consensus import build_consensus
 from src.ai.committee.conflict_resolution import detect_conflicts
+from src.ai.committee.consensus import build_consensus
 from src.ai.committee.executive_report import (
     build_committee_report,
     compute_confidence_metrics,
@@ -35,6 +34,7 @@ from src.ai.committee.schemas import (
     CommitteeMode,
     CommitteeReport,
 )
+from src.ai.core.runner import AgentRunner
 
 
 @dataclass
@@ -51,15 +51,15 @@ class EvidenceBundle:
     company: str = ""
     years_of_experience: float = 0.0
     location: str = ""
-    resume_analysis: Any = None       # ResumeAnalysis | None
-    jd_analysis: Any = None           # JDAnalysis | None
-    intelligence: Any = None          # CandidateIntelligence | None
-    timeline: Any = None              # CareerTimelineAnalysis | None
-    risk: Any = None                  # RiskReport | None
-    recommendation: Any = None        # HiringRecommendation | None
-    interview_plan: Any = None        # InterviewPlan | None
+    resume_analysis: Any = None  # ResumeAnalysis | None
+    jd_analysis: Any = None  # JDAnalysis | None
+    intelligence: Any = None  # CandidateIntelligence | None
+    timeline: Any = None  # CareerTimelineAnalysis | None
+    risk: Any = None  # RiskReport | None
+    recommendation: Any = None  # HiringRecommendation | None
+    interview_plan: Any = None  # InterviewPlan | None
     gap: dict = field(default_factory=dict)
-    available_sources: List[str] = field(default_factory=list)
+    available_sources: list[str] = field(default_factory=list)
 
 
 InsightsFn = Callable[[Any, str], Any]
@@ -69,13 +69,13 @@ def gather_evidence(
     candidate: Any,
     jd: str = "",
     *,
-    insights_fn: Optional[InsightsFn] = None,
-    ai_runner: Optional[AgentRunner] = None,
+    insights_fn: InsightsFn | None = None,
+    ai_runner: AgentRunner | None = None,
 ) -> EvidenceBundle:
     """Gather every structured output the committee needs (all cached upstream)."""
-    from src.interview.planner import build_interview_plan
-    from src.ai.agents.resume.agent import ResumeAnalystInput, resume_analyst_agent
     from src.ai.agents.jd.agent import JDAnalystInput, jd_analyst_agent
+    from src.ai.agents.resume.agent import ResumeAnalystInput, resume_analyst_agent
+    from src.interview.planner import build_interview_plan
 
     runner = ai_runner or AgentRunner()
 
@@ -130,7 +130,7 @@ def gather_evidence(
     return bundle
 
 
-def _sources(bundle: EvidenceBundle) -> List[str]:
+def _sources(bundle: EvidenceBundle) -> list[str]:
     """Return the labels of the evidence sources actually present."""
     mapping = [
         (bundle.resume_analysis, "Resume Analyst Agent"),
@@ -153,10 +153,10 @@ class HiringCommitteeEngine:
         self,
         *,
         repository: Any = None,
-        insights_fn: Optional[InsightsFn] = None,
-        ai_runner: Optional[AgentRunner] = None,
-        moderator: Optional[CommitteeModerator] = None,
-        memory: Optional[CommitteeMemory] = None,
+        insights_fn: InsightsFn | None = None,
+        ai_runner: AgentRunner | None = None,
+        moderator: CommitteeModerator | None = None,
+        memory: CommitteeMemory | None = None,
     ) -> None:
         """Wire the engine's collaborators (all optional; sane defaults used)."""
         self.repository = repository
@@ -170,7 +170,7 @@ class HiringCommitteeEngine:
         self,
         candidate: Any = None,
         *,
-        candidate_id: Optional[str] = None,
+        candidate_id: str | None = None,
         jd: str = "",
         mode: CommitteeMode = CommitteeMode.BALANCED,
     ) -> CommitteeReport:
@@ -209,7 +209,9 @@ class HiringCommitteeEngine:
                 "years_of_experience": bundle.years_of_experience,
                 "location": bundle.location,
             },
-            resume_summary=bundle.resume_analysis.executive_summary if bundle.resume_analysis else "",
+            resume_summary=bundle.resume_analysis.executive_summary
+            if bundle.resume_analysis
+            else "",
             jd_summary=bundle.jd_analysis.executive_summary if bundle.jd_analysis else "",
             mode=mode.value,
             opinions=[o.to_dict() for o in opinions],
@@ -220,7 +222,7 @@ class HiringCommitteeEngine:
         )
         decision = self._chair_decision(chair_input)
 
-        warnings: List[str] = []
+        warnings: list[str] = []
         if not bundle.jd_analysis:
             warnings.append("No JD provided — role-fit reasoning is limited.")
         if len(bundle.available_sources) < 5:

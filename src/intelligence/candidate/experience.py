@@ -8,30 +8,11 @@ def experience_score(candidate):
 
     score += min(len(candidate.career_history) * 5, 20)
 
-    titles = [
-        j.title.lower()
-        for j in candidate.career_history
-    ]
+    titles = [j.title.lower() for j in candidate.career_history]
 
-    senior_titles = [
+    senior_titles = ["senior", "lead", "principal", "staff", "architect"]
 
-        "senior",
-
-        "lead",
-
-        "principal",
-
-        "staff",
-
-        "architect"
-
-    ]
-
-    if any(
-        t in " ".join(titles)
-        for t in senior_titles
-    ):
-
+    if any(t in " ".join(titles) for t in senior_titles):
         score += 20
 
-    return min(score,100)
+    return min(score, 100)

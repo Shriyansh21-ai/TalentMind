@@ -9,9 +9,9 @@ dataset, provider or network.
 
 from __future__ import annotations
 
+from src.platform.audit import AuditCategory, AuditOutcome
 from src.platform.bootstrap import Platform, build_platform
 from src.platform.common.clock import FrozenClock
-from src.platform.audit import AuditCategory, AuditOutcome
 from src.platform.config import License, LicenseStatus
 from src.platform.rbac import Role
 from src.platform.subscription import Meter, PlanTier
@@ -72,8 +72,13 @@ def build_demo_platform() -> Platform:
                 pass
             platform.auth.login(org.id, org.id, email, "Sup3rSecret!!42")
             platform.audit.record(
-                org.id, org.id, AuditCategory.AUTHENTICATION, "user.login",
-                actor_id=user.id, target_type="user", target_id=user.id,
+                org.id,
+                org.id,
+                AuditCategory.AUTHENTICATION,
+                "user.login",
+                actor_id=user.id,
+                target_type="user",
+                target_id=user.id,
                 outcome=AuditOutcome.SUCCESS,
             )
 

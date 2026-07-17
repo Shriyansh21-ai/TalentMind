@@ -1,14 +1,5 @@
-from src.models.candidates import Candidate
+CONSULTING = {"tcs", "infosys", "wipro", "cognizant", "capgemini", "accenture"}
 
-
-CONSULTING = {
-    "tcs",
-    "infosys",
-    "wipro",
-    "cognizant",
-    "capgemini",
-    "accenture"
-}
 
 def calculate_company_score(candidate):
 

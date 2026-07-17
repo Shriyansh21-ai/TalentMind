@@ -9,7 +9,6 @@ exists when two real opinions diverge by a real stance gap.
 from __future__ import annotations
 
 from itertools import combinations
-from typing import List
 
 from src.ai.committee.schemas import Conflict, MemberOpinion
 from src.ai.committee.voting import stance_of
@@ -18,10 +17,10 @@ from src.ai.committee.voting import stance_of
 _CONFLICT_GAP = 2.0
 
 
-def detect_conflicts(opinions: List[MemberOpinion]) -> List[Conflict]:
+def detect_conflicts(opinions: list[MemberOpinion]) -> list[Conflict]:
     """Return material, evidence-grounded conflicts between members."""
     active = [o for o in opinions if not o.abstained]
-    conflicts: List[Conflict] = []
+    conflicts: list[Conflict] = []
 
     for a, b in combinations(active, 2):
         gap = abs(stance_of(a.recommendation) - stance_of(b.recommendation))

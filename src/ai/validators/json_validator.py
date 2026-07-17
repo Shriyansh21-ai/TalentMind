@@ -7,7 +7,7 @@ returned — only a validated model instance.
 
 from __future__ import annotations
 
-from typing import Type, TypeVar
+from typing import TypeVar
 
 from pydantic import ValidationError
 
@@ -18,7 +18,7 @@ from src.ai.utils.json_utils import parse_json_object
 T = TypeVar("T", bound=BaseAIResponse)
 
 
-def validate_text(text: str, schema_cls: Type[T]) -> T:
+def validate_text(text: str, schema_cls: type[T]) -> T:
     """Parse ``text`` as JSON and validate it against ``schema_cls``.
 
     Args:

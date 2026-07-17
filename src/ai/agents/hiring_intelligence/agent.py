@@ -19,17 +19,16 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
+from src.ai.agents.hiring_intelligence.composer import compose_workforce_narrative
+from src.ai.agents.hiring_intelligence.schemas import WorkforceNarrative
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.prompts.loader import PromptLoader
 from src.ai.providers.base import LLMMessage
 from src.ai.providers.composers import register_composer
-
-from src.ai.agents.hiring_intelligence.composer import compose_workforce_narrative
-from src.ai.agents.hiring_intelligence.schemas import WorkforceNarrative
 
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 _prompt_loader = PromptLoader(_PROMPTS_DIR)
@@ -45,10 +44,10 @@ class HiringIntelligenceInput:
 
     cohort_size: int = 0
     data_available: bool = False
-    analytics: Dict[str, Any] = field(default_factory=dict)
+    analytics: dict[str, Any] = field(default_factory=dict)
 
 
-def build_intelligence_evidence(payload: HiringIntelligenceInput) -> Dict[str, Any]:
+def build_intelligence_evidence(payload: HiringIntelligenceInput) -> dict[str, Any]:
     """Pack the aggregated cohort analytics into the evidence dict."""
     analytics = dict(payload.analytics or {})
     analytics.setdefault("cohort_size", payload.cohort_size)
@@ -81,25 +80,31 @@ class HiringIntelligenceAgent(BaseAgent):
     )
     output_schema = WorkforceNarrative
 
-    def build_messages(self, payload, loader, evidence: Dict[str, Any]) -> List[LLMMessage]:
+    def build_messages(self, payload, loader, evidence: dict[str, Any]) -> list[LLMMessage]:
         """Render prompts from the agent's own ``prompts/`` directory."""
         return super().build_messages(payload, _prompt_loader, evidence)
 
-    def build_evidence(self, payload: HiringIntelligenceInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: HiringIntelligenceInput) -> dict[str, Any]:
         """Return the aggregated cohort analytics evidence for ``payload``."""
         return build_intelligence_evidence(payload)
 
-    def prompt_values(self, payload: HiringIntelligenceInput, evidence: Dict[str, Any]) -> Dict[str, str]:
+    def prompt_values(
+        self, payload: HiringIntelligenceInput, evidence: dict[str, Any]
+    ) -> dict[str, str]:
         """Supply cohort-size + data-availability placeholders for the prompt."""
         analytics = evidence.get("analytics", {})
-        health = next((k for k in analytics.get("kpis", []) if k.get("name") == "Hiring Health Index"), {})
+        health = next(
+            (k for k in analytics.get("kpis", []) if k.get("name") == "Hiring Health Index"), {}
+        )
         return {
             "cohort_size": str(payload.cohort_size),
             "hiring_health": str(health.get("label", "n/a")),
-            "data_available": "yes" if payload.data_available else "no (analytics source not connected)",
+            "data_available": "yes"
+            if payload.data_available
+            else "no (analytics source not connected)",
         }
 
-    def cache_dimensions(self, payload: HiringIntelligenceInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: HiringIntelligenceInput) -> tuple[str, str]:
         """Cache by cohort size (subject) + full analytics signature (scope)."""
         scope = json.dumps(build_intelligence_evidence(payload), sort_keys=True, default=str)
         return f"workforce_{payload.cohort_size}", scope
@@ -115,7 +120,7 @@ def _orchestration_payload_builder(task, context) -> HiringIntelligenceInput:
     )
 
 
-def _register_with_orchestration(agent: "HiringIntelligenceAgent") -> None:
+def _register_with_orchestration(agent: HiringIntelligenceAgent) -> None:
     """Register the agent with the Multi-Agent Orchestration platform (best-effort)."""
     try:
         from src.ai.orchestration.adapters import RunnerAgent

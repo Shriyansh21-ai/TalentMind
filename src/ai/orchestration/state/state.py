@@ -9,16 +9,16 @@ it into an :class:`ExecutionSnapshot` that could be persisted and rehydrated.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.ai.orchestration.models import AgentOutput, TaskStatus
 
 
 def _now_iso() -> str:
     """Return the current UTC time as an ISO-8601 string."""
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+    return datetime.now(UTC).isoformat(timespec="milliseconds")
 
 
 class WorkflowStatus(str, Enum):
@@ -27,8 +27,8 @@ class WorkflowStatus(str, Enum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
-    PARTIAL = "partial"        # finished but with one or more failed tasks
-    FAILED = "failed"          # a required task failed
+    PARTIAL = "partial"  # finished but with one or more failed tasks
+    FAILED = "failed"  # a required task failed
     CANCELLED = "cancelled"
 
 
@@ -51,13 +51,13 @@ class TaskState:
     task_id: str
     capability: str = ""
     status: TaskStatus = TaskStatus.PENDING
-    agent: Optional[str] = None
+    agent: str | None = None
     attempts: int = 0
-    started_at: Optional[str] = None
-    finished_at: Optional[str] = None
+    started_at: str | None = None
+    finished_at: str | None = None
     latency_ms: float = 0.0
-    output: Optional[AgentOutput] = None
-    error: Optional[str] = None
+    output: AgentOutput | None = None
+    error: str | None = None
 
     def mark_running(self, agent: str) -> None:
         """Transition to RUNNING and record the delegated agent + start time."""
@@ -74,7 +74,7 @@ class TaskState:
         self.status = TaskStatus.COMPLETED if output.ok else TaskStatus.FAILED
         self.error = output.error
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the task state."""
         return {
             "task_id": self.task_id,
@@ -112,7 +112,7 @@ class AgentState:
         if not output.ok:
             self.failures += 1
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the agent state."""
         return {
             "agent": self.agent,
@@ -133,12 +133,12 @@ class ExecutionSnapshot:
     workflow_id: str
     workflow_name: str
     status: WorkflowStatus
-    completed_task_ids: List[str]
-    pending_task_ids: List[str]
-    task_states: Dict[str, Dict[str, Any]]
+    completed_task_ids: list[str]
+    pending_task_ids: list[str]
+    task_states: dict[str, dict[str, Any]]
     taken_at: str = field(default_factory=_now_iso)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the snapshot."""
         return {
             "workflow_id": self.workflow_id,
@@ -167,10 +167,10 @@ class WorkflowState:
     workflow_id: str
     workflow_name: str = ""
     status: WorkflowStatus = WorkflowStatus.PENDING
-    tasks: Dict[str, TaskState] = field(default_factory=dict)
-    agents: Dict[str, AgentState] = field(default_factory=dict)
-    started_at: Optional[str] = None
-    finished_at: Optional[str] = None
+    tasks: dict[str, TaskState] = field(default_factory=dict)
+    agents: dict[str, AgentState] = field(default_factory=dict)
+    started_at: str | None = None
+    finished_at: str | None = None
 
     def task(self, task_id: str, capability: str = "") -> TaskState:
         """Return (creating if needed) the :class:`TaskState` for ``task_id``."""
@@ -184,11 +184,11 @@ class WorkflowState:
             self.agents[name] = AgentState(agent=name)
         return self.agents[name]
 
-    def completed_ids(self) -> List[str]:
+    def completed_ids(self) -> list[str]:
         """Return ids of tasks that completed successfully."""
         return [t.task_id for t in self.tasks.values() if t.status == TaskStatus.COMPLETED]
 
-    def pending_ids(self) -> List[str]:
+    def pending_ids(self) -> list[str]:
         """Return ids of tasks not yet in a terminal state."""
         return [t.task_id for t in self.tasks.values() if not t.status.is_terminal]
 

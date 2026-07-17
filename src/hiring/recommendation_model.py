@@ -1,20 +1,18 @@
 from pydantic import BaseModel
-from typing import List
 
 
 class HiringRecommendation(BaseModel):
-
     recommendation: str
 
     confidence: float
 
     fit_score: float
 
-    reasons: List[str]
+    reasons: list[str]
 
-    concerns: List[str]
+    concerns: list[str]
 
-    interview_focus: List[str]
+    interview_focus: list[str]
 
     estimated_offer_level: str
 

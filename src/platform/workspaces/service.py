@@ -10,9 +10,8 @@ from __future__ import annotations
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.errors import QuotaExceededError
-from src.platform.common.ids import generate_id
+from src.platform.common.ids import generate_id, slugify
 from src.platform.common.models import TenantScopedEntity
-from src.platform.common.ids import slugify
 from src.platform.workspaces.models import (
     AIAgentBinding,
     Dashboard,
@@ -57,9 +56,7 @@ class WorkspaceService:
         if max_workspaces is not None:
             current = self.repo.workspaces.count(tenant_id=tenant_id)
             if current >= max_workspaces:
-                raise QuotaExceededError(
-                    f"workspace limit ({max_workspaces}) reached for tenant"
-                )
+                raise QuotaExceededError(f"workspace limit ({max_workspaces}) reached for tenant")
         now = self._clock.now()
         workspace = Workspace(
             id=generate_id("ws"),
@@ -116,8 +113,12 @@ class WorkspaceService:
     ) -> WorkspaceMember:
         """Add a member (e.g. a recruiter) to a workspace."""
         member = self._new_child(
-            WorkspaceMember, tenant_id, workspace_id, "wsm",
-            user_id=user_id, role=role,
+            WorkspaceMember,
+            tenant_id,
+            workspace_id,
+            "wsm",
+            user_id=user_id,
+            role=role,
         )
         return self.repo.members.add(member)
 
@@ -132,8 +133,13 @@ class WorkspaceService:
     ) -> Project:
         """Create a project inside a workspace."""
         project = self._new_child(
-            Project, tenant_id, workspace_id, "proj",
-            name=name, status=status, requisition_ref=requisition_ref,
+            Project,
+            tenant_id,
+            workspace_id,
+            "proj",
+            name=name,
+            status=status,
+            requisition_ref=requisition_ref,
         )
         return self.repo.projects.add(project)
 
@@ -162,16 +168,12 @@ class WorkspaceService:
         self, tenant_id: str, workspace_id: str, name: str, *, kind: str = "summary"
     ) -> Report:
         """Create a report inside a workspace."""
-        report = self._new_child(
-            Report, tenant_id, workspace_id, "rpt", name=name, kind=kind
-        )
+        report = self._new_child(Report, tenant_id, workspace_id, "rpt", name=name, kind=kind)
         return self.repo.reports.add(report)
 
     def add_dashboard(self, tenant_id: str, workspace_id: str, name: str) -> Dashboard:
         """Create a dashboard inside a workspace."""
-        dashboard = self._new_child(
-            Dashboard, tenant_id, workspace_id, "dash", name=name
-        )
+        dashboard = self._new_child(Dashboard, tenant_id, workspace_id, "dash", name=name)
         return self.repo.dashboards.add(dashboard)
 
     def bind_agent(
@@ -179,8 +181,12 @@ class WorkspaceService:
     ) -> AIAgentBinding:
         """Bind an existing platform AI agent (by key) to a workspace."""
         binding = self._new_child(
-            AIAgentBinding, tenant_id, workspace_id, "bind",
-            agent_key=agent_key, enabled=enabled,
+            AIAgentBinding,
+            tenant_id,
+            workspace_id,
+            "bind",
+            agent_key=agent_key,
+            enabled=enabled,
         )
         return self.repo.agent_bindings.add(binding)
 
@@ -189,20 +195,20 @@ class WorkspaceService:
     ) -> KnowledgeBase:
         """Create a knowledge base attached to a workspace."""
         kb = self._new_child(
-            KnowledgeBase, tenant_id, workspace_id, "kb",
-            name=name, source_kind=source_kind,
+            KnowledgeBase,
+            tenant_id,
+            workspace_id,
+            "kb",
+            name=name,
+            source_kind=source_kind,
         )
         return self.repo.knowledge_bases.add(kb)
 
     # -- listings -----------------------------------------------------------
 
-    def _by_workspace(
-        self, repo, tenant_id: str, workspace_id: str
-    ) -> list[TenantScopedEntity]:
+    def _by_workspace(self, repo, tenant_id: str, workspace_id: str) -> list[TenantScopedEntity]:
         """Return a repo's children belonging to ``workspace_id`` within tenant."""
-        return repo.list(
-            tenant_id=tenant_id, where=lambda e: e.workspace_id == workspace_id
-        )
+        return repo.list(tenant_id=tenant_id, where=lambda e: e.workspace_id == workspace_id)
 
     def projects(self, tenant_id: str, workspace_id: str) -> list[Project]:
         """Return the workspace's projects."""

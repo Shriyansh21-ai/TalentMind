@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Dict
+from typing import Any
 
 from src.ai.core.exceptions import JSONParseError
 
@@ -65,7 +65,7 @@ def extract_json_object(text: str) -> str:
     return text[start:].strip()
 
 
-def parse_json_object(text: str) -> Dict[str, Any]:
+def parse_json_object(text: str) -> dict[str, Any]:
     """Parse ``text`` into a JSON object, tolerating fences / surrounding prose.
 
     Raises:

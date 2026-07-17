@@ -10,21 +10,12 @@ def calculate_semantic_score(candidate, jd_text):
 
     candidate_text = build_candidate_text(candidate)
 
-    jd_embedding = model.encode(
-        jd_text,
-        convert_to_tensor=True,
-        normalize_embeddings=True
-    )
+    jd_embedding = model.encode(jd_text, convert_to_tensor=True, normalize_embeddings=True)
 
     candidate_embedding = model.encode(
-        candidate_text,
-        convert_to_tensor=True,
-        normalize_embeddings=True
+        candidate_text, convert_to_tensor=True, normalize_embeddings=True
     )
 
-    similarity = util.cos_sim(
-        jd_embedding,
-        candidate_embedding
-    )
+    similarity = util.cos_sim(jd_embedding, candidate_embedding)
 
     return float(similarity[0][0]) * 100

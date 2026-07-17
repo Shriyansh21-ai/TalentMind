@@ -46,9 +46,19 @@ def test_every_security_subpackage_imports():
     import importlib
 
     for name in [
-        "common", "identity", "authorization", "audit", "secrets",
-        "observability", "monitoring", "governance", "compliance", "threat",
-        "configuration", "incidents", "analytics",
+        "common",
+        "identity",
+        "authorization",
+        "audit",
+        "secrets",
+        "observability",
+        "monitoring",
+        "governance",
+        "compliance",
+        "threat",
+        "configuration",
+        "incidents",
+        "analytics",
     ]:
         importlib.import_module(f"src.platform.security.{name}")
 
@@ -65,9 +75,18 @@ def test_app_exposes_security_operations_nav():
 def test_build_security_platform_wires_all_services():
     sp = build_security_platform(clock=FrozenClock())
     for key in [
-        "sec.identity", "sec.authorization", "sec.audit", "sec.secrets",
-        "sec.observability", "sec.monitoring", "sec.governance", "sec.compliance",
-        "sec.threat", "sec.configuration", "sec.incidents", "sec.analytics",
+        "sec.identity",
+        "sec.authorization",
+        "sec.audit",
+        "sec.secrets",
+        "sec.observability",
+        "sec.monitoring",
+        "sec.governance",
+        "sec.compliance",
+        "sec.threat",
+        "sec.configuration",
+        "sec.incidents",
+        "sec.analytics",
     ]:
         assert sp.container.has(key)
     assert sp.identity is sp.identity  # lazy singleton
@@ -98,7 +117,9 @@ def test_end_to_end_identity_authz_audit_analytics():
     sp.authorization.hierarchy.define_group("t1", "o1", "rec", ["candidate:read"])
     sp.authorization.hierarchy.define_role("t1", "o1", "recruiter", groups=["rec"])
     allowed = sp.authorization.is_allowed(
-        AuthorizationRequest(tenant_id="t1", subject=ctx.subject, roles=ctx.roles, permission="candidate:read")
+        AuthorizationRequest(
+            tenant_id="t1", subject=ctx.subject, roles=ctx.roles, permission="candidate:read"
+        )
     )
     assert allowed
 

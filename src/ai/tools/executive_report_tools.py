@@ -10,8 +10,12 @@ committee and orchestration frameworks (Module 15).
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
+# Importing the builder auto-registers the agent (AI platform + orchestration).
+from src.ai.agents.executive_report.builder import ExecutiveReportBuilder
+from src.ai.agents.executive_report.export import FORMATS, PACKETS, export_report, suffix_for
+from src.ai.agents.executive_report.templates import TEMPLATES, get_template
 from src.ai.core.runner import AgentRunner
 from src.ai.tools.base import (
     BaseTool,
@@ -21,12 +25,7 @@ from src.ai.tools.base import (
     ToolValidationError,
 )
 
-# Importing the builder auto-registers the agent (AI platform + orchestration).
-from src.ai.agents.executive_report.builder import ExecutiveReportBuilder
-from src.ai.agents.executive_report.export import FORMATS, PACKETS, export_report, suffix_for
-from src.ai.agents.executive_report.templates import TEMPLATES, get_template
-
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 
 def _get_runner() -> AgentRunner:
@@ -60,7 +59,7 @@ _PACKET_KEYWORDS = {
 }
 
 
-def route_request(message: str) -> Dict[str, str]:
+def route_request(message: str) -> dict[str, str]:
     """Infer the template/packet/format from a free-text copilot message."""
     text = (message or "").lower()
     packet = next((p for phrase, p in _PACKET_KEYWORDS.items() if phrase in text), "")
@@ -91,12 +90,12 @@ class ExecutiveReportTool(BaseTool):
         engine="Executive Hiring Report",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         """Require a candidate id."""
         if not tool_input.get("candidate_id"):
             raise ToolValidationError("executive_report requires 'candidate_id'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         """Resolve the candidate, build the report, and summarize + package it."""
         candidate_id = str(tool_input["candidate_id"])
         candidate = context.repository.get(candidate_id)
@@ -110,9 +109,7 @@ class ExecutiveReportTool(BaseTool):
         if fmt not in FORMATS:
             fmt = "pdf"
 
-        builder = ExecutiveReportBuilder(
-            insights_fn=context.insights_fn, ai_runner=_get_runner()
-        )
+        builder = ExecutiveReportBuilder(insights_fn=context.insights_fn, ai_runner=_get_runner())
         report = builder.build(candidate=candidate, jd=context.jd, template=template)
 
         narrative = report.narrative

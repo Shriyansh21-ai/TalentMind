@@ -9,7 +9,7 @@ deterministic no-op and tests inject runners that succeed, fail or conflict.
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
@@ -69,9 +69,7 @@ def resolve_conflict(
         conflict.resolved_value = conflict.target_value
         conflict.resolved = True
     elif strategy == ConflictResolution.LATEST_WINS:
-        conflict.resolved_value = (
-            conflict.source_value if source_newer else conflict.target_value
-        )
+        conflict.resolved_value = conflict.source_value if source_newer else conflict.target_value
         conflict.resolved = True
     conflict.resolution = strategy
     return conflict
@@ -188,9 +186,7 @@ class SynchronizationService:
 
     # -- status & health ----------------------------------------------------
 
-    def jobs(
-        self, tenant_id: str, *, integration_id: str | None = None
-    ) -> list[SyncJob]:
+    def jobs(self, tenant_id: str, *, integration_id: str | None = None) -> list[SyncJob]:
         """Return a tenant's sync jobs, optionally for one integration."""
         where = None
         if integration_id is not None:
@@ -208,6 +204,5 @@ class SynchronizationService:
             "failed": len(failed),
             "records_processed": sum(j.records_processed for j in jobs),
             "unresolved_conflicts": sum(j.unresolved_conflicts for j in jobs),
-            "healthy": len(failed) == 0
-            and all(j.unresolved_conflicts == 0 for j in jobs),
+            "healthy": len(failed) == 0 and all(j.unresolved_conflicts == 0 for j in jobs),
         }

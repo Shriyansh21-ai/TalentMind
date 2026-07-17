@@ -12,8 +12,6 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from enum import Enum
 
-from pydantic import Field
-
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
 from src.platform.common.models import TenantScopedEntity
@@ -174,9 +172,7 @@ class SecretManager:
         """Return secrets whose rotation window has elapsed."""
         now = self._clock.now()
         return [
-            m
-            for m in self.metadata(tenant_id)
-            if m.status_at(now) == SecretStatus.ROTATION_DUE
+            m for m in self.metadata(tenant_id) if m.status_at(now) == SecretStatus.ROTATION_DUE
         ]
 
     def access_log(self, tenant_id: str) -> list[AccessRecord]:

@@ -106,19 +106,46 @@ def _render_overview(sp) -> None:
     st.subheader("System Overview")
     threat = sp.threat.threat_report(_TENANT, _ORG)
     banner = {
-        "none": st.success, "low": st.success, "medium": st.warning,
-        "high": st.error, "critical": st.error,
+        "none": st.success,
+        "low": st.success,
+        "medium": st.warning,
+        "high": st.error,
+        "critical": st.error,
     }.get(threat.highest_risk.value, st.info)
     banner(f"Security status — highest active risk: {threat.highest_risk.value.upper()}")
 
     st.markdown("#### Platform Health & Status")
     rows = [
-        {"component": "Identity", "status": "🟢 operational", "detail": f"{len(sp.identity.list(_TENANT))} identities"},
-        {"component": "Audit chain", "status": "✅ intact" if sp.audit.verify_chain(_TENANT) else "❌ broken", "detail": f"{sp.audit.count(_TENANT)} entries"},
-        {"component": "Secrets", "status": "🟢 operational", "detail": f"{len(sp.secrets.metadata(_TENANT))} managed"},
-        {"component": "Monitoring", "status": "🟢 operational", "detail": f"{len(sp.monitoring.rules_for(_TENANT))} rules"},
-        {"component": "Governance", "status": "🟢 operational", "detail": f"{len(sp.governance.policies_for(_TENANT))} policies"},
-        {"component": "Threat detection", "status": "🟢 operational", "detail": f"{threat.total_events} events"},
+        {
+            "component": "Identity",
+            "status": "🟢 operational",
+            "detail": f"{len(sp.identity.list(_TENANT))} identities",
+        },
+        {
+            "component": "Audit chain",
+            "status": "✅ intact" if sp.audit.verify_chain(_TENANT) else "❌ broken",
+            "detail": f"{sp.audit.count(_TENANT)} entries",
+        },
+        {
+            "component": "Secrets",
+            "status": "🟢 operational",
+            "detail": f"{len(sp.secrets.metadata(_TENANT))} managed",
+        },
+        {
+            "component": "Monitoring",
+            "status": "🟢 operational",
+            "detail": f"{len(sp.monitoring.rules_for(_TENANT))} rules",
+        },
+        {
+            "component": "Governance",
+            "status": "🟢 operational",
+            "detail": f"{len(sp.governance.policies_for(_TENANT))} policies",
+        },
+        {
+            "component": "Threat detection",
+            "status": "🟢 operational",
+            "detail": f"{threat.total_events} events",
+        },
     ]
     st.dataframe(rows, use_container_width=True, hide_index=True)
 

@@ -7,7 +7,6 @@ ranked candidates, a CSV download button, and a JSON file written to
 
 import json
 import os
-from typing import List, Tuple
 
 import pandas as pd
 import streamlit as st
@@ -19,7 +18,7 @@ EXPORT_LIMIT = 100
 PREVIEW_ROWS = 20
 
 
-def render_export(results: List[Tuple[Candidate, float]]) -> None:
+def render_export(results: list[tuple[Candidate, float]]) -> None:
     """Render the export section for the top ranked candidates.
 
     Args:

@@ -15,16 +15,15 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
+from src.ai.committee.schemas import CommitteeDecision
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.metadata import AgentMetadata
 from src.ai.core.registry import registry
 from src.ai.prompts.loader import PromptLoader
 from src.ai.providers.base import LLMMessage
 from src.ai.providers.composers import register_composer
-
-from src.ai.committee.schemas import CommitteeDecision
 
 _PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "prompts")
 _prompt_loader = PromptLoader(_PROMPTS_DIR)
@@ -34,17 +33,17 @@ _prompt_loader = PromptLoader(_PROMPTS_DIR)
 class ChairInput:
     """Typed input for the Chair: the full structured deliberation."""
 
-    candidate_overview: Dict[str, Any] = field(default_factory=dict)
+    candidate_overview: dict[str, Any] = field(default_factory=dict)
     resume_summary: str = ""
     jd_summary: str = ""
     mode: str = "balanced"
-    opinions: List[Dict[str, Any]] = field(default_factory=list)
-    consensus: Dict[str, Any] = field(default_factory=dict)
-    conflicts: List[Dict[str, Any]] = field(default_factory=list)
-    confidence: Dict[str, Any] = field(default_factory=dict)
-    discussion: Dict[str, Any] = field(default_factory=dict)
+    opinions: list[dict[str, Any]] = field(default_factory=list)
+    consensus: dict[str, Any] = field(default_factory=dict)
+    conflicts: list[dict[str, Any]] = field(default_factory=list)
+    confidence: dict[str, Any] = field(default_factory=dict)
+    discussion: dict[str, Any] = field(default_factory=dict)
 
-    def as_evidence(self) -> Dict[str, Any]:
+    def as_evidence(self) -> dict[str, Any]:
         """Return the deliberation as the agent's evidence dict."""
         return {
             "candidate_overview": self.candidate_overview,
@@ -64,12 +63,12 @@ class ChairInput:
 # ---------------------------------------------------------------------------
 
 
-def _opinions_by_role(evidence: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+def _opinions_by_role(evidence: dict[str, Any]) -> dict[str, dict[str, Any]]:
     """Index opinions by role for justification lookups."""
     return {o.get("role", ""): o for o in evidence.get("opinions", [])}
 
 
-def compose_committee_decision(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_committee_decision(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose a :class:`CommitteeDecision` from deliberation."""
     ev = evidence or {}
     consensus = ev.get("consensus", {})
@@ -111,9 +110,11 @@ def compose_committee_decision(evidence: Dict[str, Any]) -> Dict[str, Any]:
         )
 
     interview = by_role.get("interview_lead", {})
-    interview_priorities = list(interview.get("strengths", []))[:4] or list(interview.get("concerns", []))[:4]
+    interview_priorities = (
+        list(interview.get("strengths", []))[:4] or list(interview.get("concerns", []))[:4]
+    )
 
-    remaining_unknowns: List[str] = list(ev.get("discussion", {}).get("missing_evidence", []))
+    remaining_unknowns: list[str] = list(ev.get("discussion", {}).get("missing_evidence", []))
     unknown_expl = confidence.get("explanations", {}).get("unknown_risk")
     if unknown_expl:
         remaining_unknowns.append(unknown_expl)
@@ -131,8 +132,10 @@ def compose_committee_decision(evidence: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "executive_summary": executive_summary,
         "recommendation": recommendation,
-        "business_justification": business_justification or "No business justification evidence available.",
-        "technical_justification": technical_justification or "No technical justification evidence available.",
+        "business_justification": business_justification
+        or "No business justification evidence available.",
+        "technical_justification": technical_justification
+        or "No technical justification evidence available.",
         "hiring_risks": hiring_risks[:6],
         "interview_priorities": interview_priorities,
         "remaining_unknowns": remaining_unknowns[:6],
@@ -141,9 +144,9 @@ def compose_committee_decision(evidence: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _follow_ups(recommendation: str, ev: Dict[str, Any]) -> List[str]:
+def _follow_ups(recommendation: str, ev: dict[str, Any]) -> list[str]:
     """Derive concrete follow-up actions from the recommendation + gaps."""
-    actions: List[str] = []
+    actions: list[str] = []
     low = recommendation.lower()
     if "hire" in low and "no" not in low:
         actions.append("Advance to interview; confirm the committee's validation items.")
@@ -181,22 +184,22 @@ class CommitteeChairAgent(BaseAgent):
     )
     output_schema = CommitteeDecision
 
-    def build_messages(self, payload, loader, evidence: Dict[str, Any]) -> List[LLMMessage]:
+    def build_messages(self, payload, loader, evidence: dict[str, Any]) -> list[LLMMessage]:
         """Render prompts from the committee's own ``prompts/`` directory."""
         return super().build_messages(payload, _prompt_loader, evidence)
 
-    def build_evidence(self, payload: ChairInput) -> Dict[str, Any]:
+    def build_evidence(self, payload: ChairInput) -> dict[str, Any]:
         """Return the deliberation as evidence."""
         return payload.as_evidence()
 
-    def prompt_values(self, payload: ChairInput, evidence: Dict[str, Any]) -> Dict[str, str]:
+    def prompt_values(self, payload: ChairInput, evidence: dict[str, Any]) -> dict[str, str]:
         """Supply candidate + consensus placeholders for the prompt."""
         return {
             "candidate_id": payload.candidate_overview.get("candidate_id", "unknown"),
             "consensus_recommendation": payload.consensus.get("recommendation", "Hold"),
         }
 
-    def cache_dimensions(self, payload: ChairInput) -> Tuple[str, str]:
+    def cache_dimensions(self, payload: ChairInput) -> tuple[str, str]:
         """Cache by candidate id + a deliberation signature."""
         cid = payload.candidate_overview.get("candidate_id", "committee")
         signature = json.dumps(payload.as_evidence(), sort_keys=True, default=str)

@@ -8,7 +8,7 @@ system must not be reported as satisfied without one. No I/O.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compliance.schemas import ApprovalMatrix, ComplianceNarrative
 
@@ -40,14 +40,14 @@ _FORBIDDEN_PHRASES = (
 )
 
 
-def available_sources(evidence: Dict[str, Any]) -> List[str]:
+def available_sources(evidence: dict[str, Any]) -> list[str]:
     """Return the evidence sources actually consulted for this compliance review."""
     return list(dict.fromkeys(evidence.get("evidence_sources", [])))
 
 
-def evidence_coverage_warnings(evidence: Dict[str, Any]) -> List[str]:
+def evidence_coverage_warnings(evidence: dict[str, Any]) -> list[str]:
     """Return warnings when key evidence sources are missing (Module 14)."""
-    warnings: List[str] = []
+    warnings: list[str] = []
     if not evidence.get("data_available"):
         warnings.append(
             "No governance / workflow / document system connected — approval and "
@@ -59,14 +59,18 @@ def evidence_coverage_warnings(evidence: Dict[str, Any]) -> List[str]:
     return warnings
 
 
-def validate_safety(narrative: ComplianceNarrative, approvals: ApprovalMatrix, data_available: bool) -> List[str]:
+def validate_safety(
+    narrative: ComplianceNarrative, approvals: ApprovalMatrix, data_available: bool
+) -> list[str]:
     """Assert the no-legal-advice / no-fabrication guarantees (Module 14)."""
-    warnings: List[str] = []
+    warnings: list[str] = []
 
     blob = " ".join(str(v) for v in narrative.to_dict().values() if isinstance(v, str)).lower()
     for phrase in _FORBIDDEN_PHRASES:
         if phrase in blob:
-            warnings.append(f"Narrative contains unsupported legal-advice language ({phrase!r}); flagged.")
+            warnings.append(
+                f"Narrative contains unsupported legal-advice language ({phrase!r}); flagged."
+            )
 
     # Without a connected system, no required approval may be reported Complete.
     if not data_available:

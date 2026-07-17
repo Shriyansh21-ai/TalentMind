@@ -20,9 +20,7 @@ duplication; the engine imports the leaf modules lazily to avoid an import cycle
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
-
-from src.ai.core.runner import AgentRunner
+from typing import Any, Protocol, runtime_checkable
 
 from src.ai.agents.hiring_intelligence.agent import (
     HiringIntelligenceInput,
@@ -36,7 +34,7 @@ from src.ai.agents.hiring_intelligence.schemas import (
     WorkforceNarrative,
 )
 from src.ai.agents.hiring_intelligence.templates import ANALYTICS_COHORT
-
+from src.ai.core.runner import AgentRunner
 
 # ---------------------------------------------------------------------------
 # Module 13 — future analytics-data provider interface (interface only)
@@ -58,15 +56,15 @@ class WorkforceDataProvider(Protocol):
         """Return True when live workforce analytics data can be served."""
         ...
 
-    def get_trends(self) -> Optional[Dict[str, Any]]:
+    def get_trends(self) -> dict[str, Any] | None:
         """Return historical trend series or ``None``."""
         ...
 
-    def get_team_metrics(self) -> Optional[List[Dict[str, Any]]]:
+    def get_team_metrics(self) -> list[dict[str, Any]] | None:
         """Return team/department/BU aggregates or ``None``."""
         ...
 
-    def get_capacity(self) -> Optional[Dict[str, Any]]:
+    def get_capacity(self) -> dict[str, Any] | None:
         """Return recruiter/interviewer capacity data or ``None``."""
         ...
 
@@ -78,15 +76,15 @@ class NullWorkforceDataProvider:
         """Always False — no analytics source is connected."""
         return False
 
-    def get_trends(self) -> Optional[Dict[str, Any]]:
+    def get_trends(self) -> dict[str, Any] | None:
         """Return ``None`` — no trend data available."""
         return None
 
-    def get_team_metrics(self) -> Optional[List[Dict[str, Any]]]:
+    def get_team_metrics(self) -> list[dict[str, Any]] | None:
         """Return ``None`` — no team data available."""
         return None
 
-    def get_capacity(self) -> Optional[Dict[str, Any]]:
+    def get_capacity(self) -> dict[str, Any] | None:
         """Return ``None`` — no capacity data available."""
         return None
 
@@ -107,7 +105,7 @@ def is_positive(recommendation: str) -> bool:
     return any(p in r for p in _POSITIVE)
 
 
-def share(items: List[Any], predicate) -> float:
+def share(items: list[Any], predicate) -> float:
     """Return the 0-1 share of ``items`` satisfying ``predicate`` (0 if empty)."""
     if not items:
         return 0.0
@@ -125,8 +123,24 @@ def hiring_health_label(hire_share: float, high_risk_share: float) -> str:
 
 
 _ROLE_FAMILY_HINTS = [
-    ("Data / ML", ("machine learning", "ml engineer", "data scientist", "data engineer", "ai ", "mlops")),
-    ("Engineering", ("engineer", "developer", "sde", "backend", "frontend", "full stack", "devops", "sre", "architect")),
+    (
+        "Data / ML",
+        ("machine learning", "ml engineer", "data scientist", "data engineer", "ai ", "mlops"),
+    ),
+    (
+        "Engineering",
+        (
+            "engineer",
+            "developer",
+            "sde",
+            "backend",
+            "frontend",
+            "full stack",
+            "devops",
+            "sre",
+            "architect",
+        ),
+    ),
     ("Product", ("product manager", "product owner", "program manager")),
     ("Design", ("designer", "ux", "ui ")),
     ("Management", ("manager", "director", "head of", "vp ", "lead")),
@@ -154,14 +168,16 @@ def _num(obj: Any, attr: str, default: float = 0.0) -> float:
         return default
 
 
-def build_cohort_snapshots(candidates: List[Any], jd: str, insights_fn: Any) -> List[Dict[str, Any]]:
+def build_cohort_snapshots(
+    candidates: list[Any], jd: str, insights_fn: Any
+) -> list[dict[str, Any]]:
     """Build per-candidate Observed snapshots from the cached insight engines."""
     if insights_fn is None:
         from src.insights.builder import build_insights
 
         insights_fn = build_insights
 
-    snapshots: List[Dict[str, Any]] = []
+    snapshots: list[dict[str, Any]] = []
     for candidate in candidates:
         try:
             insights = insights_fn(candidate, jd)
@@ -197,17 +213,21 @@ def build_cohort_snapshots(candidates: List[Any], jd: str, insights_fn: Any) -> 
     return snapshots
 
 
-def build_distributions(cohort: List[Dict[str, Any]]) -> List[Distribution]:
+def build_distributions(cohort: list[dict[str, Any]]) -> list[Distribution]:
     """Build the Module 1 observed distributions over the analyzed cohort."""
     total = len(cohort)
 
     def _dist(name: str, key: str, note: str = "") -> Distribution:
-        counts: Dict[str, int] = {}
+        counts: dict[str, int] = {}
         for s in cohort:
             counts[str(s.get(key, "Unknown"))] = counts.get(str(s.get(key, "Unknown")), 0) + 1
         return Distribution(name=name, counts=counts, total=total, register="Observed", note=note)
 
-    recommendation = _dist("Recommendation distribution", "recommendation", "Offer/recommendation mix across the analyzed cohort.")
+    recommendation = _dist(
+        "Recommendation distribution",
+        "recommendation",
+        "Offer/recommendation mix across the analyzed cohort.",
+    )
     risk = _dist("Risk distribution", "risk_level")
     role_family = _dist("Role-family distribution", "role_family")
 
@@ -215,8 +235,11 @@ def build_distributions(cohort: List[Dict[str, Any]]) -> List[Distribution]:
     for s in cohort:
         interview_counts["Ready" if s.get("interview_ready") else "Not ready"] += 1
     interview = Distribution(
-        name="Interview-readiness distribution", counts=interview_counts, total=total,
-        register="Observed", note="Cohort interview-readiness proxy from capability + risk.",
+        name="Interview-readiness distribution",
+        counts=interview_counts,
+        total=total,
+        register="Observed",
+        note="Cohort interview-readiness proxy from capability + risk.",
     )
     return [recommendation, risk, role_family, interview]
 
@@ -229,9 +252,9 @@ class HiringIntelligenceEngine:
     def __init__(
         self,
         *,
-        ai_runner: Optional[AgentRunner] = None,
-        insights_fn: Optional[Any] = None,
-        data_provider: Optional[WorkforceDataProvider] = None,
+        ai_runner: AgentRunner | None = None,
+        insights_fn: Any | None = None,
+        data_provider: WorkforceDataProvider | None = None,
     ) -> None:
         """Wire the engine's collaborators (all optional; sane defaults used)."""
         self.ai_runner = ai_runner or AgentRunner()
@@ -242,7 +265,7 @@ class HiringIntelligenceEngine:
 
     def build(
         self,
-        candidates: Optional[List[Any]] = None,
+        candidates: list[Any] | None = None,
         *,
         repository: Any = None,
         jd: str = "",
@@ -296,14 +319,20 @@ class HiringIntelligenceEngine:
             "forecast": [f.to_dict() for f in forecast],
             "benchmarks": [b.to_dict() for b in benchmarks],
             "optimizations": [o.to_dict() for o in optimizations],
-            "key_insights": insights_mod.build_key_insights(cohort, kpis, bottlenecks, optimizations, data_available),
+            "key_insights": insights_mod.build_key_insights(
+                cohort, kpis, bottlenecks, optimizations, data_available
+            ),
         }
 
         narrative = self._narrative(evidence)
 
         chart_data = charts_mod.build_chart_data(
-            distributions=distributions, kpis=kpis, bottlenecks=bottlenecks,
-            team_metrics=team_metrics, forecast=forecast, optimizations=optimizations,
+            distributions=distributions,
+            kpis=kpis,
+            bottlenecks=bottlenecks,
+            team_metrics=team_metrics,
+            forecast=forecast,
+            optimizations=optimizations,
         )
 
         warnings = validators.evidence_coverage_warnings(evidence)
@@ -331,7 +360,7 @@ class HiringIntelligenceEngine:
 
     # -- narrative ----------------------------------------------------------
 
-    def _narrative(self, evidence: Dict[str, Any]) -> WorkforceNarrative:
+    def _narrative(self, evidence: dict[str, Any]) -> WorkforceNarrative:
         """Run the agent; fall back to the deterministic composer on any failure."""
         payload = HiringIntelligenceInput(
             cohort_size=evidence["cohort_size"],
@@ -344,11 +373,17 @@ class HiringIntelligenceEngine:
                 return result.data
         except Exception:
             pass
-        return WorkforceNarrative(**compose_workforce_narrative(build_intelligence_evidence(payload)))
+        return WorkforceNarrative(
+            **compose_workforce_narrative(build_intelligence_evidence(payload))
+        )
 
     @staticmethod
-    def _sources(cohort: List[Dict[str, Any]], data_available: bool) -> List[str]:
-        sources = ["Candidate Intelligence engine", "Resume Risk Detection", "Hiring Recommendation engine"]
+    def _sources(cohort: list[dict[str, Any]], data_available: bool) -> list[str]:
+        sources = [
+            "Candidate Intelligence engine",
+            "Resume Risk Detection",
+            "Hiring Recommendation engine",
+        ]
         if data_available:
             sources.append("Connected workforce-analytics data")
         return sources

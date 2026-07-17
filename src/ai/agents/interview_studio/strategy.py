@@ -9,7 +9,7 @@ and nothing invented (Modules 15 / 16).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.interview_studio.schemas import InterviewStrategy
 from src.ai.agents.interview_studio.templates import DepthProfile, RoleProfile, get_depth
@@ -19,7 +19,7 @@ SENIOR_YEARS = 8.0
 MID_YEARS = 4.0
 
 
-def _years(evidence: Dict[str, Any]) -> float:
+def _years(evidence: dict[str, Any]) -> float:
     """Return the candidate's years of experience from the overview."""
     ov = evidence.get("candidate_overview") or {}
     try:
@@ -28,7 +28,7 @@ def _years(evidence: Dict[str, Any]) -> float:
         return 0.0
 
 
-def choose_depth(evidence: Dict[str, Any], role: RoleProfile) -> str:
+def choose_depth(evidence: dict[str, Any], role: RoleProfile) -> str:
     """Pick an interview-depth key from seniority + role.
 
     Leadership-heavy roles and senior candidates get the deep loop; everyone
@@ -40,20 +40,24 @@ def choose_depth(evidence: Dict[str, Any], role: RoleProfile) -> str:
     return "standard"
 
 
-def _difficulty(evidence: Dict[str, Any]) -> str:
+def _difficulty(evidence: dict[str, Any]) -> str:
     """Return a qualitative difficulty framing scaled to seniority + strength."""
     years = _years(evidence)
     intelligence = evidence.get("intelligence") or {}
     tech = intelligence.get("technical_score")
     strong = isinstance(tech, (int, float)) and tech >= 75
     if years >= SENIOR_YEARS:
-        return "Senior — architecture-heavy, high bar" if strong else "Senior — validate depth carefully"
+        return (
+            "Senior — architecture-heavy, high bar"
+            if strong
+            else "Senior — validate depth carefully"
+        )
     if years >= MID_YEARS:
         return "Mid — solid depth with a stretch component"
     return "Early-career — fundamentals with growth signals"
 
 
-def _objectives(evidence: Dict[str, Any], role: RoleProfile) -> List[str]:
+def _objectives(evidence: dict[str, Any], role: RoleProfile) -> list[str]:
     """Interview objectives derived from role fit + evidence coverage."""
     objectives = [
         f"Confirm {role.name} depth against the role's mandatory requirements",
@@ -68,24 +72,26 @@ def _objectives(evidence: Dict[str, Any], role: RoleProfile) -> List[str]:
     return objectives
 
 
-def _priorities(evidence: Dict[str, Any]) -> List[str]:
+def _priorities(evidence: dict[str, Any]) -> list[str]:
     """Interview priorities, committee-first then recommendation focus.
 
     The committee's interview priorities are authoritative when present; the
     recommendation engine's interview focus fills any gap. Never invented.
     """
-    priorities: List[str] = []
+    priorities: list[str] = []
     committee = evidence.get("committee") or {}
     priorities.extend((committee.get("decision") or {}).get("interview_priorities", []) or [])
     recommendation = evidence.get("recommendation") or {}
     priorities.extend(recommendation.get("interview_focus", []) or [])
     intelligence = evidence.get("intelligence") or {}
-    priorities.extend(f"Probe development area: {w}" for w in (intelligence.get("weaknesses") or [])[:2])
+    priorities.extend(
+        f"Probe development area: {w}" for w in (intelligence.get("weaknesses") or [])[:2]
+    )
     # De-duplicate, preserve order, keep it scannable.
     return list(dict.fromkeys(p for p in priorities if p))[:6]
 
 
-def _checkpoints(depth: DepthProfile) -> List[str]:
+def _checkpoints(depth: DepthProfile) -> list[str]:
     """Decision checkpoints keyed to the loop's structure (Module 8 handoff)."""
     checkpoints = [
         "After the technical stage: proceed only if depth is confirmed",
@@ -97,7 +103,9 @@ def _checkpoints(depth: DepthProfile) -> List[str]:
     return checkpoints
 
 
-def build_strategy(evidence: Dict[str, Any], role: RoleProfile, depth_key: str = "") -> InterviewStrategy:
+def build_strategy(
+    evidence: dict[str, Any], role: RoleProfile, depth_key: str = ""
+) -> InterviewStrategy:
     """Assemble the :class:`InterviewStrategy` for a candidate (deterministic).
 
     Args:

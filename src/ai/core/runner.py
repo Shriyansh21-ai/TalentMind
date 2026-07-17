@@ -13,12 +13,13 @@ policy is swappable — SOLID by construction.
 from __future__ import annotations
 
 import time
-from typing import Any, Callable, List, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
-from src.ai.config.settings import AISettings
 from src.ai.cache.base import BaseCache, NullCache
 from src.ai.cache.file_cache import FileCache
 from src.ai.cache.key import build_cache_key
+from src.ai.config.settings import AISettings
 from src.ai.core.agent_config import AgentConfig
 from src.ai.core.base_agent import BaseAgent
 from src.ai.core.exceptions import (
@@ -50,22 +51,18 @@ class AgentRunner:
 
     def __init__(
         self,
-        settings: Optional[AISettings] = None,
+        settings: AISettings | None = None,
         *,
-        cache: Optional[BaseCache] = None,
-        telemetry: Optional[TelemetryLogger] = None,
-        safety: Optional[SafetyGuard] = None,
-        context_builder: Optional[ContextBuilder] = None,
-        provider_selector: Optional[
-            Callable[[AISettings], Tuple[BaseLLMProvider, list]]
-        ] = None,
+        cache: BaseCache | None = None,
+        telemetry: TelemetryLogger | None = None,
+        safety: SafetyGuard | None = None,
+        context_builder: ContextBuilder | None = None,
+        provider_selector: Callable[[AISettings], tuple[BaseLLMProvider, list]] | None = None,
     ) -> None:
         """Wire the runner's collaborators (all optional; sane defaults used)."""
         self.settings = settings or AISettings.from_env()
         self.cache = cache or (
-            FileCache(self.settings.cache_dir)
-            if self.settings.cache_enabled
-            else NullCache()
+            FileCache(self.settings.cache_dir) if self.settings.cache_enabled else NullCache()
         )
         self.telemetry = telemetry or get_default_logger(self.settings.telemetry_dir)
         self.safety = safety or SafetyGuard()
@@ -78,7 +75,7 @@ class AgentRunner:
         self,
         agent: BaseAgent,
         payload: Any,
-        config: Optional[AgentConfig] = None,
+        config: AgentConfig | None = None,
     ) -> AgentResult:
         """Execute ``agent`` on ``payload`` and return a standardized result."""
         config = config or AgentConfig()
@@ -134,7 +131,7 @@ class AgentRunner:
         self._emit_telemetry(context, result)
         return result
 
-    def peek(self, agent: BaseAgent, payload: Any) -> Optional[AgentResult]:
+    def peek(self, agent: BaseAgent, payload: Any) -> AgentResult | None:
         """Return a cached result without ever calling a provider.
 
         Used by the UI to auto-load a previously-generated analysis on demand
@@ -172,7 +169,7 @@ class AgentRunner:
             scope=scope,
         )
 
-    def _read_cache(self, cache_key: str, schema_cls) -> Optional[Any]:
+    def _read_cache(self, cache_key: str, schema_cls) -> Any | None:
         """Return a validated cached payload, or ``None`` on miss/mismatch."""
         cached = self.cache.get(cache_key)
         if not cached or "data" not in cached:
@@ -182,14 +179,12 @@ class AgentRunner:
         except Exception:
             return None  # treat stale/incompatible cache as a miss
 
-    def _execute(
-        self, agent, payload, evidence, schema_cls, config: AgentConfig
-    ) -> AgentResult:
+    def _execute(self, agent, payload, evidence, schema_cls, config: AgentConfig) -> AgentResult:
         """Provider selection, retries, validation, safety and fallback."""
         max_retries = (
             config.max_retries if config.max_retries is not None else self.settings.max_retries
         )
-        warnings: List[str] = []
+        warnings: list[str] = []
 
         provider, provider_warnings = self._get_provider(self.settings)
         warnings.extend(provider_warnings)
@@ -270,7 +265,7 @@ class AgentRunner:
         Returns ``(instance_or_None, usage, retries_used, last_error)``.
         """
         usage = TokenUsage()
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
         retries = 0
 
         # Deterministic providers are exact — a single attempt, no corrections.

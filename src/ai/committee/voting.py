@@ -9,8 +9,6 @@ outweigh several thinly-supported opinions.
 
 from __future__ import annotations
 
-from typing import List
-
 from src.ai.committee.schemas import (
     CommitteeMode,
     MemberOpinion,
@@ -94,7 +92,7 @@ def mode_stance_bias(mode: CommitteeMode) -> float:
     return 0.0
 
 
-def stance_distribution(opinions: List[MemberOpinion]) -> dict:
+def stance_distribution(opinions: list[MemberOpinion]) -> dict:
     """Return a count of members per recommendation label (transparency only)."""
     dist: dict = {}
     for opinion in opinions:

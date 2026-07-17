@@ -8,7 +8,6 @@ durable / distributed store can replace it later without touching callers.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict
 
 from src.ai.copilot.history import ConversationHistory
 from src.ai.copilot.state import ConversationState
@@ -35,7 +34,7 @@ class SessionStore:
     """In-memory ``session_id -> CopilotSession`` store."""
 
     def __init__(self) -> None:
-        self._sessions: Dict[str, CopilotSession] = {}
+        self._sessions: dict[str, CopilotSession] = {}
 
     def get_or_create(self, session_id: str) -> CopilotSession:
         """Return the session for ``session_id``, creating it if new."""

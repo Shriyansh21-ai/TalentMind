@@ -10,7 +10,6 @@ agreements do not manufacture a "strong consensus".
 from __future__ import annotations
 
 import math
-from typing import List
 
 from src.ai.committee.schemas import (
     CommitteeMode,
@@ -37,7 +36,7 @@ def _direction(stance: float) -> int:
     return 0
 
 
-def build_consensus(opinions: List[MemberOpinion], mode: CommitteeMode) -> Consensus:
+def build_consensus(opinions: list[MemberOpinion], mode: CommitteeMode) -> Consensus:
     """Return the evidence-weighted :class:`Consensus` for the opinions."""
     weights = {o.role: weight_of(o, mode) for o in opinions}
     total_w = sum(weights.values())
@@ -58,9 +57,10 @@ def build_consensus(opinions: List[MemberOpinion], mode: CommitteeMode) -> Conse
     recommendation = recommendation_from_stance(weighted_stance)
 
     # Dispersion (weighted std of member stances around the raw mean).
-    variance = sum(
-        weights[o.role] * (stance_of(o.recommendation) - raw_stance) ** 2 for o in opinions
-    ) / total_w
+    variance = (
+        sum(weights[o.role] * (stance_of(o.recommendation) - raw_stance) ** 2 for o in opinions)
+        / total_w
+    )
     dispersion = math.sqrt(variance)
 
     # Agreement: share of weight aligned with the committee direction.
@@ -71,7 +71,9 @@ def build_consensus(opinions: List[MemberOpinion], mode: CommitteeMode) -> Conse
     agreement_ratio = agree_w / total_w
 
     level = _classify(agreement_ratio, dispersion)
-    reasoning = _reasoning(recommendation, level, agreement_ratio, dispersion, mode, opinions, weights)
+    reasoning = _reasoning(
+        recommendation, level, agreement_ratio, dispersion, mode, opinions, weights
+    )
 
     return Consensus(
         level=level,
@@ -101,12 +103,14 @@ def _reasoning(
     agreement: float,
     dispersion: float,
     mode: CommitteeMode,
-    opinions: List[MemberOpinion],
+    opinions: list[MemberOpinion],
     weights: dict,
 ) -> str:
     """Produce confidence-weighted reasoning explaining the consensus."""
     top = sorted(opinions, key=lambda o: weights[o.role], reverse=True)[:3]
-    drivers = ", ".join(f"{o.role_title} ({o.recommendation.value}, w={weights[o.role]:.2f})" for o in top)
+    drivers = ", ".join(
+        f"{o.role_title} ({o.recommendation.value}, w={weights[o.role]:.2f})" for o in top
+    )
     return (
         f"{level.value}: committee leans '{recommendation.value}'. "
         f"{agreement * 100:.0f}% of evidence weight aligns with this direction "

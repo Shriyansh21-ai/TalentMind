@@ -8,8 +8,7 @@ speculation. This is the structural guarantee behind Module 17's safety rule.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from dataclasses import dataclass
 
 from src.ai.agents.resume.extractors import ResumeDocument
 from src.ai.agents.resume.metrics import ResumeMetrics
@@ -26,9 +25,14 @@ class RiskFinding:
     evidence: str
     severity: str = "low"  # low | medium | high
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> dict[str, str]:
         """Return a JSON-serializable dict of the finding."""
-        return {"type": self.type, "issue": self.issue, "evidence": self.evidence, "severity": self.severity}
+        return {
+            "type": self.type,
+            "issue": self.issue,
+            "evidence": self.evidence,
+            "severity": self.severity,
+        }
 
 
 def _year_of(date_str: str) -> int | None:
@@ -39,9 +43,9 @@ def _year_of(date_str: str) -> int | None:
     return int(match.group(0)) if match else None
 
 
-def detect_risks(doc: ResumeDocument, metrics: ResumeMetrics) -> List[RiskFinding]:
+def detect_risks(doc: ResumeDocument, metrics: ResumeMetrics) -> list[RiskFinding]:
     """Return the list of evidence-backed resume-risk findings."""
-    findings: List[RiskFinding] = []
+    findings: list[RiskFinding] = []
 
     # 1) Missing dates on experience entries.
     for exp in doc.experiences:
@@ -130,8 +134,11 @@ def detect_risks(doc: ResumeDocument, metrics: ResumeMetrics) -> List[RiskFindin
 
     # 7) Resume inflation: seniority claims not supported by experience length.
     inflated = [
-        e for e in doc.experiences
-        if any(w in e.title.lower() for w in ("senior", "lead", "principal", "staff", "head", "chief"))
+        e
+        for e in doc.experiences
+        if any(
+            w in e.title.lower() for w in ("senior", "lead", "principal", "staff", "head", "chief")
+        )
     ]
     if inflated and doc.years_of_experience and doc.years_of_experience < 3:
         findings.append(
@@ -146,9 +153,9 @@ def detect_risks(doc: ResumeDocument, metrics: ResumeMetrics) -> List[RiskFindin
     return findings
 
 
-def positive_signals(doc: ResumeDocument, metrics: ResumeMetrics) -> List[str]:
+def positive_signals(doc: ResumeDocument, metrics: ResumeMetrics) -> list[str]:
     """Return evidence-backed positive signals (balances the risk report)."""
-    signals: List[str] = []
+    signals: list[str] = []
     if metrics.quantified_statements:
         signals.append(f"{len(metrics.quantified_statements)} quantified achievement(s) present.")
     if metrics.production_exposure:
@@ -164,7 +171,7 @@ def positive_signals(doc: ResumeDocument, metrics: ResumeMetrics) -> List[str]:
     return signals
 
 
-def risk_level(findings: List[RiskFinding]) -> str:
+def risk_level(findings: list[RiskFinding]) -> str:
     """Roll findings up into an overall Low/Medium/High resume-risk level."""
     if any(f.severity == "high" for f in findings):
         return "High"

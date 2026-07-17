@@ -10,27 +10,7 @@ contradicts) the deterministic engines.
 from __future__ import annotations
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
-
-from src.insights.builder import build_insights
-from src.interview.planner import build_interview_plan
-
-from src.ai.config.settings import AISettings
-from src.ai.core.agent_config import AgentConfig
-from src.ai.core.response import AgentStatus
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.cache.file_cache import FileCache
-from src.ai.cache.key import build_cache_key
-from src.ai.telemetry.logger import TelemetryLogger
-from src.ai.prompts.loader import PromptLoader, get_default_loader
-from src.ai.providers.factory import available_providers, get_provider
-from src.ai.providers.local import LocalHeuristicProvider
-from src.ai.schemas.hiring_analysis import HiringAnalysis
-from src.ai.validators.json_validator import validate_text
-from src.ai.validators.safety import SafetyGuard
-from src.ai.core.exceptions import SchemaValidationError, JSONParseError
 
 from src.ai.agents.hiring_analyst import (
     HiringAnalystInput,
@@ -38,6 +18,23 @@ from src.ai.agents.hiring_analyst import (
     compose_hiring_analysis,
     hiring_analyst_agent,
 )
+from src.ai.cache.file_cache import FileCache
+from src.ai.cache.key import build_cache_key
+from src.ai.config.settings import AISettings
+from src.ai.core.agent_config import AgentConfig
+from src.ai.core.exceptions import JSONParseError, SchemaValidationError
+from src.ai.core.registry import registry
+from src.ai.core.response import AgentStatus
+from src.ai.core.runner import AgentRunner
+from src.ai.prompts.loader import PromptLoader, get_default_loader
+from src.ai.providers.factory import available_providers, get_provider
+from src.ai.providers.local import LocalHeuristicProvider
+from src.ai.schemas.hiring_analysis import HiringAnalysis
+from src.ai.telemetry.logger import TelemetryLogger
+from src.ai.validators.json_validator import validate_text
+from src.ai.validators.safety import SafetyGuard
+from src.insights.builder import build_insights
+from src.interview.planner import build_interview_plan
 
 JD = "python machine learning llm aws docker rag pytorch"
 
@@ -50,8 +47,9 @@ def _input(**kwargs) -> HiringAnalystInput:
 
 
 def _runner(tmp_path) -> AgentRunner:
-    settings = AISettings(provider="local", cache_dir=str(tmp_path / "cache"),
-                          telemetry_dir=str(tmp_path / "logs"))
+    settings = AISettings(
+        provider="local", cache_dir=str(tmp_path / "cache"), telemetry_dir=str(tmp_path / "logs")
+    )
     return AgentRunner(
         settings=settings,
         cache=FileCache(settings.cache_dir),
@@ -107,15 +105,20 @@ def test_prompt_templates_load_and_render():
     system = loader.render("hiring_analyst_system", "v1")
     assert "Hiring Analyst" in system
     user = loader.render(
-        "hiring_analyst_user", "v1",
-        jd="x", evidence_json="{}", schema_fields="- a",
+        "hiring_analyst_user",
+        "v1",
+        jd="x",
+        evidence_json="{}",
+        schema_fields="- a",
     )
     assert "EVIDENCE" in user
 
 
 def test_prompt_missing_placeholder_raises():
     import pytest
+
     from src.ai.core.exceptions import PromptRenderError
+
     loader = PromptLoader()
     with pytest.raises(PromptRenderError):
         loader.render("hiring_analyst_user", "v1", jd="only")
@@ -132,12 +135,14 @@ def test_schema_has_no_score_fields():
 
 def test_validate_text_rejects_bad_json():
     import pytest
+
     with pytest.raises(JSONParseError):
         validate_text("not json at all", HiringAnalysis)
 
 
 def test_validate_text_rejects_incomplete_schema():
     import pytest
+
     with pytest.raises(SchemaValidationError):
         validate_text('{"executive_summary": "x"}', HiringAnalysis)
 
@@ -146,7 +151,11 @@ def test_executive_decision_is_coerced():
     data = compose_hiring_analysis(build_evidence(_input()))
     analysis = HiringAnalysis(**data)
     assert analysis.executive_decision in {
-        "Strong Hire", "Hire", "Hold", "Reject", "Insufficient Evidence"
+        "Strong Hire",
+        "Hire",
+        "Hold",
+        "Reject",
+        "Insufficient Evidence",
     }
 
 
@@ -156,8 +165,15 @@ def test_executive_decision_is_coerced():
 
 
 def test_cache_key_changes_with_dimensions():
-    base = dict(agent="a", agent_version="v1", prompt_version="v1",
-                provider="local", model="m", subject_id="C1", scope="jd1")
+    base = dict(
+        agent="a",
+        agent_version="v1",
+        prompt_version="v1",
+        provider="local",
+        model="m",
+        subject_id="C1",
+        scope="jd1",
+    )
     k1 = build_cache_key(**base)
     k2 = build_cache_key(**{**base, "scope": "jd2"})
     k3 = build_cache_key(**{**base, "model": "m2"})

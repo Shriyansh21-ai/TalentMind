@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class Intent(str, Enum):
@@ -48,8 +48,8 @@ class Entities:
         top_k: Requested result count (parsed from "top N").
     """
 
-    candidate_ids: List[str] = field(default_factory=list)
-    skills: List[str] = field(default_factory=list)
+    candidate_ids: list[str] = field(default_factory=list)
+    skills: list[str] = field(default_factory=list)
     query: str = ""
     top_k: int = 5
 
@@ -68,7 +68,7 @@ class IntentResult:
     intent: Intent
     confidence: float
     entities: Entities
-    scores: Dict[str, float] = field(default_factory=dict)
+    scores: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass
@@ -82,13 +82,13 @@ class CopilotPlan:
     """
 
     intent: Intent
-    steps: List[tuple] = field(default_factory=list)
+    steps: list[tuple] = field(default_factory=list)
     rationale: str = ""
-    focus_candidate: Optional[str] = None
-    comparison_ids: List[str] = field(default_factory=list)
+    focus_candidate: str | None = None
+    comparison_ids: list[str] = field(default_factory=list)
 
     @property
-    def tool_names(self) -> List[str]:
+    def tool_names(self) -> list[str]:
         """Return the tool names in the plan."""
         return [name for name, _ in self.steps]
 
@@ -105,7 +105,7 @@ class CopilotAction:
 
     type: str
     label: str
-    params: Dict[str, Any] = field(default_factory=dict)
+    params: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -142,13 +142,13 @@ class CopilotTurn:
     intent: Intent
     reasoning_summary: str = ""
     confidence_note: str = ""
-    tools_used: List[Dict[str, Any]] = field(default_factory=list)
-    evidence_sources: List[str] = field(default_factory=list)
-    follow_ups: List[str] = field(default_factory=list)
-    actions: List[CopilotAction] = field(default_factory=list)
+    tools_used: list[dict[str, Any]] = field(default_factory=list)
+    evidence_sources: list[str] = field(default_factory=list)
+    follow_ups: list[str] = field(default_factory=list)
+    actions: list[CopilotAction] = field(default_factory=list)
     provider: str = "local"
     model: str = ""
     cache_hit: bool = False
     latency_ms: float = 0.0
     status: str = "ok"
-    error: Optional[str] = None
+    error: str | None = None

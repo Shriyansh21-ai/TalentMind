@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import faiss  # noqa: F401
-
 from datetime import timedelta
 
+import faiss  # noqa: F401
 import pytest
 
 from src.platform.api import (
@@ -51,8 +50,12 @@ def test_template_render_and_delivery():
     channel = InMemoryChannel(Channel.EMAIL)
     ns.register_channel(channel)
     ns.register_template(
-        T, O, "welcome", channel=Channel.EMAIL,
-        subject_template="Hi {name}", body_template="Welcome, {name}!",
+        T,
+        O,
+        "welcome",
+        channel=Channel.EMAIL,
+        subject_template="Hi {name}",
+        body_template="Welcome, {name}!",
     )
     n = ns.send(T, O, "u1", template_key="welcome", context={"name": "Jane"})
     assert n.status == DeliveryStatus.SENT
@@ -69,8 +72,14 @@ def test_preference_suppresses_channel():
 def test_scheduled_notification_flushes_when_due():
     clock = FrozenClock()
     ns = NotificationService(clock=clock)
-    ns.send(T, O, "u1", channel=Channel.IN_APP, subject="later",
-            scheduled_for=clock.now() + timedelta(hours=2))
+    ns.send(
+        T,
+        O,
+        "u1",
+        channel=Channel.IN_APP,
+        subject="later",
+        scheduled_for=clock.now() + timedelta(hours=2),
+    )
     assert ns.flush_due(T) == 0  # not yet due
     clock.advance(days=1)
     assert ns.flush_due(T) == 1

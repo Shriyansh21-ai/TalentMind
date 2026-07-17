@@ -10,7 +10,8 @@ framework, a Streamlit page, a background job).
 from __future__ import annotations
 
 import contextlib
-from typing import Any, Iterator, Mapping
+from collections.abc import Iterator, Mapping
+from typing import Any
 
 from src.platform.tenancy.context import TenantContext, use_tenant
 from src.platform.tenancy.resolver import TenantResolver

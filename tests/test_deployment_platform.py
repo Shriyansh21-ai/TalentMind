@@ -49,8 +49,16 @@ def test_every_deployment_subpackage_imports():
     import importlib
 
     for name in [
-        "common", "manager", "environment", "configuration", "backup",
-        "release", "validation", "benchmark", "packaging", "health_check",
+        "common",
+        "manager",
+        "environment",
+        "configuration",
+        "backup",
+        "release",
+        "validation",
+        "benchmark",
+        "packaging",
+        "health_check",
         "bootstrap",
     ]:
         importlib.import_module(f"src.platform.deployment.{name}")
@@ -58,12 +66,20 @@ def test_every_deployment_subpackage_imports():
 
 def test_infra_artifacts_present():
     for artifact in [
-        "Dockerfile", "docker-compose.yml", "docker-compose.dev.yml",
-        "docker-compose.prod.yml", ".dockerignore", "pyproject.toml",
-        "k8s/05-deployment.yaml", "k8s/08-hpa.yaml",
-        ".github/workflows/ci.yml", ".github/workflows/release.yml",
-        "docs/DEVELOPER_GUIDE.md", "docs/ARCHITECTURE.md",
-        "docs/DISASTER_RECOVERY.md", "docs/INSTALL.md",
+        "Dockerfile",
+        "docker-compose.yml",
+        "docker-compose.dev.yml",
+        "docker-compose.prod.yml",
+        ".dockerignore",
+        "pyproject.toml",
+        "k8s/05-deployment.yaml",
+        "k8s/08-hpa.yaml",
+        ".github/workflows/ci.yml",
+        ".github/workflows/release.yml",
+        "docs/DEVELOPER_GUIDE.md",
+        "docs/ARCHITECTURE.md",
+        "docs/DISASTER_RECOVERY.md",
+        "docs/INSTALL.md",
     ]:
         assert (ROOT / artifact).exists(), f"missing infra artifact: {artifact}"
 
@@ -128,8 +144,13 @@ def test_repository_health_is_clean():
 def test_build_deployment_platform_wires_all_services():
     dp = build_deployment_platform(clock=FrozenClock())
     for key in [
-        "dep.environment", "dep.manager", "dep.configuration", "dep.backup",
-        "dep.release", "dep.benchmark", "dep.validator",
+        "dep.environment",
+        "dep.manager",
+        "dep.configuration",
+        "dep.backup",
+        "dep.release",
+        "dep.benchmark",
+        "dep.validator",
     ]:
         assert dp.container.has(key)
     assert dp.deployments is dp.deployments  # lazy singleton

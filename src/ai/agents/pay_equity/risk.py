@@ -8,8 +8,6 @@ than assumed benign (Module 14).
 
 from __future__ import annotations
 
-from typing import List
-
 from src.ai.agents.pay_equity.schemas import (
     CompressionAssessment,
     EquityRisk,
@@ -35,8 +33,8 @@ def build_equity_risk(
             data_available=False,
         )
 
-    severities: List[int] = []
-    drivers: List[str] = []
+    severities: list[int] = []
+    drivers: list[str] = []
     if compression.data_available and compression.risk_level.lower() in _SEVERITY:
         severities.append(_SEVERITY[compression.risk_level.lower()])
         drivers.append(f"Compression risk: {compression.risk_level}.")

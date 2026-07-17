@@ -11,7 +11,7 @@ never a fabricated market number.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compensation.schemas import (
     BudgetAssessment,
@@ -23,19 +23,25 @@ from src.ai.agents.compensation.schemas import (
 )
 
 # Ordered market-position ladder for the position gauge.
-_POSITION_LADDER = ["Budget-Constrained", "Below Market", "Market Competitive", "Premium", "Strategic Premium"]
+_POSITION_LADDER = [
+    "Budget-Constrained",
+    "Below Market",
+    "Market Competitive",
+    "Premium",
+    "Strategic Premium",
+]
 _LIKELIHOOD = {"high": 1.0, "moderate": 0.6, "low": 0.3, "": 0.0}
 
 
 def build_chart_data(
     *,
     band: CompensationRange,
-    scenarios: List[OfferScenario],
+    scenarios: list[OfferScenario],
     market: MarketPosition,
     budget: BudgetAssessment,
     negotiation: NegotiationIntelligence,
     future: FutureCompensationOutlook,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Build every chart structure for the compensation dashboard (Module 11)."""
     return {
         "recommended_range": {
@@ -55,7 +61,9 @@ def build_chart_data(
         },
         "market_position": {
             "position": market.position,
-            "index": _POSITION_LADDER.index(market.position) if market.position in _POSITION_LADDER else 2,
+            "index": _POSITION_LADDER.index(market.position)
+            if market.position in _POSITION_LADDER
+            else 2,
             "scale": list(_POSITION_LADDER),
             "data_available": market.data_available,
         },

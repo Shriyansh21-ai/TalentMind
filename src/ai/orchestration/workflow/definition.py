@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from src.ai.orchestration.models import Priority, Task, TaskGraph
 
@@ -27,9 +27,9 @@ class ExecutionMode(str, Enum):
     for simple/flat workflows and for tests.
     """
 
-    AUTO = "auto"              # parallelism inferred from dependencies
+    AUTO = "auto"  # parallelism inferred from dependencies
     SEQUENTIAL = "sequential"  # one task at a time, declaration order
-    PARALLEL = "parallel"      # every (dependency-free) task at once
+    PARALLEL = "parallel"  # every (dependency-free) task at once
 
 
 @dataclass
@@ -45,7 +45,7 @@ class RetryPolicy:
     """
 
     max_retries: int = 1
-    fallback_capability: Optional[str] = None
+    fallback_capability: str | None = None
     continue_on_failure: bool = True
 
 
@@ -70,19 +70,19 @@ class WorkflowStep:
     id: str
     capability: str
     goal: str = ""
-    depends_on: List[str] = field(default_factory=list)
+    depends_on: list[str] = field(default_factory=list)
     priority: Priority = Priority.NORMAL
     optional: bool = False
-    condition: Optional[str] = None
+    condition: str | None = None
     expected_output: str = ""
-    payload: Dict[str, Any] = field(default_factory=dict)
-    output_slot: Optional[str] = None
+    payload: dict[str, Any] = field(default_factory=dict)
+    output_slot: str | None = None
 
-    def to_task(self, base_payload: Optional[Dict[str, Any]] = None) -> Task:
+    def to_task(self, base_payload: dict[str, Any] | None = None) -> Task:
         """Compile this step into a :class:`Task`, merging in ``base_payload``."""
         payload = dict(base_payload or {})
         payload.update(self.payload)
-        metadata: Dict[str, Any] = {}
+        metadata: dict[str, Any] = {}
         if self.output_slot:
             metadata["output_slot"] = self.output_slot
         return Task(
@@ -114,19 +114,19 @@ class WorkflowDefinition:
 
     name: str
     description: str = ""
-    steps: List[WorkflowStep] = field(default_factory=list)
+    steps: list[WorkflowStep] = field(default_factory=list)
     mode: ExecutionMode = ExecutionMode.AUTO
     retry: RetryPolicy = field(default_factory=RetryPolicy)
     version: str = "v1"
 
-    def build_graph(self, base_payload: Optional[Dict[str, Any]] = None) -> TaskGraph:
+    def build_graph(self, base_payload: dict[str, Any] | None = None) -> TaskGraph:
         """Compile the definition into a validated :class:`TaskGraph`.
 
         In ``SEQUENTIAL`` mode, an implicit chain dependency is added between
         consecutive steps so the graph enforces one-at-a-time ordering.
         """
         graph = TaskGraph()
-        previous_id: Optional[str] = None
+        previous_id: str | None = None
         for step in self.steps:
             task = step.to_task(base_payload)
             if self.mode == ExecutionMode.SEQUENTIAL and previous_id:
@@ -140,7 +140,7 @@ class WorkflowDefinition:
         return graph
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "WorkflowDefinition":
+    def from_dict(cls, data: dict[str, Any]) -> WorkflowDefinition:
         """Build a definition from a plain dict (future JSON/YAML loading)."""
         steps = [
             WorkflowStep(

@@ -10,10 +10,9 @@ from __future__ import annotations
 
 import io
 import zipfile
-from typing import List, Tuple
 
 from src.ai.agents.executive_report.export._common import section_lines, xml_escape
-from src.ai.agents.executive_report.renderer import ReportDocument, Section
+from src.ai.agents.executive_report.renderer import ReportDocument
 
 _CONTENT_TYPES = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
@@ -65,7 +64,7 @@ def _paragraph(style: str, text: str) -> str:
     )
 
 
-def _cover_lines(document: ReportDocument) -> List[Tuple[str, str]]:
+def _cover_lines(document: ReportDocument) -> list[tuple[str, str]]:
     cover = document.cover
     return [
         ("cover", cover.get("logo", document.brand.product)),
@@ -82,7 +81,7 @@ def _cover_lines(document: ReportDocument) -> List[Tuple[str, str]]:
 
 
 def _document_xml(document: ReportDocument) -> str:
-    lines: List[Tuple[str, str]] = _cover_lines(document)
+    lines: list[tuple[str, str]] = _cover_lines(document)
     for section in document.sections:
         lines.extend(section_lines(section))
     lines.append(("note", document.footer))

@@ -12,8 +12,8 @@ setting the var directly, so it is guaranteed to be reset on exit.
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Iterator
 from contextvars import ContextVar
-from typing import Iterator
 
 from pydantic import Field
 
@@ -40,9 +40,7 @@ class TenantContext(PlatformModel):
     attributes: dict[str, str] = Field(default_factory=dict)
 
 
-_CURRENT: ContextVar[TenantContext | None] = ContextVar(
-    "talentmind_tenant_context", default=None
-)
+_CURRENT: ContextVar[TenantContext | None] = ContextVar("talentmind_tenant_context", default=None)
 
 
 def current_context() -> TenantContext | None:

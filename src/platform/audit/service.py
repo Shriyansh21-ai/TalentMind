@@ -116,6 +116,7 @@ class PlatformAuditService:
         outcome: AuditOutcome | None = None,
     ) -> list[AuditEvent]:
         """Return matching events for a tenant, in chain order."""
+
         def _match(e: AuditEvent) -> bool:
             if category is not None and e.category != category:
                 return False

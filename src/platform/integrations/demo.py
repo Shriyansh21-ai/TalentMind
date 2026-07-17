@@ -47,7 +47,12 @@ def _seed_sync_runner(job):
         records_processed=42,
         records_failed=0,
         conflicts=[
-            SyncConflict(entity_id="emp_1001", field="title", source_value="Staff Engineer", target_value="Senior Engineer")
+            SyncConflict(
+                entity_id="emp_1001",
+                field="title",
+                source_value="Staff Engineer",
+                target_value="Senior Engineer",
+            )
         ],
         next_cursor="cursor-2026-01-01",
     )

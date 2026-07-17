@@ -8,7 +8,7 @@ legal conclusion or a discrimination finding (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from src.ai.agents.pay_equity.schemas import (
     ApprovalRequirement,
@@ -21,7 +21,7 @@ from src.ai.agents.pay_equity.schemas import (
 
 
 def build_executive_review(
-    context: Dict[str, Any],
+    context: dict[str, Any],
     equity_risk: EquityRisk,
     compression: CompressionAssessment,
     inversion: InversionAssessment,
@@ -40,12 +40,17 @@ def build_executive_review(
         ApprovalRequirement("HR", True, "Owns compensation policy and internal equity."),
     ]
 
-    finance_needed = outside_band or market_position in ("Premium", "Strategic Premium") or hire_type == "Critical Hire"
+    finance_needed = (
+        outside_band
+        or market_position in ("Premium", "Strategic Premium")
+        or hire_type == "Critical Hire"
+    )
     approvals.append(
         ApprovalRequirement(
             "Finance",
             finance_needed,
-            "Budget impact of an above-band / premium / critical offer." if finance_needed
+            "Budget impact of an above-band / premium / critical offer."
+            if finance_needed
             else "Within budget norms; no separate finance sign-off required.",
         )
     )
@@ -56,17 +61,21 @@ def build_executive_review(
             "Legal",
             legal_needed,
             "Review pay-equity exposure from detected inversion/compression (governance review, not a legal finding)."
-            if legal_needed else "No pay-equity exposure flagged for legal review.",
+            if legal_needed
+            else "No pay-equity exposure flagged for legal review.",
         )
     )
 
-    exec_needed = high_risk or policy_alignment.alignment == "Violation" or hire_type == "Critical Hire"
+    exec_needed = (
+        high_risk or policy_alignment.alignment == "Violation" or hire_type == "Critical Hire"
+    )
     approvals.append(
         ApprovalRequirement(
             "Executive",
             exec_needed,
             "High equity risk / policy exception / critical hire warrants executive sponsorship."
-            if exec_needed else "No executive sponsorship required.",
+            if exec_needed
+            else "No executive sponsorship required.",
         )
     )
 
@@ -78,10 +87,10 @@ def build_executive_review(
         review_level = "Standard"
 
     required = [a.approver for a in approvals if a.required]
-    rationale = (
-        f"Review level '{review_level}'. Required approvers: {', '.join(required)}. "
-        + (f"Driven by: {'; '.join(equity_risk.drivers[:2])}" if equity_risk.data_available else
-           "Internal data unavailable; baseline governance approvals apply.")
+    rationale = f"Review level '{review_level}'. Required approvers: {', '.join(required)}. " + (
+        f"Driven by: {'; '.join(equity_risk.drivers[:2])}"
+        if equity_risk.data_available
+        else "Internal data unavailable; baseline governance approvals apply."
     )
 
     return ExecutiveReview(review_level=review_level, approvals=approvals, rationale=rationale)

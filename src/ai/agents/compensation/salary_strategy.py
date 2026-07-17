@@ -10,14 +10,14 @@ market data (Module 16).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.compensation.pay_band import derive_pay_band
 from src.ai.agents.compensation.schemas import CompensationRange, OfferScenario
 from src.ai.agents.compensation.templates import SCENARIO_SPECS
 
 
-def build_recommended_range(evidence: Dict[str, Any]) -> CompensationRange:
+def build_recommended_range(evidence: dict[str, Any]) -> CompensationRange:
     """Return the recommended compensation range (Module 1)."""
     return derive_pay_band(evidence)
 
@@ -80,9 +80,9 @@ _SCENARIO_FRAMING = {
 }
 
 
-def build_scenarios(evidence: Dict[str, Any], band: CompensationRange) -> List[OfferScenario]:
+def build_scenarios(evidence: dict[str, Any], band: CompensationRange) -> list[OfferScenario]:
     """Build the four offer scenarios positioned within the recommended band (Module 5)."""
-    scenarios: List[OfferScenario] = []
+    scenarios: list[OfferScenario] = []
     for spec in SCENARIO_SPECS:
         framing = _SCENARIO_FRAMING.get(spec.key, {})
         scenarios.append(

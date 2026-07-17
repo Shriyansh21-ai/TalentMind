@@ -81,9 +81,7 @@ class NotificationService:
         channels: dict[str, bool],
     ) -> NotificationPreference:
         """Set (or replace) a user's channel preferences."""
-        existing = self.preferences.list(
-            tenant_id=tenant_id, where=lambda p: p.user_id == user_id
-        )
+        existing = self.preferences.list(tenant_id=tenant_id, where=lambda p: p.user_id == user_id)
         now = self._clock.now()
         if existing:
             pref = existing[0]
@@ -105,9 +103,7 @@ class NotificationService:
 
     def _preference_for(self, tenant_id: str, user_id: str) -> NotificationPreference | None:
         """Return a user's preferences (or ``None``)."""
-        found = self.preferences.list(
-            tenant_id=tenant_id, where=lambda p: p.user_id == user_id
-        )
+        found = self.preferences.list(tenant_id=tenant_id, where=lambda p: p.user_id == user_id)
         return found[0] if found else None
 
     def _template(self, tenant_id: str, key: str) -> NotificationTemplate | None:
@@ -183,9 +179,7 @@ class NotificationService:
             notification.sent_at = now
         else:
             result = transport.send(notification)
-            notification.status = (
-                DeliveryStatus.SENT if result.ok else DeliveryStatus.FAILED
-            )
+            notification.status = DeliveryStatus.SENT if result.ok else DeliveryStatus.FAILED
             notification.sent_at = now if result.ok else None
             notification.error = "" if result.ok else result.detail
         notification.touch(now)
@@ -198,9 +192,11 @@ class NotificationService:
         now = self._clock.now()
         due = self.notifications.list(
             tenant_id=tenant_id,
-            where=lambda n: n.status == DeliveryStatus.SCHEDULED
-            and n.scheduled_for is not None
-            and n.scheduled_for <= now,
+            where=lambda n: (
+                n.status == DeliveryStatus.SCHEDULED
+                and n.scheduled_for is not None
+                and n.scheduled_for <= now
+            ),
         )
         for notification in due:
             self._deliver(notification)
@@ -210,8 +206,10 @@ class NotificationService:
         """Return a recipient's delivered in-app notifications (newest first)."""
         items = self.notifications.list(
             tenant_id=tenant_id,
-            where=lambda n: n.recipient_id == recipient_id
-            and n.channel == Channel.IN_APP
-            and n.status == DeliveryStatus.SENT,
+            where=lambda n: (
+                n.recipient_id == recipient_id
+                and n.channel == Channel.IN_APP
+                and n.status == DeliveryStatus.SENT
+            ),
         )
         return list(reversed(items))

@@ -8,21 +8,25 @@ aggregation live here — figures in, figures out.
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
-
 import plotly.graph_objects as go
 
-CountPairs = List[Tuple[str, int]]
+CountPairs = list[tuple[str, int]]
 
 # ---------------------------------------------------------------------------
 # Shared visual system
 # ---------------------------------------------------------------------------
 
 # A single categorical sequence keeps every chart visually consistent.
-_PRIMARY = "#2563eb"      # blue-600
+_PRIMARY = "#2563eb"  # blue-600
 _SEQUENCE = [
-    "#2563eb", "#0891b2", "#7c3aed", "#db2777",
-    "#ea580c", "#16a34a", "#ca8a04", "#4f46e5",
+    "#2563eb",
+    "#0891b2",
+    "#7c3aed",
+    "#db2777",
+    "#ea580c",
+    "#16a34a",
+    "#ca8a04",
+    "#4f46e5",
 ]
 _RISK_COLORS = {"Low": "#16a34a", "Medium": "#ca8a04", "High": "#dc2626"}
 _RECOMMENDATION_COLORS = {
@@ -94,7 +98,7 @@ def hiring_funnel(pairs: CountPairs) -> go.Figure:
     return _style(fig, "Hiring Funnel", height=420)
 
 
-def stage_distribution_chart(counts: Dict[str, int]) -> go.Figure:
+def stage_distribution_chart(counts: dict[str, int]) -> go.Figure:
     """Build a bar chart of candidates per pipeline stage (snapshot)."""
     if not counts or all(v == 0 for v in counts.values()):
         return _empty("Stage Distribution", "No candidates in the pipeline yet")
@@ -107,7 +111,7 @@ def stage_distribution_chart(counts: Dict[str, int]) -> go.Figure:
     return _style(fig, "Stage Distribution")
 
 
-def pipeline_chart(counts: Dict[str, int]) -> go.Figure:
+def pipeline_chart(counts: dict[str, int]) -> go.Figure:
     """Build a horizontal bar of active-pipeline occupancy per stage."""
     if not counts or all(v == 0 for v in counts.values()):
         return _empty("Hiring Pipeline", "No candidates in the pipeline yet")
@@ -132,7 +136,7 @@ def pipeline_chart(counts: Dict[str, int]) -> go.Figure:
 # ---------------------------------------------------------------------------
 
 
-def risk_distribution_chart(counts: Dict[str, int]) -> go.Figure:
+def risk_distribution_chart(counts: dict[str, int]) -> go.Figure:
     """Build a donut chart of Low/Medium/High risk composition."""
     labels = [k for k, v in counts.items() if v > 0]
     values = [counts[k] for k in labels]
@@ -151,7 +155,7 @@ def risk_distribution_chart(counts: Dict[str, int]) -> go.Figure:
     return _style(fig, "Risk Distribution")
 
 
-def score_distribution_chart(values: List[float]) -> go.Figure:
+def score_distribution_chart(values: list[float]) -> go.Figure:
     """Build a histogram of candidate overall scores."""
     if not values:
         return _empty("Candidate Score Distribution")
@@ -160,7 +164,7 @@ def score_distribution_chart(values: List[float]) -> go.Figure:
     return _style(fig, "Candidate Score Distribution")
 
 
-def experience_distribution_chart(values: List[float]) -> go.Figure:
+def experience_distribution_chart(values: list[float]) -> go.Figure:
     """Build a histogram of years-of-experience."""
     if not values:
         return _empty("Experience Distribution")
@@ -169,9 +173,7 @@ def experience_distribution_chart(values: List[float]) -> go.Figure:
     return _style(fig, "Experience Distribution")
 
 
-def horizontal_count_bar(
-    pairs: CountPairs, title: str, color: str = _SEQUENCE[5]
-) -> go.Figure:
+def horizontal_count_bar(pairs: CountPairs, title: str, color: str = _SEQUENCE[5]) -> go.Figure:
     """Build a titled horizontal bar chart from ``(label, count)`` pairs.
 
     Shared by any ranked-category chart (top skills, talent-pool sizes, ...) so
@@ -213,15 +215,13 @@ def company_distribution_chart(pairs: CountPairs) -> go.Figure:
     return _style(fig, "Company Distribution")
 
 
-def recommendation_distribution_chart(counts: Dict[str, int]) -> go.Figure:
+def recommendation_distribution_chart(counts: dict[str, int]) -> go.Figure:
     """Build a bar chart of hiring-recommendation composition."""
     if not counts or all(v == 0 for v in counts.values()):
         return _empty("Hiring Recommendation Distribution")
     # Present in a sensible severity order when labels are recognised.
     order = ["Strong Hire", "Hire", "Hold", "Reject"]
-    labels = [k for k in order if k in counts] + [
-        k for k in counts if k not in order
-    ]
+    labels = [k for k in order if k in counts] + [k for k in counts if k not in order]
     values = [counts[k] for k in labels]
     colors = [_RECOMMENDATION_COLORS.get(k, _PRIMARY) for k in labels]
     fig = go.Figure(

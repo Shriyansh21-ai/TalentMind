@@ -13,12 +13,9 @@ schema is rich and composable so future agents (Module 15) can consume it.
 
 from __future__ import annotations
 
-from typing import List
-
 from pydantic import Field, field_validator
 
 from src.ai.schemas.base import BaseAIResponse
-
 
 # ---------------------------------------------------------------------------
 # Nested reports (numeric dimensions live here, never at top level)
@@ -42,10 +39,10 @@ class JDQuality(BaseAIResponse):
 class StructureReport(BaseAIResponse):
     """Job structure analysis (Module 1)."""
 
-    sections_present: List[str] = Field(default_factory=list)
-    sections_missing: List[str] = Field(default_factory=list)
-    weak_sections: List[str] = Field(default_factory=list)
-    observations: List[str] = Field(default_factory=list)
+    sections_present: list[str] = Field(default_factory=list)
+    sections_missing: list[str] = Field(default_factory=list)
+    weak_sections: list[str] = Field(default_factory=list)
+    observations: list[str] = Field(default_factory=list)
 
 
 class RoleIntelligence(BaseAIResponse):
@@ -61,24 +58,24 @@ class RoleIntelligence(BaseAIResponse):
     management_expectations: str = ""
     cross_functional: str = ""
     confidence: float = 0.0
-    observations: List[str] = Field(default_factory=list)
+    observations: list[str] = Field(default_factory=list)
 
 
 class TechnicalIntelligence(BaseAIResponse):
     """Technical requirement analysis (Module 3)."""
 
-    languages: List[str] = Field(default_factory=list)
-    frameworks: List[str] = Field(default_factory=list)
-    cloud: List[str] = Field(default_factory=list)
-    ai_ml: List[str] = Field(default_factory=list)
-    devops: List[str] = Field(default_factory=list)
-    data: List[str] = Field(default_factory=list)
-    security: List[str] = Field(default_factory=list)
-    infrastructure: List[str] = Field(default_factory=list)
-    architecture: List[str] = Field(default_factory=list)
+    languages: list[str] = Field(default_factory=list)
+    frameworks: list[str] = Field(default_factory=list)
+    cloud: list[str] = Field(default_factory=list)
+    ai_ml: list[str] = Field(default_factory=list)
+    devops: list[str] = Field(default_factory=list)
+    data: list[str] = Field(default_factory=list)
+    security: list[str] = Field(default_factory=list)
+    infrastructure: list[str] = Field(default_factory=list)
+    architecture: list[str] = Field(default_factory=list)
     technology_maturity: str = ""
     technology_diversity: str = ""
-    observations: List[str] = Field(default_factory=list)
+    observations: list[str] = Field(default_factory=list)
 
 
 class HiringIntentSignal(BaseAIResponse):
@@ -94,8 +91,8 @@ class HiringIntent(BaseAIResponse):
 
     primary_intent: str = ""
     summary: str = ""
-    signals: List[HiringIntentSignal] = Field(default_factory=list)
-    business_priorities: List[str] = Field(default_factory=list)
+    signals: list[HiringIntentSignal] = Field(default_factory=list)
+    business_priorities: list[str] = Field(default_factory=list)
     confidence: float = 0.0
 
 
@@ -105,20 +102,20 @@ class OrganizationIntelligence(BaseAIResponse):
     company_type: str = ""
     technology_maturity: str = ""
     engineering_maturity: str = ""
-    signals: List[str] = Field(default_factory=list)
+    signals: list[str] = Field(default_factory=list)
     confidence: float = 0.0
-    observations: List[str] = Field(default_factory=list)
+    observations: list[str] = Field(default_factory=list)
 
 
 class RequirementHierarchy(BaseAIResponse):
     """Separated requirement tiers (Module 6)."""
 
-    mandatory: List[str] = Field(default_factory=list)
-    preferred: List[str] = Field(default_factory=list)
-    nice_to_have: List[str] = Field(default_factory=list)
-    optional: List[str] = Field(default_factory=list)
-    hidden_expectations: List[str] = Field(default_factory=list)
-    implicit_requirements: List[str] = Field(default_factory=list)
+    mandatory: list[str] = Field(default_factory=list)
+    preferred: list[str] = Field(default_factory=list)
+    nice_to_have: list[str] = Field(default_factory=list)
+    optional: list[str] = Field(default_factory=list)
+    hidden_expectations: list[str] = Field(default_factory=list)
+    implicit_requirements: list[str] = Field(default_factory=list)
 
 
 class MarketEstimate(BaseAIResponse):
@@ -133,7 +130,7 @@ class MarketIntelligence(BaseAIResponse):
     """Heuristic, offline market posture (Module 9)."""
 
     summary: str = ""
-    estimates: List[MarketEstimate] = Field(default_factory=list)
+    estimates: list[MarketEstimate] = Field(default_factory=list)
 
 
 class JDRiskFinding(BaseAIResponse):
@@ -149,8 +146,8 @@ class JDRiskReport(BaseAIResponse):
     """JD risk report — evidence only, never hallucinated (Module 8)."""
 
     level: str = "Low"
-    findings: List[JDRiskFinding] = Field(default_factory=list)
-    positive_signals: List[str] = Field(default_factory=list)
+    findings: list[JDRiskFinding] = Field(default_factory=list)
+    positive_signals: list[str] = Field(default_factory=list)
 
 
 class Improvement(BaseAIResponse):
@@ -179,20 +176,22 @@ class JDAnalysis(BaseAIResponse):
     """
 
     executive_summary: str
-    strengths: List[str] = Field(default_factory=list)
-    weaknesses: List[str] = Field(default_factory=list)
+    strengths: list[str] = Field(default_factory=list)
+    weaknesses: list[str] = Field(default_factory=list)
     role_intelligence: RoleIntelligence = Field(default_factory=RoleIntelligence)
     technical_intelligence: TechnicalIntelligence = Field(default_factory=TechnicalIntelligence)
     hiring_intent: HiringIntent = Field(default_factory=HiringIntent)
-    organization_intelligence: OrganizationIntelligence = Field(default_factory=OrganizationIntelligence)
+    organization_intelligence: OrganizationIntelligence = Field(
+        default_factory=OrganizationIntelligence
+    )
     requirement_hierarchy: RequirementHierarchy = Field(default_factory=RequirementHierarchy)
     market_intelligence: MarketIntelligence = Field(default_factory=MarketIntelligence)
     quality: JDQuality = Field(default_factory=JDQuality)
     structure: StructureReport = Field(default_factory=StructureReport)
     risk_report: JDRiskReport = Field(default_factory=JDRiskReport)
-    improvement_plan: List[Improvement] = Field(default_factory=list)
+    improvement_plan: list[Improvement] = Field(default_factory=list)
     confidence_note: str = ""
-    evidence: List[str] = Field(default_factory=list)
+    evidence: list[str] = Field(default_factory=list)
 
     @field_validator("executive_summary")
     @classmethod

@@ -12,8 +12,8 @@ rather than silently corrupting the funnel.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Optional, Union
+from datetime import UTC, datetime
+from typing import Union
 
 from src.pipeline.models import (
     CandidatePipelineStatus,
@@ -44,7 +44,7 @@ class PipelineError(RuntimeError):
 
 def _now_iso() -> str:
     """Return the current UTC time as an ISO-8601 string."""
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(UTC).isoformat(timespec="seconds")
 
 
 def _coerce_stage(stage: StageLike) -> PipelineStage:
@@ -63,8 +63,8 @@ def _coerce_priority(priority: PriorityLike) -> Priority:
 
 def get_or_create(
     candidate_id: str,
-    store: Optional[PipelineStore] = None,
-    timestamp: Optional[str] = None,
+    store: PipelineStore | None = None,
+    timestamp: str | None = None,
 ) -> CandidatePipelineStatus:
     """Return the candidate's pipeline status, creating it at ``APPLIED`` if new.
 
@@ -110,10 +110,10 @@ def get_or_create(
 def update_stage(
     candidate_id: str,
     target_stage: StageLike,
-    actor: Optional[str] = None,
-    note: Optional[str] = None,
-    store: Optional[PipelineStore] = None,
-    timestamp: Optional[str] = None,
+    actor: str | None = None,
+    note: str | None = None,
+    store: PipelineStore | None = None,
+    timestamp: str | None = None,
 ) -> CandidatePipelineStatus:
     """Move a candidate to an explicit ``target_stage`` after validating the move.
 
@@ -141,8 +141,7 @@ def update_stage(
 
     if not can_transition(source, target):
         raise InvalidTransition(
-            f"Illegal transition for {candidate_id}: "
-            f"{source.value} -> {target.value}"
+            f"Illegal transition for {candidate_id}: {source.value} -> {target.value}"
         )
 
     stamp = timestamp or _now_iso()
@@ -167,11 +166,11 @@ def update_stage(
 
 def move_candidate(
     candidate_id: str,
-    target_stage: Optional[StageLike] = None,
-    actor: Optional[str] = None,
-    note: Optional[str] = None,
-    store: Optional[PipelineStore] = None,
-    timestamp: Optional[str] = None,
+    target_stage: StageLike | None = None,
+    actor: str | None = None,
+    note: str | None = None,
+    store: PipelineStore | None = None,
+    timestamp: str | None = None,
 ) -> CandidatePipelineStatus:
     """Advance a candidate to ``target_stage``, or one step forward if omitted.
 
@@ -220,9 +219,9 @@ def move_candidate(
 def add_note(
     candidate_id: str,
     note: str,
-    actor: Optional[str] = None,
-    store: Optional[PipelineStore] = None,
-    timestamp: Optional[str] = None,
+    actor: str | None = None,
+    store: PipelineStore | None = None,
+    timestamp: str | None = None,
 ) -> CandidatePipelineStatus:
     """Append a free-text recruiter note without changing the candidate's stage.
 
@@ -254,9 +253,9 @@ def add_note(
 
 def assign_recruiter(
     candidate_id: str,
-    recruiter: Optional[str],
-    store: Optional[PipelineStore] = None,
-    timestamp: Optional[str] = None,
+    recruiter: str | None,
+    store: PipelineStore | None = None,
+    timestamp: str | None = None,
 ) -> CandidatePipelineStatus:
     """Set (or clear, with ``None``) the owning recruiter for a candidate.
 
@@ -281,8 +280,8 @@ def assign_recruiter(
 def change_priority(
     candidate_id: str,
     priority: PriorityLike,
-    store: Optional[PipelineStore] = None,
-    timestamp: Optional[str] = None,
+    store: PipelineStore | None = None,
+    timestamp: str | None = None,
 ) -> CandidatePipelineStatus:
     """Update a candidate's recruiter-assigned priority.
 
@@ -307,8 +306,8 @@ def change_priority(
 def add_tag(
     candidate_id: str,
     tag: str,
-    store: Optional[PipelineStore] = None,
-    timestamp: Optional[str] = None,
+    store: PipelineStore | None = None,
+    timestamp: str | None = None,
 ) -> CandidatePipelineStatus:
     """Attach a de-duplicated recruiter tag to a candidate.
 

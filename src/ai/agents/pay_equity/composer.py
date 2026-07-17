@@ -12,10 +12,10 @@ offline modes agree on the facts.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def compose_pay_equity_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_pay_equity_narrative(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose a :class:`PayEquityNarrative` from evidence."""
     data_available = bool(evidence.get("data_available"))
     offer = evidence.get("offer_summary") or {}
@@ -55,14 +55,20 @@ def compose_pay_equity_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
             "'Unable to evaluate without internal compensation data.'"
         )
 
-    key_findings: List[str] = []
+    key_findings: list[str] = []
     if data_available:
         if compression.get("risk_level") in ("Medium", "High"):
-            key_findings.append(f"Compression risk: {compression.get('risk_level')} — {compression.get('rationale', '')}")
+            key_findings.append(
+                f"Compression risk: {compression.get('risk_level')} — {compression.get('rationale', '')}"
+            )
         if inversion.get("risk_level") in ("Medium", "High"):
-            key_findings.append(f"Inversion risk: {inversion.get('risk_level')} — {inversion.get('rationale', '')}")
+            key_findings.append(
+                f"Inversion risk: {inversion.get('risk_level')} — {inversion.get('rationale', '')}"
+            )
     if policy.get("alignment") in ("Partial", "Violation"):
-        key_findings.append(f"Policy '{policy.get('policy_name')}' alignment: {policy.get('alignment')}.")
+        key_findings.append(
+            f"Policy '{policy.get('policy_name')}' alignment: {policy.get('alignment')}."
+        )
     if not key_findings:
         key_findings.append("No material equity concerns surfaced from the available information.")
 
@@ -79,19 +85,28 @@ def compose_pay_equity_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
 
     return {
         "executive_summary": summary,
-        "equity_assessment": fairness.get("assessment", "Internal-equity findings summarized above."),
+        "equity_assessment": fairness.get(
+            "assessment", "Internal-equity findings summarized above."
+        ),
         "compression_note": compression.get("rationale", "Company compensation data unavailable."),
-        "inversion_note": inversion.get("rationale", "Unable to evaluate without internal compensation data."),
-        "promotion_note": promotion.get("progression_note", "") + " " + promotion.get("level_alignment", ""),
+        "inversion_note": inversion.get(
+            "rationale", "Unable to evaluate without internal compensation data."
+        ),
+        "promotion_note": promotion.get("progression_note", "")
+        + " "
+        + promotion.get("level_alignment", ""),
         "policy_note": policy.get("rationale", "Policy alignment not evaluated."),
         "fairness_note": (
             "Concerns for review: " + "; ".join(fairness.get("concerns", []))
-            if fairness.get("concerns") else "No material fairness concerns surfaced."
-        ) + " (Governance review only — no legal conclusion, no discrimination finding.)",
+            if fairness.get("concerns")
+            else "No material fairness concerns surfaced."
+        )
+        + " (Governance review only — no legal conclusion, no discrimination finding.)",
         "review_note": review.get("rationale", "Standard governance approvals apply."),
         "data_availability_note": data_note,
         "key_findings": key_findings,
         "assumptions": assumptions,
-        "human_review_recommendations": review_recs or ["No human review beyond standard approvals."],
+        "human_review_recommendations": review_recs
+        or ["No human review beyond standard approvals."],
         "confidence_note": confidence_note,
     }

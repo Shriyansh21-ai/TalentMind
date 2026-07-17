@@ -14,7 +14,7 @@ from string import Template
 
 from pydantic import Field
 
-from src.platform.common.models import Metadata, PlatformModel, TenantScopedEntity
+from src.platform.common.models import Metadata, TenantScopedEntity
 
 
 class ChannelType(str, Enum):

@@ -25,11 +25,11 @@ from typing import Dict, List
 # Heuristic band multipliers (internal model — NOT market data). Applied to the
 # candidate's own stated expectation to build a defensible range.
 PREMIUM_FACTORS = {
-    "skill_premium": 0.08,        # strong technical signal
-    "leadership_premium": 0.10,   # strong leadership signal
-    "strategic_premium": 0.12,    # committee "Strong Hire" / critical role
-    "risk_discount": 0.10,        # elevated resume/timeline risk
-    "band_spread": 0.15,          # half-width of the min..max band around target
+    "skill_premium": 0.08,  # strong technical signal
+    "leadership_premium": 0.10,  # strong leadership signal
+    "strategic_premium": 0.12,  # committee "Strong Hire" / critical role
+    "risk_discount": 0.10,  # elevated resume/timeline risk
+    "band_spread": 0.15,  # half-width of the min..max band around target
 }
 
 # Thresholds (0-100 engine scales) that trigger each premium/discount.
@@ -55,21 +55,38 @@ class ScenarioSpec:
     summary: str = ""
 
 
-SCENARIO_SPECS: List[ScenarioSpec] = [
-    ScenarioSpec("conservative", "Conservative Offer", anchor=0.15,
-                 summary="Protects budget; anchors near the band minimum."),
-    ScenarioSpec("competitive", "Competitive Offer", anchor=0.5,
-                 summary="Market-competitive; anchors at the target."),
-    ScenarioSpec("premium", "Premium Offer", anchor=0.85,
-                 summary="Signals strong intent; anchors near the band maximum."),
-    ScenarioSpec("aggressive", "Aggressive Offer", anchor=1.0, stretch=0.08,
-                 summary="Wins a contested candidate; stretches beyond the band."),
+SCENARIO_SPECS: list[ScenarioSpec] = [
+    ScenarioSpec(
+        "conservative",
+        "Conservative Offer",
+        anchor=0.15,
+        summary="Protects budget; anchors near the band minimum.",
+    ),
+    ScenarioSpec(
+        "competitive",
+        "Competitive Offer",
+        anchor=0.5,
+        summary="Market-competitive; anchors at the target.",
+    ),
+    ScenarioSpec(
+        "premium",
+        "Premium Offer",
+        anchor=0.85,
+        summary="Signals strong intent; anchors near the band maximum.",
+    ),
+    ScenarioSpec(
+        "aggressive",
+        "Aggressive Offer",
+        anchor=1.0,
+        stretch=0.08,
+        summary="Wins a contested candidate; stretches beyond the band.",
+    ),
 ]
 
 
 # Module 14 — extension-point registry. These are the systems the internal-equity
 # interface is DESIGNED for; none is implemented (no payroll connectors ship).
-HRIS_CONNECTORS: List[str] = [
+HRIS_CONNECTORS: list[str] = [
     "Generic HRIS",
     "SAP SuccessFactors",
     "Workday",
@@ -79,7 +96,7 @@ HRIS_CONNECTORS: List[str] = [
 ]
 
 # Additional prepared (not implemented) extension points (Module 14).
-FUTURE_CAPABILITIES: List[str] = [
+FUTURE_CAPABILITIES: list[str] = [
     "Currency conversion",
     "Benefits optimization",
     "Equity valuation",

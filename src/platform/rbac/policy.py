@@ -41,9 +41,7 @@ class PolicyEngine:
                 request.resource_id,
             )
         if scope == ScopeType.RESOURCE:
-            return assignment.scope_id is not None and (
-                assignment.scope_id == request.resource_id
-            )
+            return assignment.scope_id is not None and (assignment.scope_id == request.resource_id)
         return False
 
     def effective_permissions(
@@ -62,9 +60,7 @@ class PolicyEngine:
             granted.update(self.permissions_for_role(assignment.role))
         return granted
 
-    def is_allowed(
-        self, assignments: list[RoleAssignment], request: AccessRequest
-    ) -> bool:
+    def is_allowed(self, assignments: list[RoleAssignment], request: AccessRequest) -> bool:
         """Return whether any scoped assignment grants the requested permission."""
         for assignment in assignments:
             if not self._scope_covers(assignment, request):

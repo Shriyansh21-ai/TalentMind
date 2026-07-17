@@ -46,8 +46,18 @@ def test_every_runtime_subpackage_imports():
     import importlib
 
     for name in [
-        "common", "jobs", "workers", "execution", "cache", "performance",
-        "health", "load", "resilience", "resources", "services", "events",
+        "common",
+        "jobs",
+        "workers",
+        "execution",
+        "cache",
+        "performance",
+        "health",
+        "load",
+        "resilience",
+        "resources",
+        "services",
+        "events",
         "observability",
     ]:
         importlib.import_module(f"src.platform.runtime.{name}")
@@ -65,9 +75,17 @@ def test_app_exposes_runtime_operations_nav():
 def test_build_runtime_platform_wires_all_services():
     rt = build_runtime_platform(clock=FrozenClock())
     for key in [
-        "runtime.telemetry", "runtime.events", "runtime.jobs", "runtime.workers",
-        "runtime.execution", "runtime.cache", "runtime.resilience", "runtime.load",
-        "runtime.resources", "runtime.health", "runtime.services",
+        "runtime.telemetry",
+        "runtime.events",
+        "runtime.jobs",
+        "runtime.workers",
+        "runtime.execution",
+        "runtime.cache",
+        "runtime.resilience",
+        "runtime.load",
+        "runtime.resources",
+        "runtime.health",
+        "runtime.services",
     ]:
         assert rt.container.has(key)
     assert rt.jobs is rt.jobs  # lazy singleton
@@ -79,9 +97,7 @@ def test_runtime_reachable_from_main_platform_and_shares_bus():
     assert main.runtime.events.bus is main.integrations.events
     main.runtime.jobs.define(JobDefinition(id="d", key="k", name="K"))
     main.runtime.jobs.submit("t1", "o1", "k")
-    assert any(
-        e.topic.startswith("runtime.") for e in main.integrations.events.history()
-    )
+    assert any(e.topic.startswith("runtime.") for e in main.integrations.events.history())
 
 
 def test_two_runtime_platforms_are_independent():

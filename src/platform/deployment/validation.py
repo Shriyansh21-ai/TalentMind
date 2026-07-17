@@ -95,38 +95,47 @@ class ProductionValidator:
         checks.extend(self._check_modules())
         checks.extend(self._check_platform(platform))
         checks.extend(self._check_deployment_readiness())
-        return ProductionReadinessReport(
-            environment=self._environment.value, checks=checks
-        )
+        return ProductionReadinessReport(environment=self._environment.value, checks=checks)
 
     # -- checks -------------------------------------------------------------
 
     def _check_configuration(self) -> list[CheckResult]:
         result = self._config.validate(self._config.load("production"))
-        return [CheckResult(
-            category="Configuration", name="production_profile_valid",
-            passed=result.ok, severity=CheckSeverity.CRITICAL,
-            message="production configuration valid" if result.ok
-            else "; ".join(result.issues),
-        )]
+        return [
+            CheckResult(
+                category="Configuration",
+                name="production_profile_valid",
+                passed=result.ok,
+                severity=CheckSeverity.CRITICAL,
+                message="production configuration valid" if result.ok else "; ".join(result.issues),
+            )
+        ]
 
     def _check_environment(self) -> list[CheckResult]:
         env = self._environment
-        return [CheckResult(
-            category="Environment", name="environment_detected", passed=True,
-            severity=CheckSeverity.INFO,
-            message=f"environment '{env.value}' (offline={env.is_offline})",
-        )]
+        return [
+            CheckResult(
+                category="Environment",
+                name="environment_detected",
+                passed=True,
+                severity=CheckSeverity.INFO,
+                message=f"environment '{env.value}' (offline={env.is_offline})",
+            )
+        ]
 
     def _check_dependencies(self) -> list[CheckResult]:
         results: list[CheckResult] = []
         for dep in ["pydantic", "streamlit"]:
             present = _module_present(dep)
-            results.append(CheckResult(
-                category="Dependencies", name=f"dep:{dep}", passed=present,
-                severity=CheckSeverity.CRITICAL,
-                message=f"{dep} {'available' if present else 'MISSING'}",
-            ))
+            results.append(
+                CheckResult(
+                    category="Dependencies",
+                    name=f"dep:{dep}",
+                    passed=present,
+                    severity=CheckSeverity.CRITICAL,
+                    message=f"{dep} {'available' if present else 'MISSING'}",
+                )
+            )
         return results
 
     def _check_modules(self) -> list[CheckResult]:
@@ -141,35 +150,55 @@ class ProductionValidator:
         results: list[CheckResult] = []
         for category, module in module_map.items():
             present = _module_present(module)
-            results.append(CheckResult(
-                category=category, name=f"module:{module}", passed=present,
-                severity=CheckSeverity.CRITICAL if category != "AI Platform" else CheckSeverity.WARNING,
-                message=f"{module} {'present' if present else 'MISSING'}",
-            ))
+            results.append(
+                CheckResult(
+                    category=category,
+                    name=f"module:{module}",
+                    passed=present,
+                    severity=CheckSeverity.CRITICAL
+                    if category != "AI Platform"
+                    else CheckSeverity.WARNING,
+                    message=f"{module} {'present' if present else 'MISSING'}",
+                )
+            )
         return results
 
     def _check_platform(self, platform: object | None) -> list[CheckResult]:
         if platform is None:
-            return [CheckResult(
-                category="Platform", name="live_facade", passed=True,
-                severity=CheckSeverity.INFO, message="no live platform provided — static checks only",
-            )]
+            return [
+                CheckResult(
+                    category="Platform",
+                    name="live_facade",
+                    passed=True,
+                    severity=CheckSeverity.INFO,
+                    message="no live platform provided — static checks only",
+                )
+            ]
         results: list[CheckResult] = []
         for attr in ["organizations", "runtime", "security", "integrations"]:
             ok = hasattr(platform, attr)
-            results.append(CheckResult(
-                category="Platform", name=f"facade:{attr}", passed=ok,
-                severity=CheckSeverity.CRITICAL,
-                message=f"platform.{attr} {'wired' if ok else 'MISSING'}",
-            ))
+            results.append(
+                CheckResult(
+                    category="Platform",
+                    name=f"facade:{attr}",
+                    passed=ok,
+                    severity=CheckSeverity.CRITICAL,
+                    message=f"platform.{attr} {'wired' if ok else 'MISSING'}",
+                )
+            )
         return results
 
     def _check_deployment_readiness(self) -> list[CheckResult]:
         profile = self._deployment.get_profile("production")
         validation = self._deployment.validate(profile)
-        return [CheckResult(
-            category="Deployment Readiness", name="production_profile_deployable",
-            passed=validation.ok, severity=CheckSeverity.CRITICAL,
-            message="production profile deployable" if validation.ok
-            else "; ".join(i.message for i in validation.issues),
-        )]
+        return [
+            CheckResult(
+                category="Deployment Readiness",
+                name="production_profile_deployable",
+                passed=validation.ok,
+                severity=CheckSeverity.CRITICAL,
+                message="production profile deployable"
+                if validation.ok
+                else "; ".join(i.message for i in validation.issues),
+            )
+        ]

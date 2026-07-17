@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Callable
+from collections.abc import Callable
 
 from src.platform.common.clock import Clock, SystemClock
 from src.platform.common.ids import generate_id
@@ -46,9 +46,7 @@ class ConfigurationGovernanceService:
         self._require_approval = require_approval
         self.entries: InMemoryRepository[ConfigEntry] = InMemoryRepository("config_entry")
         self.changes: InMemoryRepository[ChangeRequest] = InMemoryRepository("config_change")
-        self.profiles: InMemoryRepository[EnvironmentProfile] = InMemoryRepository(
-            "env_profile"
-        )
+        self.profiles: InMemoryRepository[EnvironmentProfile] = InMemoryRepository("env_profile")
         self._validators: dict[str, ConfigValidator] = {}
 
     # -- registry -----------------------------------------------------------
@@ -86,8 +84,12 @@ class ConfigurationGovernanceService:
             current_version=1,
             versions=[
                 ConfigVersion(
-                    version=1, value=value, author=author, note="initial",
-                    hash=_hash_value(value), created_at=now,
+                    version=1,
+                    value=value,
+                    author=author,
+                    note="initial",
+                    hash=_hash_value(value),
+                    created_at=now,
                 )
             ],
             created_at=now,
@@ -136,9 +138,7 @@ class ConfigurationGovernanceService:
         """Approve a change and apply it as a new immutable version."""
         change = self.changes.require(change_id, tenant_id=tenant_id)
         if change.status != ChangeStatus.PENDING:
-            raise ConfigurationGovernanceError(
-                f"change '{change_id}' is not pending"
-            )
+            raise ConfigurationGovernanceError(f"change '{change_id}' is not pending")
         entry = self._entry(tenant_id, change.config_key)
         if entry is None:
             raise ConfigurationGovernanceError(f"config '{change.config_key}' not found")
@@ -146,9 +146,12 @@ class ConfigurationGovernanceService:
         new_version = entry.current_version + 1
         entry.versions.append(
             ConfigVersion(
-                version=new_version, value=change.proposed_value,
-                author=approver, note=change.note or "approved change",
-                hash=_hash_value(change.proposed_value), created_at=now,
+                version=new_version,
+                value=change.proposed_value,
+                author=approver,
+                note=change.note or "approved change",
+                hash=_hash_value(change.proposed_value),
+                created_at=now,
             )
         )
         entry.current_version = new_version
@@ -180,15 +183,17 @@ class ConfigurationGovernanceService:
             raise ConfigurationGovernanceError(f"config '{key}' not found")
         target = next((v for v in entry.versions if v.version == to_version), None)
         if target is None:
-            raise ConfigurationGovernanceError(
-                f"version {to_version} not found for '{key}'"
-            )
+            raise ConfigurationGovernanceError(f"version {to_version} not found for '{key}'")
         now = self._clock.now()
         new_version = entry.current_version + 1
         entry.versions.append(
             ConfigVersion(
-                version=new_version, value=target.value, author="system",
-                note=f"rollback to v{to_version}", hash=target.hash, created_at=now,
+                version=new_version,
+                value=target.value,
+                author="system",
+                note=f"rollback to v{to_version}",
+                hash=target.hash,
+                created_at=now,
             )
         )
         entry.current_version = new_version
@@ -236,6 +241,4 @@ class ConfigurationGovernanceService:
     def _validate(self, key: str, value: object) -> None:
         validator = self._validators.get(key)
         if validator is not None and not validator(value):
-            raise ConfigurationGovernanceError(
-                f"value for '{key}' failed validation"
-            )
+            raise ConfigurationGovernanceError(f"value for '{key}' failed validation")

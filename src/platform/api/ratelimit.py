@@ -34,9 +34,7 @@ class RateLimiter(Protocol):
 class TokenBucketRateLimiter:
     """A deterministic token-bucket limiter (requests per minute)."""
 
-    def __init__(
-        self, requests_per_minute: int = 120, *, clock: Clock | None = None
-    ) -> None:
+    def __init__(self, requests_per_minute: int = 120, *, clock: Clock | None = None) -> None:
         self._rate = max(1, requests_per_minute)
         self._clock = clock or SystemClock()
         # key -> (tokens, last_refill_epoch_seconds)
@@ -53,6 +51,4 @@ class TokenBucketRateLimiter:
         if allowed:
             tokens -= cost
         self._buckets[key] = (tokens, now)
-        return RateLimitResult(
-            allowed=allowed, remaining=int(tokens), limit=self._rate
-        )
+        return RateLimitResult(allowed=allowed, remaining=int(tokens), limit=self._rate)

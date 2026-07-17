@@ -12,17 +12,14 @@ def load_candidates(file_path: str):
 
     path = Path(file_path)
 
-    with open(path, "r", encoding="utf-8") as f:
-
+    with open(path, encoding="utf-8") as f:
         for line in f:
-
             line = line.strip()
 
             if not line:
                 continue
 
             try:
-
                 row = json.loads(line)
 
                 candidate = Candidate(**row)
@@ -30,9 +27,6 @@ def load_candidates(file_path: str):
                 candidates.append(candidate)
 
             except Exception as e:
-
-                print(
-                    f"Error parsing candidate: {e}"
-                )
+                print(f"Error parsing candidate: {e}")
 
     return candidates

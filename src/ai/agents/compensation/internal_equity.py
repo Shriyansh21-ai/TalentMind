@@ -16,7 +16,7 @@ their names are registered as prepared extension points in ``templates``.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from src.ai.agents.compensation.schemas import (
     CompensationRange,
@@ -40,11 +40,11 @@ class CompensationDataProvider(Protocol):
         """Return True when live company compensation data can be served."""
         ...
 
-    def get_pay_band(self, role: str, level: str) -> Optional[Dict[str, Any]]:
+    def get_pay_band(self, role: str, level: str) -> dict[str, Any] | None:
         """Return the company pay band for ``(role, level)`` or ``None``."""
         ...
 
-    def get_peer_compensation(self, role: str, level: str) -> Optional[List[Dict[str, Any]]]:
+    def get_peer_compensation(self, role: str, level: str) -> list[dict[str, Any]] | None:
         """Return peer compensation records for ``(role, level)`` or ``None``."""
         ...
 
@@ -56,19 +56,19 @@ class NullCompensationDataProvider:
         """Always False — no payroll data is connected."""
         return False
 
-    def get_pay_band(self, role: str, level: str) -> Optional[Dict[str, Any]]:
+    def get_pay_band(self, role: str, level: str) -> dict[str, Any] | None:
         """Return ``None`` — no pay-band data available."""
         return None
 
-    def get_peer_compensation(self, role: str, level: str) -> Optional[List[Dict[str, Any]]]:
+    def get_peer_compensation(self, role: str, level: str) -> list[dict[str, Any]] | None:
         """Return ``None`` — no peer data available."""
         return None
 
 
 def assess_internal_equity(
-    evidence: Dict[str, Any],
+    evidence: dict[str, Any],
     band: CompensationRange,
-    provider: Optional[CompensationDataProvider] = None,
+    provider: CompensationDataProvider | None = None,
 ) -> InternalEquityReadiness:
     """Assess internal-equity readiness (Module 8).
 
@@ -95,8 +95,8 @@ def assess_internal_equity(
     intelligence = evidence.get("intelligence") or {}
     level = "senior" if float(overview.get("years_of_experience", 0) or 0) >= 8 else "mid"
 
-    checks: List[GovernanceCheck] = []
-    recommendations: List[str] = []
+    checks: list[GovernanceCheck] = []
+    recommendations: list[str] = []
 
     pay_band = provider.get_pay_band(role, level)
     if pay_band:
@@ -116,7 +116,9 @@ def assess_internal_equity(
             )
         )
         if not within:
-            recommendations.append("Reconcile the offer with the published pay band before approval.")
+            recommendations.append(
+                "Reconcile the offer with the published pay band before approval."
+            )
 
     peers = provider.get_peer_compensation(role, level)
     if peers:
@@ -136,7 +138,9 @@ def assess_internal_equity(
                 )
             )
             if compression:
-                recommendations.append("Assess compression against existing peers; consider a peer adjustment.")
+                recommendations.append(
+                    "Assess compression against existing peers; consider a peer adjustment."
+                )
 
     checks.append(
         GovernanceCheck(

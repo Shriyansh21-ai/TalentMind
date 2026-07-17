@@ -39,7 +39,7 @@ class RiskLevel(str, Enum):
         }[self]
 
     @classmethod
-    def highest(cls, levels: "list[RiskLevel]") -> "RiskLevel":
+    def highest(cls, levels: list[RiskLevel]) -> RiskLevel:
         """Return the riskiest level in ``levels`` (NONE if empty)."""
         if not levels:
             return cls.NONE

@@ -57,11 +57,11 @@ jobs:
           tags: talentmind:${{ github.ref_name }}
       - name: Generate release notes
         run: |
-          python -c "from src.platform.deployment.release import ReleaseManager, ChangeEntry, ChangeType; m = ReleaseManager(); print(m.generate_release_notes('${{ github.ref_name }}', [ChangeEntry(change_type=ChangeType.FEATURE, summary='See PHASE6 milestone reports')]))" > RELEASE_NOTES.md
+          python -c "from src.platform.deployment.release import ReleaseManager, ChangeEntry, ChangeType; m = ReleaseManager(); print(m.generate_release_notes('${{ github.ref_name }}', [ChangeEntry(change_type=ChangeType.FEATURE, summary='See docs/CHANGELOG.md for release details')]))" > RELEASE_NOTES.md
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-${{ github.ref_name }}
           path: |
             RELEASE_NOTES.md
-            PHASE6_MILESTONE*_REPORT.md
+            docs/CHANGELOG.md

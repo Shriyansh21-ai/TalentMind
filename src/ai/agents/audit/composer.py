@@ -9,10 +9,10 @@ guarantee.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def compose_audit_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
+def compose_audit_narrative(evidence: dict[str, Any]) -> dict[str, Any]:
     """Deterministically compose an :class:`AuditNarrative` from evidence."""
     ov = evidence.get("candidate_overview") or {}
     title = ov.get("title") or "the candidate"
@@ -43,35 +43,47 @@ def compose_audit_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
         "AI recommendations and human decisions are kept strictly separate."
     )
 
-    key_findings: List[str] = []
+    key_findings: list[str] = []
     for d in reasoning.get("ai_decisions", [])[:3]:
         key_findings.append(d)
     if not key_findings:
         key_findings.append("No AI decisions were evidenced.")
 
-    outstanding: List[str] = []
+    outstanding: list[str] = []
     outstanding += [f"Missing evidence: {m}" for m in readiness.get("missing_evidence", [])[:3]]
     outstanding += [f"Missing approval: {m}" for m in readiness.get("missing_approvals", [])[:3]]
     outstanding += [f"Unverified: {m}" for m in readiness.get("unverified_decisions", [])[:2]]
     if not outstanding:
         outstanding.append("No outstanding audit gaps on record.")
 
-    audit_recommendations: List[str] = []
+    audit_recommendations: list[str] = []
     if readiness.get("missing_approvals"):
-        audit_recommendations.append("Confirm the outstanding approvals in the approval system of record.")
+        audit_recommendations.append(
+            "Confirm the outstanding approvals in the approval system of record."
+        )
     if readiness.get("missing_documents"):
         audit_recommendations.append("File the missing documentation before sign-off.")
     if not data_available:
-        audit_recommendations.append("Connect an audit archive to enable full historical reconstruction.")
+        audit_recommendations.append(
+            "Connect an audit archive to enable full historical reconstruction."
+        )
     if not audit_recommendations:
-        audit_recommendations.append("Retain the current evidence set; the journey is well-reconstructed.")
+        audit_recommendations.append(
+            "Retain the current evidence set; the journey is well-reconstructed."
+        )
 
-    assumptions = ["This reconstruction reflects only artefacts on record; it does not add or rewrite history."]
+    assumptions = [
+        "This reconstruction reflects only artefacts on record; it does not add or rewrite history."
+    ]
     if not data_available:
-        assumptions.append("No audit archive connected; human approvals and history are unverified.")
+        assumptions.append(
+            "No audit archive connected; human approvals and history are unverified."
+        )
 
     if level == "High":
-        confidence_note = "Confidence is high: the journey is fully reconstructable from the evidence on record."
+        confidence_note = (
+            "Confidence is high: the journey is fully reconstructable from the evidence on record."
+        )
     elif not data_available:
         confidence_note = "Confidence is limited: approval/history systems are not connected, so several steps are unverified."
     else:
@@ -81,7 +93,8 @@ def compose_audit_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
         "executive_summary": summary,
         "decision_journey_note": (
             "Reconstructed journey: " + " -> ".join(a for a in agents) + "."
-            if agents else "No agent participation was evidenced."
+            if agents
+            else "No agent participation was evidenced."
         ),
         "evidence_note": (
             f"{len(agents)} evidence source(s) on record with documented provenance; "
@@ -90,7 +103,8 @@ def compose_audit_narrative(evidence: Dict[str, Any]) -> Dict[str, Any]:
         "responsibility_note": responsibility_note,
         "governance_note": (
             "; ".join(f"{g.get('topic')}: {g.get('explanation', '')[:120]}" for g in governance[:3])
-            if governance else "No governance events evidenced."
+            if governance
+            else "No governance events evidenced."
         ),
         "readiness_note": (
             f"Audit readiness {status} ({level}). {readiness.get('governance_completeness', '')}"

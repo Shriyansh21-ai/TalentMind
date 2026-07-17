@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
-from src.models.candidates import Candidate
-from src.scoring.skill_gap import get_skill_gap
 from src.ai.tools.base import (
     BaseTool,
     ToolContext,
@@ -13,9 +11,11 @@ from src.ai.tools.base import (
     ToolResult,
     ToolValidationError,
 )
+from src.models.candidates import Candidate
+from src.scoring.skill_gap import get_skill_gap
 
 
-def _candidate_row(candidate: Candidate, score: float) -> Dict[str, Any]:
+def _candidate_row(candidate: Candidate, score: float) -> dict[str, Any]:
     """Project a candidate + score into a compact result row."""
     return {
         "candidate_id": candidate.candidate_id,
@@ -37,11 +37,11 @@ class FAISSSearchTool(BaseTool):
         engine="FAISS Recruiter Search",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         if not str(tool_input.get("query", "")).strip():
             raise ToolValidationError("faiss_search requires a non-empty 'query'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         query = str(tool_input["query"]).strip()
         top_k = int(tool_input.get("top_k", 5))
         hits = context.repository.search(query, top_k=top_k)
@@ -67,16 +67,16 @@ class CandidateSearchTool(BaseTool):
         engine="Candidate Pool",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         if not str(tool_input.get("query", "")).strip():
             raise ToolValidationError("candidate_search requires a non-empty 'query'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         query = str(tool_input["query"]).strip().lower()
         top_k = int(tool_input.get("top_k", 5))
         tokens = [t for t in query.replace(",", " ").split() if t]
 
-        scored: List[tuple] = []
+        scored: list[tuple] = []
         for candidate in context.repository.sample(limit=500):
             haystack = " ".join(
                 [
@@ -112,16 +112,14 @@ class SkillGapTool(BaseTool):
         engine="Skill Gap Analyzer",
     )
 
-    def validate(self, tool_input: Dict[str, Any]) -> None:
+    def validate(self, tool_input: dict[str, Any]) -> None:
         if not tool_input.get("candidate_id"):
             raise ToolValidationError("skill_gap requires 'candidate_id'.")
 
-    def execute(self, tool_input: Dict[str, Any], context: ToolContext) -> ToolResult:
+    def execute(self, tool_input: dict[str, Any], context: ToolContext) -> ToolResult:
         candidate = context.repository.get(str(tool_input["candidate_id"]))
         if candidate is None:
-            raise ToolValidationError(
-                f"Unknown candidate {tool_input['candidate_id']!r}."
-            )
+            raise ToolValidationError(f"Unknown candidate {tool_input['candidate_id']!r}.")
         jd = str(tool_input.get("jd") or context.jd or "")
         gap = get_skill_gap(candidate, jd)
         return ToolResult(

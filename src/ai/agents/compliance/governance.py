@@ -9,12 +9,12 @@ conclusions (Module 14).
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from src.ai.agents.compliance.schemas import ComplianceScenario
 
 # Ordered sections of the executive compliance report (Module 8).
-REPORT_SECTIONS: List[Tuple[str, str]] = [
+REPORT_SECTIONS: list[tuple[str, str]] = [
     ("executive_summary", "Executive Summary"),
     ("workflow_status", "Workflow Status"),
     ("governance_status", "Governance Status"),
@@ -26,7 +26,7 @@ REPORT_SECTIONS: List[Tuple[str, str]] = [
 ]
 
 
-def section_titles() -> List[str]:
+def section_titles() -> list[str]:
     """Return the ordered compliance-report section titles."""
     return [title for _key, title in REPORT_SECTIONS]
 
@@ -66,6 +66,6 @@ _SCENARIOS = [
 ]
 
 
-def build_scenarios(context: Dict[str, Any]) -> List[ComplianceScenario]:
+def build_scenarios(context: dict[str, Any]) -> list[ComplianceScenario]:
     """Return the governance-impact scenario simulations (Module 9)."""
     return list(_SCENARIOS)

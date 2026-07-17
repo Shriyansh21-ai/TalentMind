@@ -8,11 +8,10 @@ end-to-end through the UI with the offline provider.
 
 from __future__ import annotations
 
-import faiss  # noqa: F401  (faiss-before-torch load order)
-
 import tempfile
 from pathlib import Path
 
+import faiss  # noqa: F401  (faiss-before-torch load order)
 from streamlit.testing.v1 import AppTest
 
 ROOT = Path(__file__).resolve().parents[1].as_posix()
@@ -63,7 +62,5 @@ def test_ai_tab_renders_and_generates():
     assert not at.exception
 
     # After generation: an executive decision banner is rendered as a status box.
-    rendered = " ".join(
-        [md.value for md in at.markdown] + [s.value for s in at.subheader]
-    )
+    rendered = " ".join([md.value for md in at.markdown] + [s.value for s in at.subheader])
     assert "Executive Summary" in rendered

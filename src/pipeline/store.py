@@ -17,7 +17,6 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import asdict
-from typing import Dict, Optional
 
 from src.pipeline.models import (
     CandidatePipelineStatus,
@@ -82,17 +81,17 @@ class PipelineStore:
 
     # -- io -----------------------------------------------------------------
 
-    def load(self) -> Dict[str, CandidatePipelineStatus]:
+    def load(self) -> dict[str, CandidatePipelineStatus]:
         """Return the full ``candidate_id -> status`` map (empty if unavailable)."""
         if not os.path.exists(self.path):
             return {}
         try:
-            with open(self.path, "r", encoding="utf-8") as handle:
+            with open(self.path, encoding="utf-8") as handle:
                 raw = json.load(handle)
         except (json.JSONDecodeError, OSError):
             return {}
 
-        result: Dict[str, CandidatePipelineStatus] = {}
+        result: dict[str, CandidatePipelineStatus] = {}
         for candidate_id, payload in raw.items():
             try:
                 result[candidate_id] = self._from_dict(payload)
@@ -101,15 +100,14 @@ class PipelineStore:
                 continue
         return result
 
-    def save(self, states: Dict[str, CandidatePipelineStatus]) -> None:
+    def save(self, states: dict[str, CandidatePipelineStatus]) -> None:
         """Persist the full pipeline state map atomically-ish via write-replace."""
         directory = os.path.dirname(self.path)
         if directory:
             os.makedirs(directory, exist_ok=True)
 
         serializable = {
-            candidate_id: self._to_dict(status)
-            for candidate_id, status in states.items()
+            candidate_id: self._to_dict(status) for candidate_id, status in states.items()
         }
 
         tmp_path = f"{self.path}.tmp"
@@ -117,7 +115,7 @@ class PipelineStore:
             json.dump(serializable, handle, indent=4)
         os.replace(tmp_path, self.path)
 
-    def get(self, candidate_id: str) -> Optional[CandidatePipelineStatus]:
+    def get(self, candidate_id: str) -> CandidatePipelineStatus | None:
         """Return a single candidate's status, or ``None`` if not tracked yet."""
         return self.load().get(candidate_id)
 

@@ -9,13 +9,13 @@ fabricated flow.
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from src.ai.agents.audit.schemas import EvidenceEdge, EvidenceGraph, EvidenceNode
 from src.ai.agents.audit.templates import AGENT_CATALOG, FINAL_DECISION_NODE
 
 
-def build_evidence_graph(context: Dict[str, Any]) -> EvidenceGraph:
+def build_evidence_graph(context: dict[str, Any]) -> EvidenceGraph:
     """Build the evidence graph (Modules 2, 10)."""
     sources = set(context.get("evidence_sources", []))
     committee_present = "AI Hiring Committee" in sources
@@ -25,7 +25,12 @@ def build_evidence_graph(context: Dict[str, Any]) -> EvidenceGraph:
         for e in AGENT_CATALOG
     ]
     nodes.append(
-        EvidenceNode(id=FINAL_DECISION_NODE, label="Final Decision", kind="decision", present=committee_present)
+        EvidenceNode(
+            id=FINAL_DECISION_NODE,
+            label="Final Decision",
+            kind="decision",
+            present=committee_present,
+        )
     )
     present_ids = {n.id for n in nodes if n.present}
 

@@ -22,9 +22,7 @@ class RoleHierarchy:
     def __init__(self, *, clock: Clock | None = None) -> None:
         self._clock = clock or SystemClock()
         self.roles: InMemoryRepository[RoleNode] = InMemoryRepository("role_node")
-        self.groups: InMemoryRepository[PermissionGroup] = InMemoryRepository(
-            "permission_group"
-        )
+        self.groups: InMemoryRepository[PermissionGroup] = InMemoryRepository("permission_group")
 
     # -- definition ---------------------------------------------------------
 
@@ -76,9 +74,7 @@ class RoleHierarchy:
         return matches_[0] if matches_ else None
 
     def _group_permissions(self, tenant_id: str, group_name: str) -> list[str]:
-        found = self.groups.list(
-            tenant_id=tenant_id, where=lambda g: g.name == group_name
-        )
+        found = self.groups.list(tenant_id=tenant_id, where=lambda g: g.name == group_name)
         return found[0].permissions if found else []
 
     def effective_permissions(self, tenant_id: str, role: str) -> set[str]:

@@ -8,7 +8,7 @@ computed from impact vs. implementation effort (Module 9). Every item is a
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from src.ai.agents.hiring_intelligence.analytics_engine import is_positive, share
 from src.ai.agents.hiring_intelligence.schemas import KPI, Optimization
@@ -28,7 +28,9 @@ _PRIORITY = {
 }
 
 
-def _fires(trigger: str, cohort: List[Dict[str, Any]], kpis: List[KPI], data_available: bool) -> bool:
+def _fires(
+    trigger: str, cohort: list[dict[str, Any]], kpis: list[KPI], data_available: bool
+) -> bool:
     """Return whether an optimization's trigger condition holds."""
     if trigger == "no_provider":
         return not data_available
@@ -45,9 +47,11 @@ def _fires(trigger: str, cohort: List[Dict[str, Any]], kpis: List[KPI], data_ava
     return False
 
 
-def build_optimizations(cohort: List[Dict[str, Any]], kpis: List[KPI], data_available: bool) -> List[Optimization]:
+def build_optimizations(
+    cohort: list[dict[str, Any]], kpis: list[KPI], data_available: bool
+) -> list[Optimization]:
     """Generate prioritized optimization opportunities (Module 9)."""
-    optimizations: List[Optimization] = []
+    optimizations: list[Optimization] = []
     for definition in OPTIMIZATION_CATALOG:
         if not _fires(definition.trigger, cohort, kpis, data_available):
             continue
@@ -65,8 +69,12 @@ def build_optimizations(cohort: List[Dict[str, Any]], kpis: List[KPI], data_avai
     if not optimizations:
         optimizations.append(
             Optimization(
-                area="Process", recommendation="No material optimization opportunities surfaced from the current cohort.",
-                impact="Low", effort="Low", priority="Low", register="Recommendation",
+                area="Process",
+                recommendation="No material optimization opportunities surfaced from the current cohort.",
+                impact="Low",
+                effort="Low",
+                priority="Low",
+                register="Recommendation",
             )
         )
     # Highest-priority first.

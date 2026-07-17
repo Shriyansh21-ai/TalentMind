@@ -9,8 +9,6 @@ other exporter, so content never diverges between formats.
 
 from __future__ import annotations
 
-from typing import List, Tuple
-
 from src.ai.agents.executive_report.export._common import pdf_escape
 from src.ai.agents.executive_report.renderer import ReportDocument, Section
 
@@ -38,13 +36,13 @@ _STYLES = {
 _FONT_OBJ = {"Regular": "F1", "Bold": "F2", "Oblique": "F3"}
 
 
-def _wrap(text: str, size: float, width: float) -> List[str]:
+def _wrap(text: str, size: float, width: float) -> list[str]:
     """Word-wrap ``text`` to ``width`` points at font ``size`` (approx metrics)."""
     max_chars = max(8, int(width / (size * 0.5)))
     words = str(text).split()
     if not words:
         return [""]
-    lines: List[str] = []
+    lines: list[str] = []
     current = ""
     for word in words:
         candidate = f"{current} {word}".strip()
@@ -63,10 +61,10 @@ def _wrap(text: str, size: float, width: float) -> List[str]:
     return lines
 
 
-def _flatten(document: ReportDocument) -> List[Tuple[str, str]]:
+def _flatten(document: ReportDocument) -> list[tuple[str, str]]:
     """Return the full ``(style, text)`` stream including the cover."""
     cover = document.cover
-    lines: List[Tuple[str, str]] = [
+    lines: list[tuple[str, str]] = [
         ("cover", cover.get("logo", document.brand.product)),
         ("title", document.title),
         ("subtitle", document.subtitle),
@@ -84,16 +82,16 @@ def _flatten(document: ReportDocument) -> List[Tuple[str, str]]:
     return lines
 
 
-def _section_lines(section: Section) -> List[Tuple[str, str]]:
+def _section_lines(section: Section) -> list[tuple[str, str]]:
     from src.ai.agents.executive_report.export._common import section_lines
 
     return section_lines(section)
 
 
-def _layout(lines: List[Tuple[str, str]]) -> List[List[Tuple[float, float, str, float, str]]]:
+def _layout(lines: list[tuple[str, str]]) -> list[list[tuple[float, float, str, float, str]]]:
     """Lay lines out into pages. Returns pages of (x, y, font_obj, size, text)."""
-    pages: List[List[Tuple[float, float, str, float, str]]] = []
-    page: List[Tuple[float, float, str, float, str]] = []
+    pages: list[list[tuple[float, float, str, float, str]]] = []
+    page: list[tuple[float, float, str, float, str]] = []
     y = _TOP
 
     def _new_page() -> None:
@@ -117,7 +115,7 @@ def _layout(lines: List[Tuple[str, str]]) -> List[List[Tuple[float, float, str, 
     return pages
 
 
-def _content_stream(page: List[Tuple[float, float, str, float, str]]) -> bytes:
+def _content_stream(page: list[tuple[float, float, str, float, str]]) -> bytes:
     """Build a PDF content stream for one laid-out page."""
     parts = ["BT"]
     current_font = None
@@ -137,7 +135,7 @@ def render(document: ReportDocument) -> bytes:
     pages = _layout(_flatten(document))
 
     # Object plan: 1=Catalog, 2=Pages, 3/4/5=Fonts, then page+content pairs.
-    objects: List[bytes] = []
+    objects: list[bytes] = []
 
     def _add(obj: bytes) -> int:
         objects.append(obj)
@@ -152,16 +150,12 @@ def render(document: ReportDocument) -> bytes:
     f2 = _add(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>")
     f3 = _add(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique >>")
 
-    resources = (
-        f"<< /Font << /F1 {f1} 0 R /F2 {f2} 0 R /F3 {f3} 0 R >> >>"
-    ).encode("latin-1")
+    resources = (f"<< /Font << /F1 {f1} 0 R /F2 {f2} 0 R /F3 {f3} 0 R >> >>").encode("latin-1")
 
-    page_obj_nums: List[int] = []
+    page_obj_nums: list[int] = []
     for page in pages:
         stream = _content_stream(page)
-        content_num = _add(
-            b"<< /Length %d >>\nstream\n%s\nendstream" % (len(stream), stream)
-        )
+        content_num = _add(b"<< /Length %d >>\nstream\n%s\nendstream" % (len(stream), stream))
         page_dict = (
             f"<< /Type /Page /Parent {pages_num} 0 R "
             f"/MediaBox [0 0 {_PAGE_W:.0f} {_PAGE_H:.0f}] "
@@ -177,7 +171,7 @@ def render(document: ReportDocument) -> bytes:
 
     # Serialize with a cross-reference table.
     out = bytearray(b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
-    offsets: List[int] = []
+    offsets: list[int] = []
     for index, obj in enumerate(objects, start=1):
         offsets.append(len(out))
         out += f"{index} 0 obj\n".encode("latin-1")
@@ -191,7 +185,6 @@ def render(document: ReportDocument) -> bytes:
     for off in offsets:
         out += f"{off:010d} 00000 n \n".encode("latin-1")
     out += (
-        f"trailer\n<< /Size {count} /Root {catalog_num} 0 R >>\n"
-        f"startxref\n{xref_pos}\n%%EOF\n"
+        f"trailer\n<< /Size {count} /Root {catalog_num} 0 R >>\nstartxref\n{xref_pos}\n%%EOF\n"
     ).encode("latin-1")
     return bytes(out)

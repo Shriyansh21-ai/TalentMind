@@ -8,12 +8,10 @@ data change; new tools plug in by name.
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 from src.ai.copilot.models import Intent
 
 # Minimal tool set per intent. Order matters (search before candidate tools).
-INTENT_TOOLS: Dict[Intent, List[str]] = {
+INTENT_TOOLS: dict[Intent, list[str]] = {
     Intent.SEARCH_CANDIDATE: ["faiss_search"],
     Intent.SKILL_SEARCH: ["faiss_search", "skill_gap"],
     Intent.COMPARE_CANDIDATES: ["comparison", "risk", "timeline"],
@@ -43,6 +41,6 @@ INTENT_TOOLS: Dict[Intent, List[str]] = {
 }
 
 
-def select_tools(intent: Intent) -> List[str]:
+def select_tools(intent: Intent) -> list[str]:
     """Return the ordered tool names for ``intent`` (empty for general Q&A)."""
     return list(INTENT_TOOLS.get(intent, []))

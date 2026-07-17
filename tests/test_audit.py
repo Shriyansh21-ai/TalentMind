@@ -13,19 +13,18 @@ from __future__ import annotations
 import json
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-from src.ai.providers.composers import has_composer
-
+from src.ai.agents.audit import approvals as approvals_mod
+from src.ai.agents.audit import decision_trace as trace_mod
+from src.ai.agents.audit import evidence_graph as graph_mod
+from src.ai.agents.audit import governance as governance_mod
+from src.ai.agents.audit import history as history_mod
+from src.ai.agents.audit import provenance as provenance_mod
+from src.ai.agents.audit import validators
 from src.ai.agents.audit.agent import (
     AuditInput,
     build_audit_evidence,
-    hiring_audit_agent,
 )
 from src.ai.agents.audit.audit_engine import (
     HiringAuditEngine,
@@ -33,16 +32,13 @@ from src.ai.agents.audit.audit_engine import (
 )
 from src.ai.agents.audit.composer import compose_audit_narrative
 from src.ai.agents.audit.schemas import AuditNarrative, HiringAuditReport
-from src.ai.agents.audit import decision_trace as trace_mod
-from src.ai.agents.audit import provenance as provenance_mod
-from src.ai.agents.audit import evidence_graph as graph_mod
-from src.ai.agents.audit import approvals as approvals_mod
-from src.ai.agents.audit import governance as governance_mod
-from src.ai.agents.audit import history as history_mod
-from src.ai.agents.audit import validators
 from src.ai.agents.audit.templates import AGENT_CATALOG
-
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 JD = "Senior Machine Learning Engineer. Python, PyTorch, AWS, Kubernetes, LLMs. 8+ years. Lead and mentor."
 
@@ -56,8 +52,10 @@ class _ComplianceProvider:
         return True
 
     def get_approvals(self, candidate_id):
-        return {role: {"approved": True, "by": "Approver"} for role in
-                ["Recruiter", "Hiring Manager", "HR", "Finance", "Legal", "Executive"]}
+        return {
+            role: {"approved": True, "by": "Approver"}
+            for role in ["Recruiter", "Hiring Manager", "HR", "Finance", "Legal", "Executive"]
+        }
 
     def get_documents(self, candidate_id):
         return {"executive_report": True, "interview_packet": True}
@@ -101,18 +99,36 @@ def _ctx(sources=None, data_available=False, **over):
         "workflow": {"status": "Requires Review", "completed": 6, "total": 8},
         "approvals": {
             "approvals": [
-                {"approver": "Recruiter", "required": True, "state": "Requires Review", "reason": "r"},
-                {"approver": "Hiring Manager", "required": True, "state": "Requires Review", "reason": "r"},
+                {
+                    "approver": "Recruiter",
+                    "required": True,
+                    "state": "Requires Review",
+                    "reason": "r",
+                },
+                {
+                    "approver": "Hiring Manager",
+                    "required": True,
+                    "state": "Requires Review",
+                    "reason": "r",
+                },
                 {"approver": "HR", "required": True, "state": "Requires Review", "reason": "r"},
                 {"approver": "Finance", "required": False, "state": "Not Required", "reason": "r"},
                 {"approver": "Legal", "required": False, "state": "Not Required", "reason": "r"},
-                {"approver": "Executive", "required": False, "state": "Not Required", "reason": "r"},
+                {
+                    "approver": "Executive",
+                    "required": False,
+                    "state": "Not Required",
+                    "reason": "r",
+                },
             ],
             "required": ["Recruiter", "Hiring Manager", "HR"],
             "outstanding": ["Recruiter", "Hiring Manager", "HR"],
         },
         "documentation": {"missing": [], "present": ["Resume"]},
-        "audit": {"findings": [{"dimension": "Evidence chain", "status": "Complete"}], "status": "Needs Investigation"},
+        "audit": {
+            "findings": [{"dimension": "Evidence chain", "status": "Complete"}],
+            "status": "Needs Investigation",
+        },
         "governance_risk": {"level": "Medium", "drivers": ["Outstanding approvals"]},
         "exceptions": [],
         "review": {"rationale": "Recommend Compliance review."},
@@ -146,8 +162,8 @@ def test_narrative_schema_is_score_free():
 
 
 def test_tool_registered_in_builtin():
-    from src.ai.tools.registry import registry as tool_registry
     import src.ai.tools.builtin  # noqa: F401
+    from src.ai.tools.registry import registry as tool_registry
 
     assert tool_registry.has("hiring_audit")
 
@@ -164,14 +180,28 @@ def test_composer_never_empty_and_validates():
 
 
 def test_composer_states_no_archive():
-    out = compose_audit_narrative({"data_available": False, "history": {"status_message": "No historical audit archive connected."}})
+    out = compose_audit_narrative(
+        {
+            "data_available": False,
+            "history": {"status_message": "No historical audit archive connected."},
+        }
+    )
     assert "archive" in out["data_availability_note"].lower()
 
 
 def test_build_evidence_packs_all_sections():
     ev = build_audit_evidence(AuditInput(candidate_id="C1"))
-    for key in ("decision_trace", "provenance", "reasoning", "timeline", "responsibility",
-                "governance_explanations", "audit_readiness", "history", "agents_participated"):
+    for key in (
+        "decision_trace",
+        "provenance",
+        "reasoning",
+        "timeline",
+        "responsibility",
+        "governance_explanations",
+        "audit_readiness",
+        "history",
+        "agents_participated",
+    ):
         assert key in ev
 
 
@@ -202,7 +232,9 @@ def test_decision_trace_unavailable_when_sources_absent():
 
 
 def test_provenance_present_and_absent():
-    records = provenance_mod.build_provenance(_ctx(sources=["Resume Analyst Agent", "AI Hiring Committee"]))
+    records = provenance_mod.build_provenance(
+        _ctx(sources=["Resume Analyst Agent", "AI Hiring Committee"])
+    )
     by_source = {r.evidence_source: r for r in records}
     assert by_source["Resume Analyst Agent"].register == "Observed"
     assert by_source["Pay Equity Guardian"].register == "Unavailable"
@@ -299,15 +331,26 @@ def test_engine_produces_report_without_archive():
 
 def test_engine_reconstructs_full_chain_evidence():
     report = _report()
-    for label in ("AI Hiring Committee", "Compensation Governance Agent",
-                  "Pay Equity Guardian", "Hiring Compliance", "Resume Risk Detection"):
+    for label in (
+        "AI Hiring Committee",
+        "Compensation Governance Agent",
+        "Pay Equity Guardian",
+        "Hiring Compliance",
+        "Resume Risk Detection",
+    ):
         assert label in report.evidence_sources
 
 
 def test_engine_with_providers_verifies_humans_and_history():
-    report = _report(compliance_provider=_ComplianceProvider(), archive_provider=_ArchiveProvider(), candidate_id="CAND_2")
+    report = _report(
+        compliance_provider=_ComplianceProvider(),
+        archive_provider=_ArchiveProvider(),
+        candidate_id="CAND_2",
+    )
     assert report.data_available is True
-    human_observed = [d for d in report.responsibility if d.responsible_party != "AI" and d.status == "Observed"]
+    human_observed = [
+        d for d in report.responsibility if d.responsible_party != "AI" and d.status == "Observed"
+    ]
     assert human_observed
     assert report.history.available is True
 
@@ -321,13 +364,26 @@ def test_engine_is_deterministic():
 
 def test_report_to_dict_is_serializable():
     assert json.dumps(_report().to_dict())
-    assert json.dumps(_report(compliance_provider=_ComplianceProvider(), archive_provider=_ArchiveProvider(), candidate_id="CAND_J").to_dict())
+    assert json.dumps(
+        _report(
+            compliance_provider=_ComplianceProvider(),
+            archive_provider=_ArchiveProvider(),
+            candidate_id="CAND_J",
+        ).to_dict()
+    )
 
 
 def test_charts_present():
     report = _report()
-    for key in ("decision_flow", "evidence_graph", "timeline", "approval_chain",
-                "agent_participation", "governance_health", "audit_readiness"):
+    for key in (
+        "decision_flow",
+        "evidence_graph",
+        "timeline",
+        "approval_chain",
+        "agent_participation",
+        "governance_health",
+        "audit_readiness",
+    ):
         assert key in report.charts
 
 
@@ -358,9 +414,9 @@ def test_human_never_observed_without_archive():
 
 
 def test_copilot_routes_audit_questions():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -375,16 +431,16 @@ def test_copilot_routes_audit_questions():
 
 
 def test_copilot_audit_intent_selects_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.HIRING_AUDIT) == ["hiring_audit"]
 
 
 def test_copilot_existing_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -403,9 +459,9 @@ def test_copilot_existing_intents_unchanged():
 
 
 def test_copilot_delegates_to_audit_end_to_end():
-    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository(
         [make_candidate(candidate_id="CAND_0000001", title="Senior ML Engineer")]

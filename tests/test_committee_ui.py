@@ -8,7 +8,6 @@ proving the workspace boots, runs the committee and renders the decision.
 from __future__ import annotations
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from streamlit.testing.v1 import AppTest
 
 _SCRIPT = """

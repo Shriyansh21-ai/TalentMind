@@ -15,9 +15,7 @@ reported pending review (Module 14). All collaborators are injected (SOLID / DI)
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
-
-from src.ai.core.runner import AgentRunner
+from typing import Any, Protocol, runtime_checkable
 
 from src.ai.agents.compliance import approval_engine as approval_mod
 from src.ai.agents.compliance import audit as audit_mod
@@ -38,10 +36,9 @@ from src.ai.agents.compliance.agent import (
 from src.ai.agents.compliance.composer import compose_compliance_narrative
 from src.ai.agents.compliance.schemas import ComplianceNarrative, HiringComplianceReport
 from src.ai.agents.compliance.templates import COMPLIANCE_THRESHOLDS, list_policies
-
 from src.ai.agents.pay_equity.equity_engine import PayEquityGuardianEngine
 from src.ai.committee.schemas import CommitteeMode
-
+from src.ai.core.runner import AgentRunner
 
 # ---------------------------------------------------------------------------
 # Module 12 — future governance/document/workflow provider (interface only)
@@ -63,15 +60,15 @@ class ComplianceDataProvider(Protocol):
         """Return True when live governance/workflow data can be served."""
         ...
 
-    def get_approvals(self, candidate_id: str) -> Optional[Dict[str, Dict[str, Any]]]:
+    def get_approvals(self, candidate_id: str) -> dict[str, dict[str, Any]] | None:
         """Return ``{role: {approved, by, at}}`` or ``None``."""
         ...
 
-    def get_documents(self, candidate_id: str) -> Optional[Dict[str, bool]]:
+    def get_documents(self, candidate_id: str) -> dict[str, bool] | None:
         """Return ``{document_key: present}`` or ``None``."""
         ...
 
-    def get_audit_events(self, candidate_id: str) -> Optional[List[Dict[str, Any]]]:
+    def get_audit_events(self, candidate_id: str) -> list[dict[str, Any]] | None:
         """Return the recorded audit events or ``None``."""
         ...
 
@@ -83,15 +80,15 @@ class NullComplianceDataProvider:
         """Always False — no governance/workflow system is connected."""
         return False
 
-    def get_approvals(self, candidate_id: str) -> Optional[Dict[str, Dict[str, Any]]]:
+    def get_approvals(self, candidate_id: str) -> dict[str, dict[str, Any]] | None:
         """Return ``None`` — no approval data available."""
         return None
 
-    def get_documents(self, candidate_id: str) -> Optional[Dict[str, bool]]:
+    def get_documents(self, candidate_id: str) -> dict[str, bool] | None:
         """Return ``None`` — no document data available."""
         return None
 
-    def get_audit_events(self, candidate_id: str) -> Optional[List[Dict[str, Any]]]:
+    def get_audit_events(self, candidate_id: str) -> list[dict[str, Any]] | None:
         """Return ``None`` — no audit events available."""
         return None
 
@@ -104,11 +101,11 @@ class HiringComplianceEngine:
     def __init__(
         self,
         *,
-        ai_runner: Optional[AgentRunner] = None,
-        pay_equity_engine: Optional[PayEquityGuardianEngine] = None,
-        insights_fn: Optional[Any] = None,
-        data_provider: Optional[ComplianceDataProvider] = None,
-        policies: Optional[List[Any]] = None,
+        ai_runner: AgentRunner | None = None,
+        pay_equity_engine: PayEquityGuardianEngine | None = None,
+        insights_fn: Any | None = None,
+        data_provider: ComplianceDataProvider | None = None,
+        policies: list[Any] | None = None,
     ) -> None:
         """Wire the engine's collaborators (all optional; sane defaults used)."""
         self.ai_runner = ai_runner or AgentRunner()
@@ -123,7 +120,7 @@ class HiringComplianceEngine:
         self,
         candidate: Any = None,
         *,
-        candidate_id: Optional[str] = None,
+        candidate_id: str | None = None,
         repository: Any = None,
         jd: str = "",
         mode: CommitteeMode = CommitteeMode.BALANCED,
@@ -143,7 +140,9 @@ class HiringComplianceEngine:
         pe_engine = self.pay_equity_engine or PayEquityGuardianEngine(
             insights_fn=self.insights_fn, ai_runner=self.ai_runner
         )
-        pe_report = pe_engine.build(candidate=candidate, jd=jd, mode=mode, generated_on=generated_on)
+        pe_report = pe_engine.build(
+            candidate=candidate, jd=jd, mode=mode, generated_on=generated_on
+        )
 
         provider = self.data_provider
         data_available = bool(getattr(provider, "is_available", lambda: False)())
@@ -157,8 +156,12 @@ class HiringComplianceEngine:
         workflow = workflow_mod.assess_workflow(context, approvals, documentation)
         policy_checks = policy_mod.evaluate_policies(self.policies, context, approvals)
         audit = audit_mod.validate_audit_trail(context, approvals, provider)
-        exceptions = exceptions_mod.detect_exceptions(context, workflow, approvals, documentation, policy_checks)
-        governance_risk = risk_mod.assess_governance_risk(workflow, exceptions, approvals, documentation)
+        exceptions = exceptions_mod.detect_exceptions(
+            context, workflow, approvals, documentation, policy_checks
+        )
+        governance_risk = risk_mod.assess_governance_risk(
+            workflow, exceptions, approvals, documentation
+        )
         review = review_mod.determine_review(governance_risk, exceptions, policy_checks)
         scenarios = governance_mod.build_scenarios(context)
 
@@ -181,8 +184,11 @@ class HiringComplianceEngine:
         narrative = self._narrative(payload, evidence)
 
         chart_data = charts_mod.build_chart_data(
-            workflow=workflow, approvals=approvals, documentation=documentation,
-            audit=audit, governance_risk=governance_risk,
+            workflow=workflow,
+            approvals=approvals,
+            documentation=documentation,
+            audit=audit,
+            governance_risk=governance_risk,
         )
 
         warnings = validators.evidence_coverage_warnings(evidence)
@@ -212,7 +218,7 @@ class HiringComplianceEngine:
     # -- context ------------------------------------------------------------
 
     @staticmethod
-    def _context(pe_report: Any, candidate: Any, data_available: bool) -> Dict[str, Any]:
+    def _context(pe_report: Any, candidate: Any, data_available: bool) -> dict[str, Any]:
         """Build the shared compliance context from the reused pay-equity report."""
         overview = pe_report.candidate_overview
         offer = pe_report.offer_summary
@@ -230,9 +236,12 @@ class HiringComplianceEngine:
         # The pay-equity guardian (and thus compensation governance) definitely ran
         # — ensure both are represented in the evidence sources the compliance layer
         # derives workflow/document presence from.
-        evidence_sources = list(dict.fromkeys(
-            list(pe_report.evidence_sources) + ["Compensation Governance Agent", "Pay Equity Guardian"]
-        ))
+        evidence_sources = list(
+            dict.fromkeys(
+                list(pe_report.evidence_sources)
+                + ["Compensation Governance Agent", "Pay Equity Guardian"]
+            )
+        )
 
         return {
             "candidate_id": pe_report.candidate_id,
@@ -253,7 +262,7 @@ class HiringComplianceEngine:
 
     # -- narrative ----------------------------------------------------------
 
-    def _narrative(self, payload: ComplianceInput, evidence: Dict[str, Any]) -> ComplianceNarrative:
+    def _narrative(self, payload: ComplianceInput, evidence: dict[str, Any]) -> ComplianceNarrative:
         """Run the agent; fall back to the deterministic composer on any failure."""
         try:
             result = self.ai_runner.run(compliance_agent, payload)

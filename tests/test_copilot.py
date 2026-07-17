@@ -8,28 +8,24 @@ synthetic candidate repository (no dataset, no FAISS, no network).
 from __future__ import annotations
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
 from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.tools.base import ToolContext, ToolResult
-from src.ai.tools.provider import InMemoryCandidateRepository
-from src.ai.tools.registry import ToolRegistry, ToolRunner
-from src.ai.tools.builtin import register_builtin_tools
-
 from src.ai.copilot.controller import RecruiterCopilot
 from src.ai.copilot.conversation import ConversationManager
-from src.ai.copilot.models import Intent
+from src.ai.copilot.models import CopilotPlan, Intent
 from src.ai.copilot.planner import CopilotPlanner, IntentClassifier
-from src.ai.copilot.state import ConversationState
-from src.ai.copilot.tool_selector import select_tools
 from src.ai.copilot.response_builder import (
-    build_turn,
     suggest_actions,
     suggest_follow_ups,
 )
-from src.ai.copilot.models import CopilotPlan
+from src.ai.copilot.state import ConversationState
+from src.ai.copilot.tool_selector import select_tools
+from src.ai.core.runner import AgentRunner
+from src.ai.tools.base import ToolContext, ToolResult
+from src.ai.tools.builtin import register_builtin_tools
+from src.ai.tools.provider import InMemoryCandidateRepository
+from src.ai.tools.registry import ToolRegistry, ToolRunner
 
 JD = "python machine learning llm aws docker"
 

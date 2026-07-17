@@ -9,7 +9,7 @@ seam for injecting memory-derived history.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from src.ai.config.settings import AISettings
 from src.ai.core.context import AgentContext
@@ -19,7 +19,7 @@ from src.ai.memory.base import BaseMemory
 class ContextBuilder:
     """Builds request-scoped :class:`AgentContext` objects."""
 
-    def __init__(self, memory: Optional[BaseMemory] = None) -> None:
+    def __init__(self, memory: BaseMemory | None = None) -> None:
         """Optionally bind a memory backend to inject into every context."""
         self.memory = memory
 

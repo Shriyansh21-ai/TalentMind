@@ -124,19 +124,13 @@ class ComplianceService:
         )
         return self.evidence.add(evidence)
 
-    def evidence_for(
-        self, tenant_id: str, standard: ComplianceStandard
-    ) -> list[Evidence]:
+    def evidence_for(self, tenant_id: str, standard: ComplianceStandard) -> list[Evidence]:
         """Return a tenant's evidence for a standard."""
-        return self.evidence.list(
-            tenant_id=tenant_id, where=lambda e: e.standard == standard
-        )
+        return self.evidence.list(tenant_id=tenant_id, where=lambda e: e.standard == standard)
 
     # -- assessment ---------------------------------------------------------
 
-    def assess(
-        self, tenant_id: str, standard: ComplianceStandard
-    ) -> ComplianceReport:
+    def assess(self, tenant_id: str, standard: ComplianceStandard) -> ComplianceReport:
         """Assess a tenant against a standard from collected evidence."""
         evidence = self.evidence_for(tenant_id, standard)
         counts: dict[str, int] = {}
@@ -168,9 +162,7 @@ class ComplianceService:
             controls=controls,
         )
 
-    def gap_analysis(
-        self, tenant_id: str, standard: ComplianceStandard
-    ) -> GapAnalysis:
+    def gap_analysis(self, tenant_id: str, standard: ComplianceStandard) -> GapAnalysis:
         """Return the unmet controls for a standard, with recommendations."""
         report = self.assess(tenant_id, standard)
         gaps = [
@@ -178,9 +170,5 @@ class ComplianceService:
             for c in report.controls
             if c.status in (ControlStatus.UNSATISFIED, ControlStatus.PARTIAL)
         ]
-        recommendations = [
-            f"Provide evidence for {c.code} — {c.title}" for c in gaps
-        ]
-        return GapAnalysis(
-            standard=standard, gaps=gaps, recommendations=recommendations
-        )
+        recommendations = [f"Provide evidence for {c.code} — {c.title}" for c in gaps]
+        return GapAnalysis(standard=standard, gaps=gaps, recommendations=recommendations)

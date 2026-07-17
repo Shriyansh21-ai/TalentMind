@@ -18,8 +18,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from datetime import UTC, datetime
 
 from src.ai.orchestration.communication.bus import MessageBus
 from src.ai.orchestration.communication.messages import MessageType
@@ -33,7 +32,6 @@ from src.ai.orchestration.memory.memory import (
 )
 from src.ai.orchestration.models import (
     AgentOutput,
-    Priority,
     Task,
     TaskGraph,
     TaskStatus,
@@ -85,18 +83,18 @@ class WorkflowResult:
     workflow_id: str
     workflow_name: str
     status: WorkflowStatus
-    outputs: Dict[str, AgentOutput] = field(default_factory=dict)
-    state: Optional[WorkflowState] = None
-    warnings: List[str] = field(default_factory=list)
+    outputs: dict[str, AgentOutput] = field(default_factory=dict)
+    state: WorkflowState | None = None
+    warnings: list[str] = field(default_factory=list)
     latency_ms: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
 
     @property
     def ok(self) -> bool:
         """Return ``True`` when the run completed (fully or partially)."""
         return self.status in {WorkflowStatus.COMPLETED, WorkflowStatus.PARTIAL}
 
-    def successful_outputs(self) -> Dict[str, AgentOutput]:
+    def successful_outputs(self) -> dict[str, AgentOutput]:
         """Return only the outputs whose tasks succeeded."""
         return {tid: o for tid, o in self.outputs.items() if o.ok}
 
@@ -109,22 +107,20 @@ class WorkflowEngine:
     def __init__(
         self,
         *,
-        registry: Optional[OrchestrationRegistry] = None,
-        delegation: Optional[DelegationManager] = None,
-        scheduler: Optional[TaskScheduler] = None,
-        safety: Optional[OrchestrationSafetyGuard] = None,
-        events: Optional[EventEmitter] = None,
-        bus: Optional[MessageBus] = None,
-        memory: Optional[OrchestrationMemory] = None,
-        schedule_policy: Optional[SchedulePolicy] = None,
+        registry: OrchestrationRegistry | None = None,
+        delegation: DelegationManager | None = None,
+        scheduler: TaskScheduler | None = None,
+        safety: OrchestrationSafetyGuard | None = None,
+        events: EventEmitter | None = None,
+        bus: MessageBus | None = None,
+        memory: OrchestrationMemory | None = None,
+        schedule_policy: SchedulePolicy | None = None,
     ) -> None:
         """Wire the engine's collaborators (all optional; sane defaults used)."""
         self.registry = registry or orchestration_registry
         self.safety = safety or OrchestrationSafetyGuard()
         self.scheduler = scheduler or TaskScheduler(schedule_policy)
-        self.delegation = delegation or DelegationManager(
-            self.registry, safety=self.safety
-        )
+        self.delegation = delegation or DelegationManager(self.registry, safety=self.safety)
         # Keep the delegation manager and engine sharing one safety guard.
         self.delegation.safety = self.safety
         self.events = events or EventEmitter()
@@ -136,10 +132,10 @@ class WorkflowEngine:
     def run_definition(
         self,
         definition: WorkflowDefinition,
-        context: Optional[SharedContext] = None,
+        context: SharedContext | None = None,
         *,
-        base_payload: Optional[dict] = None,
-        cancellation: Optional[CancellationToken] = None,
+        base_payload: dict | None = None,
+        cancellation: CancellationToken | None = None,
     ) -> WorkflowResult:
         """Compile ``definition`` into a graph and execute it."""
         graph = definition.build_graph(base_payload)
@@ -158,13 +154,13 @@ class WorkflowEngine:
         self,
         graph: TaskGraph,
         *,
-        context: Optional[SharedContext] = None,
+        context: SharedContext | None = None,
         name: str = "workflow",
         max_retries: int = 1,
         continue_on_failure: bool = True,
-        fallback_capability: Optional[str] = None,
+        fallback_capability: str | None = None,
         version: str = "v1",
-        cancellation: Optional[CancellationToken] = None,
+        cancellation: CancellationToken | None = None,
     ) -> WorkflowResult:
         """Execute a validated :class:`TaskGraph` and return a result."""
         workflow_id = self._next_id(name)
@@ -195,7 +191,7 @@ class WorkflowEngine:
         except OrchestrationSafetyError as exc:
             return self._abort(state, start, str(exc))
 
-        outputs: Dict[str, AgentOutput] = {}
+        outputs: dict[str, AgentOutput] = {}
         failed_required = False
 
         for group in plan.groups:
@@ -235,13 +231,9 @@ class WorkflowEngine:
                     if not continue_on_failure:
                         state.status = WorkflowStatus.FAILED
                         self._finalize(state, start, outputs, aborted=True)
-                        return self._result(
-                            state, outputs, start, error=output.error
-                        )
+                        return self._result(state, outputs, start, error=output.error)
 
-        state.status = (
-            WorkflowStatus.PARTIAL if failed_required else WorkflowStatus.COMPLETED
-        )
+        state.status = WorkflowStatus.PARTIAL if failed_required else WorkflowStatus.COMPLETED
         self._finalize(state, start, outputs)
         return self._result(state, outputs, start)
 
@@ -255,7 +247,7 @@ class WorkflowEngine:
         workflow_id: str,
         *,
         max_retries: int,
-        fallback_capability: Optional[str],
+        fallback_capability: str | None,
     ) -> AgentOutput:
         """Delegate one task, applying fallback, events, state and memory."""
         ts = state.task(task.id, task.capability)
@@ -280,13 +272,9 @@ class WorkflowEngine:
         )
 
         try:
-            output = self.delegation.delegate(
-                task, context, max_retries=max_retries
-            )
+            output = self.delegation.delegate(task, context, max_retries=max_retries)
         except OrchestrationSafetyError as exc:
-            output = AgentOutput(
-                task_id=task.id, agent=agent_name, ok=False, error=str(exc)
-            )
+            output = AgentOutput(task_id=task.id, agent=agent_name, ok=False, error=str(exc))
 
         # Config-driven fallback to an alternate capability.
         if not output.ok and fallback_capability:
@@ -299,13 +287,9 @@ class WorkflowEngine:
                 payload=task.payload,
                 metadata={**task.metadata, "fallback_for": task.capability},
             )
-            fb_output = self.delegation.delegate(
-                fb_task, context, max_retries=0
-            )
+            fb_output = self.delegation.delegate(fb_task, context, max_retries=0)
             if fb_output.ok:
-                fb_output.summary = (
-                    f"(fallback via {fallback_capability!r}) {fb_output.summary}"
-                )
+                fb_output.summary = f"(fallback via {fallback_capability!r}) {fb_output.summary}"
                 output = fb_output
 
         # Record everywhere.
@@ -351,7 +335,7 @@ class WorkflowEngine:
 
     # -- helpers ------------------------------------------------------------
 
-    def _dependency_failed(self, task: Task, outputs: Dict[str, AgentOutput]) -> bool:
+    def _dependency_failed(self, task: Task, outputs: dict[str, AgentOutput]) -> bool:
         """Return ``True`` if any *non-optional* dependency of ``task`` failed/absent."""
         for dep in task.dependencies:
             out = outputs.get(dep)
@@ -361,9 +345,7 @@ class WorkflowEngine:
 
     def _emit(self, type: EventType, workflow_id: str, **kw) -> None:
         """Emit an :class:`OrchestrationEvent` on the emitter."""
-        self.events.emit(
-            OrchestrationEvent(type=type, workflow_id=workflow_id, **kw)
-        )
+        self.events.emit(OrchestrationEvent(type=type, workflow_id=workflow_id, **kw))
 
     def _emit_task_skipped(self, workflow_id: str, task: Task, reason: str) -> None:
         """Emit a skip as a (non-failing) task-failed event annotated with reason."""
@@ -379,7 +361,7 @@ class WorkflowEngine:
         self,
         state: WorkflowState,
         start: float,
-        outputs: Dict[str, AgentOutput],
+        outputs: dict[str, AgentOutput],
         *,
         aborted: bool = False,
     ) -> None:
@@ -403,10 +385,10 @@ class WorkflowEngine:
     def _result(
         self,
         state: WorkflowState,
-        outputs: Dict[str, AgentOutput],
+        outputs: dict[str, AgentOutput],
         start: float,
         *,
-        error: Optional[str] = None,
+        error: str | None = None,
     ) -> WorkflowResult:
         """Assemble the final :class:`WorkflowResult`."""
         return WorkflowResult(
@@ -420,9 +402,7 @@ class WorkflowEngine:
             error=error,
         )
 
-    def _abort(
-        self, state: WorkflowState, start: float, error: str
-    ) -> WorkflowResult:
+    def _abort(self, state: WorkflowState, start: float, error: str) -> WorkflowResult:
         """Abort a run before/at scheduling on a hard safety violation."""
         state.status = WorkflowStatus.FAILED
         state.finished_at = _now_iso()
@@ -435,7 +415,7 @@ class WorkflowEngine:
         return self._result(state, {}, start, error=error)
 
     def _cancel(
-        self, state: WorkflowState, start: float, outputs: Dict[str, AgentOutput]
+        self, state: WorkflowState, start: float, outputs: dict[str, AgentOutput]
     ) -> WorkflowResult:
         """Handle cooperative cancellation."""
         state.status = WorkflowStatus.CANCELLED
@@ -457,4 +437,4 @@ class WorkflowEngine:
 
 def _now_iso() -> str:
     """Return the current UTC time as an ISO-8601 string."""
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+    return datetime.now(UTC).isoformat(timespec="milliseconds")

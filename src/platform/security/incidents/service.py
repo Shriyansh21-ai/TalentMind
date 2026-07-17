@@ -60,7 +60,9 @@ class IncidentService:
             owner=owner,
             related_event_ids=related_event_ids or [],
             detected_at=now,
-            timeline=[TimelineEntry(at=now, status=IncidentStatus.OPEN, note="opened", actor=owner)],
+            timeline=[
+                TimelineEntry(at=now, status=IncidentStatus.OPEN, note="opened", actor=owner)
+            ],
             created_at=now,
             updated_at=now,
         )
@@ -70,9 +72,7 @@ class IncidentService:
 
     def _append(self, incident: Incident, status: IncidentStatus, note: str, actor: str) -> None:
         now = self._clock.now()
-        incident.timeline.append(
-            TimelineEntry(at=now, status=status, note=note, actor=actor)
-        )
+        incident.timeline.append(TimelineEntry(at=now, status=status, note=note, actor=actor))
         incident.status = status
         incident.touch(now)
         self.repo.update(incident)
@@ -90,14 +90,21 @@ class IncidentService:
         incident.severity = _ESCALATION[incident.severity]
         incident.escalated = True
         self._append(
-            incident, incident.status,
-            f"escalated to {incident.severity.value}", actor,
+            incident,
+            incident.status,
+            f"escalated to {incident.severity.value}",
+            actor,
         )
         return incident
 
     def update_status(
-        self, tenant_id: str, incident_id: str, status: IncidentStatus,
-        *, note: str = "", actor: str = "",
+        self,
+        tenant_id: str,
+        incident_id: str,
+        status: IncidentStatus,
+        *,
+        note: str = "",
+        actor: str = "",
     ) -> Incident:
         """Transition an incident to a new status (recorded on the timeline)."""
         incident = self.repo.require(incident_id, tenant_id=tenant_id)
@@ -133,9 +140,7 @@ class IncidentService:
         """Return one incident (tenant-isolated)."""
         return self.repo.require(incident_id, tenant_id=tenant_id)
 
-    def list(
-        self, tenant_id: str, *, open_only: bool = False
-    ) -> list[Incident]:
+    def list(self, tenant_id: str, *, open_only: bool = False) -> list[Incident]:
         """Return a tenant's incidents."""
         where = (lambda i: i.is_open) if open_only else None
         return self.repo.list(tenant_id=tenant_id, where=where)

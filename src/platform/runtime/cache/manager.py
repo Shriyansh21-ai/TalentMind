@@ -47,9 +47,7 @@ class CacheNamespace:
         """Return whether a namespaced key is present."""
         return self._provider.exists(self._key(key))
 
-    def get_or_set(
-        self, key: str, factory, *, ttl_seconds: float | None = None
-    ) -> object:
+    def get_or_set(self, key: str, factory, *, ttl_seconds: float | None = None) -> object:
         """Return the cached value, computing and caching it on a miss."""
         found = self.get(key)
         if found is not None:

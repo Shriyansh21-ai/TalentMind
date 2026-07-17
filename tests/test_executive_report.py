@@ -11,41 +11,37 @@ synthetic candidates (no dataset, no provider, no LLM).
 from __future__ import annotations
 
 import io
-import zipfile
 import xml.dom.minidom as minidom
+import zipfile
 
 import faiss  # noqa: F401  (faiss-before-torch load order)
-
 from conftest import make_candidate
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
-from src.ai.core.registry import registry
-from src.ai.validators.safety import SafetyGuard
-from src.ai.providers.composers import has_composer
-
+from src.ai.agents.executive_report import charts as charts_mod
+from src.ai.agents.executive_report import validators
 from src.ai.agents.executive_report.agent import (
     ExecutiveReportInput,
     build_executive_evidence,
-    executive_report_agent,
 )
 from src.ai.agents.executive_report.builder import ExecutiveReportBuilder
 from src.ai.agents.executive_report.composer import compose_executive_narrative
+from src.ai.agents.executive_report.export import (
+    FORMATS,
+    PACKETS,
+    export_packet,
+    export_report,
+)
 from src.ai.agents.executive_report.schemas import (
     ExecutiveHiringReport,
     ExecutiveNarrative,
 )
-from src.ai.agents.executive_report import charts as charts_mod
-from src.ai.agents.executive_report import validators
-from src.ai.agents.executive_report.export import (
-    FORMATS,
-    PACKETS,
-    export_report,
-    export_packet,
-)
-from src.ai.agents.executive_report.templates import TEMPLATES, get_template, list_templates
-
+from src.ai.agents.executive_report.templates import get_template, list_templates
+from src.ai.config.settings import AISettings
+from src.ai.core.registry import registry
+from src.ai.core.runner import AgentRunner
 from src.ai.orchestration.registry.agent_registry import orchestration_registry
+from src.ai.providers.composers import has_composer
+from src.ai.validators.safety import SafetyGuard
 
 JD = """Senior Machine Learning Engineer
 What you'll do
@@ -106,11 +102,18 @@ def test_narrative_top_level_has_no_score_fields():
 
 def test_composer_uses_committee_recommendation_when_present():
     evidence = {
-        "candidate_overview": {"title": "Senior ML Engineer", "company": "Acme", "years_of_experience": 9},
+        "candidate_overview": {
+            "title": "Senior ML Engineer",
+            "company": "Acme",
+            "years_of_experience": 9,
+        },
         "committee": {
             "consensus": {"recommendation": "Hire"},
             "confidence": {"overall": 80.0},
-            "decision": {"executive_summary": "Strong candidate.", "business_justification": "Ships value."},
+            "decision": {
+                "executive_summary": "Strong candidate.",
+                "business_justification": "Ships value.",
+            },
         },
         "recommendation": {"recommendation": "Lean Hire", "reasons": ["x"]},
     }
@@ -137,7 +140,16 @@ def test_composer_never_empty_summary():
 def test_build_evidence_packs_all_sources():
     payload = ExecutiveReportInput(candidate_id="C1", intelligence={"overall_score": 80})
     evidence = build_executive_evidence(payload)
-    for key in ("committee", "resume", "jd", "intelligence", "timeline", "risk", "recommendation", "interview"):
+    for key in (
+        "committee",
+        "resume",
+        "jd",
+        "intelligence",
+        "timeline",
+        "risk",
+        "recommendation",
+        "interview",
+    ):
         assert key in evidence
 
 
@@ -186,7 +198,9 @@ def test_builder_degrades_without_jd():
 
 def test_builder_without_committee():
     builder = ExecutiveReportBuilder(ai_runner=_runner())
-    report = builder.build(candidate=make_candidate(), jd=JD, run_committee=False, generated_on="2026-07-15")
+    report = builder.build(
+        candidate=make_candidate(), jd=JD, run_committee=False, generated_on="2026-07-15"
+    )
     assert not report.committee
     assert report.narrative.executive_summary
 
@@ -227,7 +241,15 @@ def test_provenance_separates_registers():
 
 def test_all_templates_build_and_differ():
     keys = [t.key for t in list_templates()]
-    assert {"executive", "ceo", "cto", "hr", "engineering_manager", "recruiter", "committee"} <= set(keys)
+    assert {
+        "executive",
+        "ceo",
+        "cto",
+        "hr",
+        "engineering_manager",
+        "recruiter",
+        "committee",
+    } <= set(keys)
     exec_sections = get_template("executive").section_ids
     ceo_sections = get_template("ceo").section_ids
     assert exec_sections != ceo_sections  # different presentation
@@ -248,8 +270,14 @@ def test_get_template_falls_back_to_default():
 def test_chart_data_built_for_every_visual():
     report = _report()
     for key in (
-        "scorecard", "radar", "risk_matrix", "consensus_meter",
-        "confidence_distribution", "career_growth", "skill_distribution", "interview_roadmap",
+        "scorecard",
+        "radar",
+        "risk_matrix",
+        "consensus_meter",
+        "confidence_distribution",
+        "career_growth",
+        "skill_distribution",
+        "interview_roadmap",
     ):
         assert key in report.charts
 
@@ -325,9 +353,9 @@ def test_export_rejects_unknown_format():
 
 
 def test_copilot_routes_executive_report_questions():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     for message in [
@@ -342,16 +370,16 @@ def test_copilot_routes_executive_report_questions():
 
 
 def test_copilot_executive_intent_selects_tool():
-    from src.ai.copilot.tool_selector import select_tools
     from src.ai.copilot.models import Intent
+    from src.ai.copilot.tool_selector import select_tools
 
     assert select_tools(Intent.EXECUTIVE_REPORT) == ["executive_report"]
 
 
 def test_copilot_existing_intents_unchanged():
+    from src.ai.copilot.models import Intent
     from src.ai.copilot.planner import IntentClassifier
     from src.ai.copilot.state import ConversationState
-    from src.ai.copilot.models import Intent
 
     clf = IntentClassifier()
     cases = {
@@ -367,9 +395,9 @@ def test_copilot_existing_intents_unchanged():
 
 
 def test_copilot_delegates_to_executive_report_end_to_end():
-    from src.ai.tools.provider import InMemoryCandidateRepository
     from src.ai.copilot.controller import RecruiterCopilot
     from src.ai.copilot.models import Intent
+    from src.ai.tools.provider import InMemoryCandidateRepository
 
     repo = InMemoryCandidateRepository(
         [make_candidate(candidate_id="CAND_0000001", title="Senior ML Engineer")]

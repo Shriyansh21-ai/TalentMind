@@ -12,16 +12,16 @@ hiring ranking.
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from collections.abc import Callable
+from typing import Any
 
 import streamlit as st
 
-from src.ai.config.settings import AISettings
-from src.ai.core.runner import AgentRunner
 from src.ai.agents.resume.agent import ResumeAnalystInput, resume_analyst_agent
 from src.ai.agents.resume.schemas import ResumeAnalysis
+from src.ai.core.runner import AgentRunner
 
-_runner: Optional[AgentRunner] = None
+_runner: AgentRunner | None = None
 
 _PRIORITY_BADGE = {"high": "🔴 High", "medium": "🟠 Medium", "low": "🟡 Low"}
 _RISK_BADGE = {"high": "🔴", "medium": "🟠", "low": "🟡"}
@@ -248,7 +248,7 @@ def _render_dashboard(analysis: ResumeAnalysis, key_prefix: str) -> None:
     st.caption("📌 " + analysis.confidence_note)
 
 
-def _bullets(items: List[str], empty_message: str) -> None:
+def _bullets(items: list[str], empty_message: str) -> None:
     """Render a bullet list, or a caption when empty."""
     if not items:
         if empty_message:
@@ -286,7 +286,9 @@ def render_resume_workspace(repository_factory: RepositoryFactory, *, jd: str = 
 
     ids = [c.candidate_id for c in candidates]
     chosen = st.selectbox("Select a candidate", ids, key="ri_pick")
-    jd_text = st.text_area("Optional job description (ATS keyword coverage only)", value=jd, key="ri_jd")
+    jd_text = st.text_area(
+        "Optional job description (ATS keyword coverage only)", value=jd, key="ri_jd"
+    )
 
     candidate = repository.get(chosen)
     if candidate is not None:

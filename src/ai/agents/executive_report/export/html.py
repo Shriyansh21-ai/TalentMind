@@ -7,8 +7,6 @@ free; the branding module supplies the enterprise colour + typography system.
 
 from __future__ import annotations
 
-from typing import List
-
 from src.ai.agents.executive_report.export._common import html_escape
 from src.ai.agents.executive_report.renderer import Block, ReportDocument, Section
 
@@ -71,7 +69,7 @@ def _render_block(block: Block) -> str:
         )
         return f"<table class='kv'>{rows}</table>"
     if block.kind == "metric":
-        parts: List[str] = []
+        parts: list[str] = []
         for label, value, note in block.metrics:
             pct = max(0.0, min(100.0, float(value)))
             parts.append(
@@ -94,7 +92,12 @@ def render(document: ReportDocument) -> bytes:
     toc = "".join(f"<li>{html_escape(title)}</li>" for _, title in document.toc)
     sections = "".join(_render_section(s) for s in document.sections)
     meta_bits = ""
-    for label, key in [("Candidate", "candidate_id"), ("Role", "title"), ("Audience", "audience"), ("Generated", "generated_on")]:
+    for label, key in [
+        ("Candidate", "candidate_id"),
+        ("Role", "title"),
+        ("Audience", "audience"),
+        ("Generated", "generated_on"),
+    ]:
         value = cover.get(key)
         if value:
             meta_bits += f"<div><span>{html_escape(label)}</span>{html_escape(str(value))}</div>"
@@ -102,15 +105,15 @@ def render(document: ReportDocument) -> bytes:
     html = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html_escape(document.title)} — {html_escape(cover.get('candidate_id', ''))}</title>
+<title>{html_escape(document.title)} — {html_escape(cover.get("candidate_id", ""))}</title>
 <style>{_css(document)}</style></head>
 <body>
 <div class="cover">
-  <div class="logo">{html_escape(cover.get('logo', document.brand.product))}</div>
+  <div class="logo">{html_escape(cover.get("logo", document.brand.product))}</div>
   <h1>{html_escape(document.title)}</h1>
   <div class="sub">{html_escape(document.subtitle)}</div>
-  <div style="margin-top:20px"><span class="badge">{html_escape(cover.get('recommendation', ''))}</span>
-    &nbsp;<span class="badge" style="background:rgba(255,255,255,.2)">Confidence: {html_escape(str(cover.get('confidence', '')))}</span></div>
+  <div style="margin-top:20px"><span class="badge">{html_escape(cover.get("recommendation", ""))}</span>
+    &nbsp;<span class="badge" style="background:rgba(255,255,255,.2)">Confidence: {html_escape(str(cover.get("confidence", "")))}</span></div>
   <div class="meta">{meta_bits}</div>
 </div>
 <div class="wrap">

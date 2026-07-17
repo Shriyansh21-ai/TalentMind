@@ -29,12 +29,11 @@ can consume or extend it without a redesign.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List
+from typing import Any
 
 from pydantic import Field, field_validator
 
 from src.ai.schemas.base import BaseAIResponse
-
 
 # ---------------------------------------------------------------------------
 # AI Platform output (BaseAIResponse — score-free top level)
@@ -58,8 +57,8 @@ class CompensationNarrative(BaseAIResponse):
     internal_equity_note: str = ""
     future_outlook_note: str = ""
     transparency_note: str = ""
-    key_justifications: List[str] = Field(default_factory=list)
-    key_assumptions: List[str] = Field(default_factory=list)
+    key_justifications: list[str] = Field(default_factory=list)
+    key_assumptions: list[str] = Field(default_factory=list)
     confidence_note: str = ""
 
     @field_validator("executive_summary")
@@ -90,9 +89,9 @@ class Estimate:
     rationale: str = ""
     confidence: float = 0.0
     kind: str = "Heuristic Estimate"
-    basis: List[str] = field(default_factory=list)
+    basis: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the estimate."""
         return {
             "label": self.label,
@@ -120,10 +119,10 @@ class CompensationRange:
     maximum: float = 0.0
     confidence: float = 0.0
     confidence_label: str = "Moderate"
-    basis: List[str] = field(default_factory=list)
-    assumptions: List[str] = field(default_factory=list)
+    basis: list[str] = field(default_factory=list)
+    assumptions: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the range."""
         return {
             "currency": self.currency,
@@ -163,7 +162,7 @@ class JustificationEntry:
     source: str
     confidence: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the justification entry."""
         return {
             "kind": self.kind,
@@ -187,7 +186,7 @@ class GovernanceCheck:
     rationale: str = ""
     source: str = "Compensation Governance"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the governance check."""
         return asdict(self)
 
@@ -205,10 +204,10 @@ class MarketPosition:
     rationale: str = ""
     data_available: bool = False
     data_note: str = "Recommendation based on internal heuristic model."
-    assumptions: List[str] = field(default_factory=list)
-    basis: List[str] = field(default_factory=list)
+    assumptions: list[str] = field(default_factory=list)
+    basis: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the market position."""
         return asdict(self)
 
@@ -224,13 +223,13 @@ class OfferScenario:
 
     name: str
     comp_range: CompensationRange
-    advantages: List[str] = field(default_factory=list)
-    risks: List[str] = field(default_factory=list)
+    advantages: list[str] = field(default_factory=list)
+    risks: list[str] = field(default_factory=list)
     negotiation_impact: str = ""
     retention_impact: str = ""
     business_impact: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the scenario."""
         return {
             "name": self.name,
@@ -255,14 +254,14 @@ class NegotiationIntelligence:
     acceptance_likelihood: str = "Moderate"
     negotiation_probability: str = "Moderate"
     confidence: float = 0.0
-    observed_evidence: List[str] = field(default_factory=list)
-    likely_objections: List[str] = field(default_factory=list)
-    strategy: List[str] = field(default_factory=list)
-    fallback_strategy: List[str] = field(default_factory=list)
-    executive_approval_notes: List[str] = field(default_factory=list)
-    recruiter_talking_points: List[str] = field(default_factory=list)
+    observed_evidence: list[str] = field(default_factory=list)
+    likely_objections: list[str] = field(default_factory=list)
+    strategy: list[str] = field(default_factory=list)
+    fallback_strategy: list[str] = field(default_factory=list)
+    executive_approval_notes: list[str] = field(default_factory=list)
+    recruiter_talking_points: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the negotiation intelligence."""
         return asdict(self)
 
@@ -282,9 +281,9 @@ class BudgetAssessment:
     investment_rationale: str = ""
     business_justification: str = ""
     confidence: float = 0.0
-    assumptions: List[str] = field(default_factory=list)
+    assumptions: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the budget assessment."""
         return asdict(self)
 
@@ -306,11 +305,11 @@ class InternalEquityReadiness:
 
     available: bool = False
     status_message: str = "Internal equity validation unavailable."
-    checks: List[GovernanceCheck] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    hris_interfaces_ready: List[str] = field(default_factory=list)
+    checks: list[GovernanceCheck] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
+    hris_interfaces_ready: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the internal-equity readiness."""
         return {
             "available": self.available,
@@ -337,7 +336,7 @@ class FutureCompensationOutlook:
     growth_compensation: Estimate
     long_term_value: Estimate
 
-    def items(self) -> List[tuple]:
+    def items(self) -> list[tuple]:
         """Return ``(display_name, Estimate)`` pairs in presentation order."""
         return [
             ("Promotion Readiness", self.promotion_readiness),
@@ -348,7 +347,7 @@ class FutureCompensationOutlook:
             ("Long-Term Talent Value", self.long_term_value),
         ]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the outlook."""
         return {
             "promotion_readiness": self.promotion_readiness.to_dict(),
@@ -377,16 +376,16 @@ class AuditTrail:
 
     decision_id: str
     decision_timestamp: str
-    evidence_sources: List[str] = field(default_factory=list)
-    agents_consulted: List[str] = field(default_factory=list)
-    reasoning_chain: List[str] = field(default_factory=list)
+    evidence_sources: list[str] = field(default_factory=list)
+    agents_consulted: list[str] = field(default_factory=list)
+    reasoning_chain: list[str] = field(default_factory=list)
     confidence: float = 0.0
     confidence_label: str = "Moderate"
-    approvals_required: List[str] = field(default_factory=list)
+    approvals_required: list[str] = field(default_factory=list)
     business_justification: str = ""
     human_review_status: str = "Pending Human Review"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the audit trail."""
         return {
             "decision_id": self.decision_id,
@@ -404,7 +403,7 @@ class AuditTrail:
     def to_export_text(self) -> str:
         """Render the audit trail as a portable, human-readable plaintext report."""
 
-        def _block(items: List[str]) -> List[str]:
+        def _block(items: list[str]) -> list[str]:
             return items or ["  (none)"]
 
         lines = [
@@ -453,23 +452,23 @@ class CompensationReport:
     report_id: str
     candidate_id: str
     generated_on: str
-    candidate_overview: Dict[str, Any]
+    candidate_overview: dict[str, Any]
     narrative: CompensationNarrative
     recommended_range: CompensationRange
-    justification: List[JustificationEntry]
-    governance_checks: List[GovernanceCheck]
+    justification: list[JustificationEntry]
+    governance_checks: list[GovernanceCheck]
     market_position: MarketPosition
-    scenarios: List[OfferScenario]
+    scenarios: list[OfferScenario]
     negotiation: NegotiationIntelligence
     budget: BudgetAssessment
     internal_equity: InternalEquityReadiness
     future_outlook: FutureCompensationOutlook
     audit_trail: AuditTrail
-    charts: Dict[str, Any] = field(default_factory=dict)
-    evidence_sources: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    charts: dict[str, Any] = field(default_factory=dict)
+    evidence_sources: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serializable dict of the whole report."""
         return {
             "report_id": self.report_id,

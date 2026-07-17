@@ -39,9 +39,7 @@ class WorkerPool:
 
     # -- registration & scaling --------------------------------------------
 
-    def register(
-        self, *, name: str = "", context: WorkerContext | None = None
-    ) -> Worker:
+    def register(self, *, name: str = "", context: WorkerContext | None = None) -> Worker:
         """Register a new worker in the STARTING state."""
         now = self._clock.now()
         worker = Worker(

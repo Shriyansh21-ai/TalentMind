@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional, Set
 
 
 class PipelineStage(str, Enum):
@@ -37,7 +36,7 @@ class PipelineStage(str, Enum):
     HOLD = "Hold"
 
     @classmethod
-    def from_value(cls, value: str) -> "PipelineStage":
+    def from_value(cls, value: str) -> PipelineStage:
         """Resolve a stage from its display value, tolerant of raw enum names.
 
         Args:
@@ -71,11 +70,11 @@ class Priority(str, Enum):
 
 # Stages a candidate can always be moved to from any active stage. Rejecting or
 # parking a candidate is a valid action at every point in the funnel.
-_ALWAYS_ALLOWED: Set[PipelineStage] = {PipelineStage.REJECTED, PipelineStage.HOLD}
+_ALWAYS_ALLOWED: set[PipelineStage] = {PipelineStage.REJECTED, PipelineStage.HOLD}
 
 # Forward funnel order used to derive the default "advance to next stage" target
 # and to validate one-step-forward / any-step-back transitions.
-_FUNNEL_ORDER: List[PipelineStage] = [
+_FUNNEL_ORDER: list[PipelineStage] = [
     PipelineStage.APPLIED,
     PipelineStage.SHORTLISTED,
     PipelineStage.RECRUITER_REVIEW,
@@ -90,13 +89,13 @@ _FUNNEL_ORDER: List[PipelineStage] = [
 # to any always-allowed state, and (except from APPLIED) step back to earlier
 # active stages. Terminal states can be re-opened to HOLD or moved back into the
 # active funnel, which mirrors how real ATS tools let recruiters "reconsider".
-_ALLOWED_TRANSITIONS: Dict[PipelineStage, Set[PipelineStage]] = {}
+_ALLOWED_TRANSITIONS: dict[PipelineStage, set[PipelineStage]] = {}
 
 
 def _build_transition_map() -> None:
     """Populate ``_ALLOWED_TRANSITIONS`` from the funnel order + parking rules."""
     for position, stage in enumerate(_FUNNEL_ORDER):
-        allowed: Set[PipelineStage] = set(_ALWAYS_ALLOWED)
+        allowed: set[PipelineStage] = set(_ALWAYS_ALLOWED)
 
         # Advance exactly one step forward.
         if position + 1 < len(_FUNNEL_ORDER):
@@ -123,7 +122,7 @@ def _build_transition_map() -> None:
 _build_transition_map()
 
 
-def allowed_transitions(stage: PipelineStage) -> Set[PipelineStage]:
+def allowed_transitions(stage: PipelineStage) -> set[PipelineStage]:
     """Return the set of stages reachable in one move from ``stage``."""
     return set(_ALLOWED_TRANSITIONS.get(stage, set()))
 
@@ -138,7 +137,7 @@ def can_transition(source: PipelineStage, target: PipelineStage) -> bool:
     return target in allowed_transitions(source)
 
 
-def next_stage(stage: PipelineStage) -> Optional[PipelineStage]:
+def next_stage(stage: PipelineStage) -> PipelineStage | None:
     """Return the default forward stage after ``stage``, or ``None`` if terminal."""
     if stage in _FUNNEL_ORDER:
         position = _FUNNEL_ORDER.index(stage)
@@ -162,9 +161,9 @@ class StageEvent:
 
     to_stage: str
     timestamp: str
-    from_stage: Optional[str] = None
-    actor: Optional[str] = None
-    note: Optional[str] = None
+    from_stage: str | None = None
+    actor: str | None = None
+    note: str | None = None
 
 
 @dataclass
@@ -186,13 +185,13 @@ class CandidatePipelineStatus:
 
     candidate_id: str
     current_stage: PipelineStage = PipelineStage.APPLIED
-    stage_history: List[StageEvent] = field(default_factory=list)
+    stage_history: list[StageEvent] = field(default_factory=list)
     status: str = "Active"
-    assigned_recruiter: Optional[str] = None
+    assigned_recruiter: str | None = None
     priority: Priority = Priority.MEDIUM
-    last_updated: Optional[str] = None
-    notes: List[str] = field(default_factory=list)
-    tags: List[str] = field(default_factory=list)
+    last_updated: str | None = None
+    notes: list[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
 
     def derive_status(self) -> str:
         """Return the coarse lifecycle label implied by the current stage."""

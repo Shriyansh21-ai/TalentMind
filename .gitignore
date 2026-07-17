@@ -8,9 +8,11 @@ __pycache__/
 *.pyo
 *.pyd
 
-# IDE
+# IDE / tooling
 .vscode/
 .idea/
+.claude/
+.ruff_cache/
 
 # Streamlit
 .streamlit/secrets.toml

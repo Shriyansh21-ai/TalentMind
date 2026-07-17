@@ -51,8 +51,18 @@ def test_every_integration_subpackage_imports():
     import importlib
 
     for name in [
-        "common", "hris", "ats", "calendar", "communication", "documents",
-        "gateway", "webhooks", "events", "sync", "observability", "sdk",
+        "common",
+        "hris",
+        "ats",
+        "calendar",
+        "communication",
+        "documents",
+        "gateway",
+        "webhooks",
+        "events",
+        "sync",
+        "observability",
+        "sdk",
     ]:
         importlib.import_module(f"src.platform.integrations.{name}")
 
@@ -69,8 +79,14 @@ def test_app_exposes_integration_marketplace_nav():
 def test_build_integration_platform_wires_all_services():
     platform = build_integration_platform(clock=FrozenClock())
     for key in [
-        "intg.registry", "intg.vault", "intg.observability", "intg.events",
-        "intg.manager", "intg.webhooks", "intg.sync", "intg.gateway",
+        "intg.registry",
+        "intg.vault",
+        "intg.observability",
+        "intg.events",
+        "intg.manager",
+        "intg.webhooks",
+        "intg.sync",
+        "intg.gateway",
         "intg.marketplace",
     ]:
         assert platform.container.has(key)
