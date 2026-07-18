@@ -13,6 +13,13 @@ __pycache__/
 .idea/
 .claude/
 .ruff_cache/
+.mypy_cache/
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+.coverage.*
 
 # Streamlit
 .streamlit/secrets.toml
@@ -24,6 +31,10 @@ outputs/
 
 # Logs
 *.log
+
+# Databases / journals
+*.db-journal
+*.sqlite3-journal
 
 # OS
 .DS_Store
@@ -40,8 +51,10 @@ candidate_embeddings.npy
 # Local Data
 data/raw/candidates.jsonl
 
-# Environment Variables
+# Environment Variables (keep the checked-in template)
 .env
+.env.*
+!.env.example
 
 # Jupyter
 .ipynb_checkpoints/

@@ -160,6 +160,8 @@ TalentMind/
 ├── requirements.txt           runtime dependencies
 ├── requirements-dev.txt       test-only dependencies
 ├── pyproject.toml             ruff / pytest / mypy config + package metadata
+├── LICENSE                    MIT license
+├── .env.example               environment configuration template
 ├── Dockerfile                 multi-stage production image
 ├── docker-compose*.yml        base / dev / prod compose files
 ├── k8s/                       Kubernetes manifests (+ Helm structure notes)
@@ -386,8 +388,8 @@ rule intact.
 
 ## License
 
-Released under the **MIT License** (see `pyproject.toml`). Add a `LICENSE` file with your
-organization's copyright line before publishing.
+Released under the **MIT License** — see [`LICENSE`](LICENSE). Update the copyright line to your
+organization's name before publishing.
 
 ---
 

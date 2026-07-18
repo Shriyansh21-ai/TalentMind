@@ -10,6 +10,8 @@ TalentMind/
 ├── requirements.txt           runtime dependencies
 ├── requirements-dev.txt       test-only dependencies (pytest)
 ├── pyproject.toml             ruff / pytest / mypy config + package metadata
+├── LICENSE                    MIT license
+├── .env.example               environment configuration template (offline-safe defaults)
 ├── Dockerfile                 multi-stage production image
 ├── docker-compose.yml         base compose
 ├── docker-compose.dev.yml     development overrides

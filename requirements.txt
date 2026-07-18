@@ -1,13 +1,12 @@
+# TalentMind — runtime dependencies.
+# Deliberate, top-level packages only; incidental transitive plumbing and
+# test/dev tooling are omitted (the latter live in requirements-dev.txt).
 pandas
 numpy
 pydantic
-tqdm
-pyyaml
 scikit-learn
 sentence-transformers
 torch
-joblib
 streamlit
 plotly
 faiss-cpu
-pytest

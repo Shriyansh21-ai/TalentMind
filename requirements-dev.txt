@@ -1,0 +1,4 @@
+# TalentMind — development & test-only dependencies.
+# Runtime dependencies live in requirements.txt. Install both to run the suite:
+#   pip install -r requirements.txt -r requirements-dev.txt
+pytest
